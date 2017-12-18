@@ -1,60 +1,156 @@
 <!DOCTYPE html>
 <head>
-    <title>Shellyl N</title>
+    <title>Shellyl_N</title>
+    <style>
+        body {
+            background-color: white;
+            background-image: url('assets/image/P1080608-web.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+            font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;
+        }
+        div.header h1 {
+            text-align: center;
+            color: white;
+            text-shadow: 0px 0px 20px black;
+            font-size: 48pt;
+            font-weight: normal;
+        }
+        div.header h1 img.avatar {
+            width: 100px; height: 100px;
+        }
+        div.header h1 a.myname-wrap-anchor {
+            text-decoration: none;
+            color: white;
+        }
+        div.header p.myuserid {
+            font-size: 12pt;
+            text-align: center;
+            color: white;
+            text-shadow: 0px 0px 20px black;
+            margin: -40px 0 -20px 0;
+            padding: 0;
+        }
+        div.main h2 {
+            text-align: center;
+            color: white;
+            text-shadow: 0px 0px 20px black;
+            font-size: 32pt;
+            font-weight: normal;
+        }
+        div.main h2 a.title-anchor {
+            text-decoration: none;
+            color: white;
+        }
+        div.main div.repos {
+            margin: auto;
+            width: 600px;
+        }
+        div.main div.repos ul.title {
+            padding: 0;
+            list-style-type: none;
+            text-align: center;
+            color: white;
+            font-size: 24pt;
+            font-weight: normal;
+        }
+        div.main div.repos ul.title li.main img {
+            width: 350px;
+        }
+        div.main div.repos ul.title li.sub {
+            font-weight: normal;
+            color: black;
+            font-size: 10pt;
+            text-shadow: 0px 0px 5px white;
+            padding-bottom: 10px;
+        }
+        div.main div.repos ul.list {
+            padding: 20px 0 20px 100px;
+            list-style-type: none;
+            text-align: left;
+            color: white;
+            filter: drop-shadow(0px 0px 20px black);
+            font-size: 24pt;
+            font-weight: normal;
+            background-color: rgba(0,0,0,0.15);
+            border-radius: 20px;
+        }
+        div.main div.repos ul.list li a {
+            color: white;
+            text-decoration: none;
+        }
+        div.main div.repos ul.list li a img {
+            width: 24px;
+            filter: invert(100);
+        }
+        div.footer {
+            margin: 60px auto 0 auto;
+            width: 600px;
+            text-align: center;
+            filter: drop-shadow(0px 0px 20px white);
+        }
+        div.footer ul.sns {
+            padding: 0;
+            list-style-type: none;
+            font-size: 9pt;
+            font-weight: normal;
+        }
+        div.footer ul.sns li {
+            display: inline-block;
+            margin: 0 16px 0 16px;
+            text-align: center;
+        }
+        div.footer ul.sns a {
+            text-decoration: none;
+            color: inherit;
+        }
+        div.footer ul.sns img {
+            width: 36px;
+        }
+        div.footer p.copyright {
+            padding: 0;
+            list-style-type: none;
+            font-size: 8pt;
+            font-weight: normal;
+        }
+    </style>
 </head>
-<body style="background-color: white; background-image: url('assets/image/P1080608-web.jpg');">
-    <div>
-        <h1 style="
-            text-align: center; color: white;
-            text-shadow: 0px 0px 20px black;
-            font-size: 48pt; font-weight: normal;
-            font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;">
-            <span><a href="https://github.com/shellyln"><img src="assets/image/shellyln.png" style="width: 100px; height: 100px;"></a></span><br>
-            <span><a href="https://github.com/shellyln" style="text-decoration: none; color: white;">Shellyl N</a></span>
+<body>
+    <div class="header">
+        <h1>
+            <span><a class="avatar-wrap-anchor" href="https://github.com/shellyln"><img class="avatar" src="assets/image/shellyln.png"></a></span><br>
+            <span><a class="myname-wrap-anchor" href="https://github.com/shellyln">Shellyl_N</a></span>
         </h1>
-        <p style="font-size: 12pt; text-align: center; color: white; text-shadow: 0px 0px 20px black; margin: -40px 0 -20px 0; padding: 0;">@shellyln</p>
+        <p class="myuserid">@shellyln</p>
     </div>
-    <div>
-        <h2 style="
-            text-align: center; color: white;
-            text-shadow: 0px 0px 20px black;
-            font-size: 32pt; font-weight: normal;
-            font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;">
-            <a href="https://github.com/shellyln?tab=repositories" style="text-decoration: none; color: white;">Repositories</a>
+    <div class="main">
+        <h2>
+            <a class="title-anchor" href="https://github.com/shellyln?tab=repositories">Repositories</a>
         </h2>
         <hr>
-        <div style="margin: auto; width: 600px;">
-            <ul style="
-                padding: 0;
-                list-style-type: none;
-                text-align: center; color: white;
-                font-size: 24pt; font-weight: normal;
-                font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;">
-                <li><a href="https://github.com/shellyln/red-agate"><img src="assets/image/redagate-logo.svg" style="width: 350px;"></a></li>
-                <li style="font-weight: normal; color: black; font-size: 10pt; text-shadow: 0px 0px 5px white; padding-bottom: 10px;">HTML|XML|SVG template engine using JSX, suitable for report output.</li>
+        <div class="repos">
+            <ul class="title">
+                <li class="main"><a href="https://github.com/shellyln/red-agate"><img src="assets/image/redagate-logo.svg"></a></li>
+                <li class="sub">HTML|XML|SVG template engine using JSX, suitable for report output.</li>
             </ul>
-            <ul style="
-                padding: 0 0 0 100px;
-                list-style-type: none;
-                text-align: left; color: white;
-                filter: drop-shadow(0px 0px 20px black);
-                font-size: 24pt; font-weight: normal;
-                font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;">
-                <li><a style="color: white; text-decoration: none;" href="https://github.com/shellyln/red-agate"><img src="assets/octicons-6.0.1/svg/code.svg" style="width: 24px; filter: invert(100)"> red-agate</a></li>
-                <li><a style="color: white; text-decoration: none;" href="https://github.com/shellyln/red-agate-util"><img src="assets/octicons-6.0.1/svg/code.svg" style="width: 24px; filter: invert(100)"> red-agate-util</a></li>
-                <li><a style="color: white; text-decoration: none;" href="https://github.com/shellyln/red-agate-svg-canvas"><img src="assets/octicons-6.0.1/svg/code.svg" style="width: 24px; filter: invert(100)"> red-agate-svg-canvas</a></li>
-                <li><a style="color: white; text-decoration: none;" href="https://github.com/shellyln/red-agate-math"><img src="assets/octicons-6.0.1/svg/code.svg" style="width: 24px; filter: invert(100)"> red-agate-math</a></li>
-                <li><a style="color: white; text-decoration: none;" href="https://github.com/shellyln/red-agate-barcode"><img src="assets/octicons-6.0.1/svg/code.svg" style="width: 24px; filter: invert(100)"> red-agate-barcode</a></li>
-                <li><a style="color: white; text-decoration: none;" href="https://github.com/shellyln/red-agate-example"><img src="assets/octicons-6.0.1/svg/code.svg" style="width: 24px; filter: invert(100)"> red-agate-example</a></li>
+            <ul class="list">
+                <li><a href="https://github.com/shellyln/red-agate"><img src="assets/octicons-6.0.1/svg/code.svg"> red-agate</a></li>
+                <li><a href="https://github.com/shellyln/red-agate-util"><img src="assets/octicons-6.0.1/svg/code.svg"> red-agate-util</a></li>
+                <li><a href="https://github.com/shellyln/red-agate-svg-canvas"><img src="assets/octicons-6.0.1/svg/code.svg"> red-agate-svg-canvas</a></li>
+                <li><a href="https://github.com/shellyln/red-agate-math"><img src="assets/octicons-6.0.1/svg/code.svg"> red-agate-math</a></li>
+                <li><a href="https://github.com/shellyln/red-agate-barcode"><img src="assets/octicons-6.0.1/svg/code.svg"> red-agate-barcode</a></li>
+                <li><a href="https://github.com/shellyln/red-agate-example"><img src="assets/octicons-6.0.1/svg/code.svg"> red-agate-example</a></li>
             </ul>
         </div>
     </div>
-    <p style="
-        padding: 0;
-        list-style-type: none;
-        color: white;
-        font-size: 8pt; font-weight: normal;
-        font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;">
-        Copyright (c) 2017, Shellyl_N and Authors.
-    </p>
+    <div class="footer">
+        <ul class="sns">
+            <li><a href="https://github.com/shellyln"><img src="assets/octicons-6.0.1/svg/octoface.svg"><br>@shellyln on GitHub</a></li>
+            <li><a href="https://www.npmjs.com/~shellyln"><img src="assets/image/npm.svg"><br>@shellyln on NPM</a></li>
+            <li><a href="https://twitter.com/shellyl_n"><img src="assets/image/twitter.svg"><br>@shellyl_n on Twitter</a></li>
+        </ul>
+        <p class="copyright">
+            Copyright (c) 2017, Shellyl_N and Authors.
+        </p>
+    </div>
 </body>
