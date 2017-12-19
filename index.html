@@ -6,6 +6,7 @@
     <meta name="description" content="Shellyl_N's repositories.">
     <meta name="keywords" content="repositories,RedAgate,red-agate,SVG,Canvas,QR Code,barcode,EAN,JAN,Code128,Code39,JSX,reporting,Shellyl_N">
     <meta name="author" content="Shellyl_N">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
         html {
             width: 100%;
@@ -100,6 +101,11 @@
             background-color: rgba(0,0,0,0.15);
             border-radius: 20px;
         }
+        @media (max-width: 600px) {
+            div.main div.repos ul.list {
+                padding: 20px 0 20px 10px;
+            }
+        }
         div.main div.repos ul.list li a {
             color: white;
         }
@@ -109,7 +115,6 @@
         }
         div.footer {
             margin: 100px auto 0 auto;
-            width: 800px;
             text-align: center;
             filter: drop-shadow(0px 0px 20px white);
         }
@@ -118,10 +123,12 @@
             list-style-type: none;
             font-size: 9pt;
             font-weight: normal;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         div.footer ul.sns li {
-            display: inline-block;
-            margin: 0 16px 0 16px;
+            margin: 0 12px 0 12px;
             text-align: center;
         }
         div.footer ul.sns a {
@@ -129,6 +136,14 @@
         }
         div.footer ul.sns img {
             width: 60px;
+        }
+        @media (max-width: 413px) {
+            div.footer {
+                margin: 40px auto 0 auto;
+            }
+            div.footer ul.sns li {
+                width: 60px;
+            }
         }
         div.footer p.copyright {
             padding: 0;
