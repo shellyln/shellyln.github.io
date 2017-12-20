@@ -28,6 +28,12 @@
         a {
             text-decoration: none;
         }
+        .bold {
+            font-weight: bold;
+        }
+        @media screen and (max-width: 480px) {
+            .br-sp { display:none; }
+        }
         div.header h1 {
             text-align: center;
             color: white;
@@ -69,24 +75,28 @@
         div.main div.repos div.item {
             width: 600px;
         }
-        div.main div.repos ul.title {
+        div.main div.repos .title {
             padding: 0;
             list-style-type: none;
             text-align: center;
-            color: white;
-            font-size: 24pt;
-            font-weight: normal;
         }
-        div.main div.repos ul.title li.main {
+        div.main div.repos .title .main {
             height: 140px;
         }
-        div.main div.repos ul.title li.main img {
+        div.main div.repos .title .main img {
             width: 350px;
         }
-        div.main div.repos ul.title li.sub {
+        div.main div.repos .title .sub {
+            font-weight: bold;
+            color: black;
+            font-size: 16pt;
+            text-shadow: 0px 0px 5px white;
+            padding-bottom: 10px;
+        }
+        div.main div.repos .title .description {
             font-weight: normal;
             color: black;
-            font-size: 10pt;
+            font-size: 16pt;
             text-shadow: 0px 0px 5px white;
             padding-bottom: 10px;
         }
@@ -156,7 +166,7 @@
 <body>
     <div class="header">
         <h1>
-            <span><a class="avatar-wrap-anchor" href="https://github.com/shellyln"><img class="avatar" src="assets/image/shellyln.png"></a></span><br>
+            <span><a class="avatar-wrap-anchor" href="https://github.com/shellyln"><img class="avatar" src="assets/image/shellyln.png" alt="Shellyl_N avatar"></a></span><br>
             <span><a class="myname-wrap-anchor" href="https://github.com/shellyln">Shellyl_N</a></span>
         </h1>
         <p class="myuserid">@shellyln</p>
@@ -168,10 +178,14 @@
         <hr>
         <div class="repos">
             <div class="item">
-                <ul class="title">
-                    <li class="main"><a href="https://github.com/shellyln/red-agate"><img src="assets/image/redagate-logo.svg" alt="RedAgate"></a></li>
-                    <li class="sub">HTML|XML|SVG template engine using JSX, suitable for report output.</li>
-                </ul>
+                <div class="title">
+                    <p class="main"><a href="https://github.com/shellyln/red-agate"><img src="assets/image/redagate-logo.svg" alt="RedAgate"></a></p>
+                    <p class="sub">HTML | XML | SVG template engine using JSX,<br class="br-sp">suitable for report output.</p>
+                    <p class="description">
+                        <span class="bold">RedAgate</span> is static HTML | XML | SVG renderer.<br class="br-sp">
+                        You can start easily because we are using JSX<br class="br-sp">and semantics similar to React.
+                    </p>
+                </div>
                 <ul class="list">
                     <li><a href="https://github.com/shellyln/red-agate"><img src="assets/octicons-6.0.1/svg/code.svg"> red-agate</a></li>
                     <li><a href="https://github.com/shellyln/red-agate-util"><img src="assets/octicons-6.0.1/svg/code.svg"> red-agate-util</a></li>
