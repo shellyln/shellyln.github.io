@@ -3,7 +3,8 @@
     <title>RedAgate</title>
     <link rel="stylesheet" href="../assets/styles/normalize.css">
     <meta charset="utf-8">
-    <meta name="description" content="RedAgate - HTML | XML | SVG template engine using JSX, suitable for report output.
+    <meta name="description" content="RedAgate - A JavaScript library for reporting.
+HTML | XML | SVG template engine using JSX, suitable for building reports.
 RedAgate is static HTML | XML | SVG renderer.
 You can start easily because we are using JSX and semantics similar to React.">
     <meta name="keywords" content="SVG,Canvas,QR Code,barcode,EAN,JAN,Code128,Code39,JSX,reporting,RedAgate,red-agate,Shellyl_N">
@@ -26,6 +27,16 @@ You can start easily because we are using JSX and semantics similar to React.">
         a {
             color: inherit;
             text-decoration: none;
+        }
+        code {
+            background-color: lightcyan;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+        @media print {
+            code {
+                text-decoration: underline;
+                text-decoration-style: dashed;
+            }
         }
         .bold {
             font-weight: bold;
@@ -52,26 +63,83 @@ You can start easily because we are using JSX and semantics similar to React.">
         div.header h1 {
             margin: 0;
             padding: 0 0 40px 0;
-            text-align: center;
             font-size: 48pt;
         }
         div.header h1 img {
             max-width: 90%;
         }
         div.header h2 {
-            text-align: center;
+            font-size: 24pt;
         }
+        div.header h3 {
+            font-size: 18pt;
+        }
+        div.header h1,
+        div.header h2,
+        div.header h3,
+        div.header h4,
+        div.header h5,
+        div.header h6,
         div.header .description {
             text-align: center;
         }
         div.main {
             display: flex;
             justify-content: center;
+            flex-direction: column;
+        }
+        div.main ul.main-buttons {
+            display: flex;
+            justify-content: center;
             flex-wrap: wrap;
+            list-style-type: none;
+            padding: 0;
+        }
+        div.main div.main-contents {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+        div.main div.main-contents .content {
+            margin: 20px auto 20px auto;
+            width: 600px;
+            max-width: 90%;
+        }
+        div.main div.main-examples {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+        div.main div.main-examples .content {
+            margin: 20px auto 20px auto;
+            width: 600px;
+            max-width: 90%;
+        }
+        .get-started-button {
+            font-variant-caps: small-caps;
+            border-radius: 24px;
+            font-size: 18pt;
+            background-color: #800;
+            color: floralwhite;
+            width: 160px;
+            display: block;
+            text-align: center;
+            padding: 3px 32px 3px 32px;
+            margin: 20px 5px 20px 5px;
+            box-shadow: 0 2px 5px 0 rgba(0,0,0,.4);
+        }
+        @media print {
+            .get-started-button {
+                background-color: inherit;
+                color: inherit;
+            }
         }
         div.footer {
-            margin: 100px auto 0 auto;
+            margin: 0 auto 0 auto;
+            padding: 30px 0 5px 0;
             text-align: center;
+            background-color: #311;
+            color: floralwhite;
         }
         div.footer ul.sns {
             padding: 0;
@@ -91,6 +159,7 @@ You can start easily because we are using JSX and semantics similar to React.">
         }
         div.footer ul.sns img {
             width: 60px;
+            filter: invert(70%) sepia(45%) drop-shadow(0px 0px 10px darkred);
         }
         @media (max-width: 413px) {
             div.footer {
@@ -106,6 +175,15 @@ You can start easily because we are using JSX and semantics similar to React.">
             font-size: 8pt;
             font-weight: normal;
         }
+        @media print {
+            div.footer {
+                background-color: inherit;
+                color: inherit;
+            }
+            div.footer ul.sns img {
+                filter: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -114,14 +192,56 @@ You can start easily because we are using JSX and semantics similar to React.">
         <h1>
             <a href="https://github.com/shellyln/red-agate"><img src="../assets/image/redagate-logo.svg" alt="RedAgate"></a>
         </h1>
-        <h2>HTML | XML | SVG template engine using JSX, <br class="br-sp">suitable for report output.</h2>
+        <h2>A JavaScript library for reporting.</h2>
+        <h3>HTML | XML | SVG template engine using JSX, <br class="br-sp">suitable for building reports.</h3>
         <p class="description">
             <a class="bold" href="https://github.com/shellyln/red-agate">RedAgate</a> is static HTML | XML | SVG renderer.<br class="br-sp">
-            You can start easily because we are using JSX<br class="br-sp">and semantics similar to React.
+            You can start easily because we are using <span class="bold" href="https://github.com/shellyln/red-agate">JSX</span><br class="br-sp">and semantics similar to <span class="bold">React</span>.
         </p>
     </div>
     <div class="main">
-        <a href="https://github.com/shellyln/red-agate" style="font-variant-caps: small-caps;border-radius: 36px;font-size:36pt;background-color: #800;color: floralwhite;padding:3px 32px 3px 32px;margin:20px 0px 20px 0px;box-shadow: 0 2px 5px 0 rgba(0,0,0,.4);">Get Started</a>
+        <ul class="main-buttons">
+            <li><a class="get-started-button" href="https://github.com/shellyln/red-agate#usage">Get Started</a></li>
+            <li><a class="get-started-button" href="https://github.com/shellyln/red-agate#component-lifecycle">Docs</a></li>
+        </ul>
+        <div class="main-contents">
+            <div class="content">
+                <h3>Bundle Everything</h3>
+                <p>
+                    Easily to bundle images, stylesheets, fonts, scripts and other resources<br class="br-sp"> 
+                    for piping to printing tasks or delivering outside the intranet.
+                </p>
+                <p>
+                    <code>RedAgate.renderAsHtml()</code> API and component lifecycle <code>defer()</code> method return promise objects.<br class="br-sp"> 
+                    You can use standard Tag-Libs <i>(e.g. Image, Style, Font, SingleFont, Script, Asset)</i> to bundle them.
+                </p>
+            </div>
+            <div class="content">
+                <h3>Standard Tag-Libs</h3>
+                <p>
+                    Many standard Tag-Libs <i>(e.g. If, Repeat, ForEach, Template, Html5, Svg, SVG shapes, <span class="bold">Barcodes (QR Code, Code39, Code128, EAN/UPC, ITF, NW7/Codabar, postal barcode)</span> and complex objects)</i> are bundled.
+                </p>
+            </div>
+            <div class="content">
+                <h3>SVG via Html5 Canvas API</h3>
+                <p>
+                    RedAgate is declarative but <span class="bold">procedural</span> rendering of SVG is also available.<br class="br-sp"> 
+                    We provide the <code>SvgCanvas</code> context object that implements Canvas API in the sub tree of the <code>Svg</code> component.
+                </p>
+                <p>
+                    Html5 Canvas API has high productivity for rendering complex SVG objects.<br class="br-sp"> 
+                    And Canvas API is Web standard. You learn once, you can use it at various times.
+                </p>
+            </div>
+            <div class="content">
+                <h3>Run Anywhere</h3>
+                <p>
+                    Running on both server side (Node.js) and modern browsers (Chrome, Firefox, Safari, Edge).
+                </p>
+            </div>
+        </div>
+        <div class="main-examples">
+        </div>
     </div>
     <div class="footer">
         <ul class="sns">
