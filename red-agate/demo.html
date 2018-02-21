@@ -8,9 +8,6 @@
             margin: 0;
         }
         body {
-            display: flex;
-            justify-content: flex-end;
-            flex-direction: column;
             height: 100%;
             margin: 0;
             overflow: hidden;
@@ -18,34 +15,19 @@
             color: whitesmoke;
         }
         #preview-wrap {
-            display: flex;
-            flex-direction: row;
             width: 100%;
-            height: calc(100% - 120px);
+            height: calc(100% - 100px);
             margin: 0;
         }
-        #preview-wrap-1 {
-            height: 100%;
-            flex-grow: 6;
-        }
-        #preview-wrap-2 {
-            height: 100%;
-            flex-grow: 2;
-        }
         #preview {
-            width: 100%;
+            flex-grow: 3;
             height: 100%;
             background-color: lightgrey;
         }
         #preview-src {
-            width: 100%;
+            flex-grow: 2;
             height: 100%;
             background-color: whitesmoke;
-        }
-        #configForm {
-            display: flex;
-            height: 100px;
-            margin: 10px;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.8.2/superagent.min.js"></script>
@@ -67,7 +49,7 @@
         }
 
         function toggleCode() {
-            var iframe = document.getElementById('preview-wrap-2');
+            var iframe = document.getElementById('preview-src');
             iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
         }
 
@@ -135,11 +117,11 @@
     </script>
 </head>
 <body>
-    <div id="preview-wrap">
-        <div id="preview-wrap-1"><iframe id="preview"></iframe></div>
-        <div id="preview-wrap-2" style="display: none;"><iframe id="preview-src"></iframe></div>
+    <div id="preview-wrap" style="display: flex;">
+        <iframe id="preview"></iframe>
+        <iframe id="preview-src" style="display: none;"></iframe>
     </div>
-    <form id="configForm" name="configForm">
+    <form style="margin: 10px;" name="configForm">
         <div style="display: flex;">
             <div><a href="https://shellyln.github.io/red-agate/"><img src="https://shellyln.github.io/assets/image/redagate-logo.svg" style="width: 200px;"></a></div>
             <div style="margin-left: 20px;">
