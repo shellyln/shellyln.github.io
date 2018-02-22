@@ -38,48 +38,15 @@
             height: calc(100% - 100px);
             margin: 0;
         }
-        #preview-wrap:after, #preview-wrap:before {
-            content: "";
-            clear: both;
-            display: block;
-        }
-        #preview-wrap-table {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-width: 0;
-            margin: 0;
-            padding: 0;
-            border-spacing: 0;
-        }
-        #preview-wrap-table tr, #preview-wrap-table td {
-            height: 100%;
-            border: none;
-            border-width: 0;
-            margin: 0;
-            padding: 0;
-        }
-        #preview-col {
-            width: 60%;
-        }
         #preview {
-            float : left;
-            width: 100%;
+            flex-grow: 3;
             height: 100%;
             background-color: lightgrey;
         }
-        #preview-src-col {
-            width: 40%;
-        }
         #preview-src {
-            float : right;
-            width: 100%;
+            flex-grow: 2;
             height: 100%;
             background-color: whitesmoke;
-        }
-        #configForm {
-            margin: 10px;
-            height: 100px;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.8.2/superagent.min.js"></script>
@@ -131,8 +98,8 @@
         }
 
         function toggleCode() {
-            var iframe = document.getElementById('preview-src-col');
-            iframe.style.display = iframe.style.display === 'none' ? 'table-cell' : 'none';
+            var iframe = document.getElementById('preview-src');
+            iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
         }
 
         function renderReport(name, runPrint) {
@@ -197,15 +164,11 @@
     </script>
 </head>
 <body>
-    <div id="preview-wrap">
-        <table id="preview-wrap-table">
-            <tr>
-                <td id="preview-col"><iframe id="preview"></iframe></td>
-                <td id="preview-src-col" style="display: none;"><iframe id="preview-src"></iframe></td>
-            </tr>
-        </table>
+    <div id="preview-wrap" style="display: flex;">
+        <iframe id="preview"></iframe>
+        <iframe id="preview-src" style="display: none;"></iframe>
     </div>
-    <form id="configForm" name="configForm">
+    <form style="margin: 10px;" name="configForm">
         <div style="display: flex;">
             <div><a href="https://shellyln.github.io/red-agate/"><img src="https://shellyln.github.io/assets/image/redagate-logo.svg" style="width: 200px;"></a></div>
             <div style="margin-left: 20px;">
