@@ -5858,7 +5858,7 @@ var ScriptTerminationError = exports.ScriptTerminationError = function (_FatalEr
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! C:\Users\Kazuhisa\Documents\GitHub\liyad\src\index.ts */"./src/index.ts");
+module.exports = __webpack_require__(/*! c:\Users\Kazuhisa\Documents\GitHub\liyad\src\index.ts */"./src/index.ts");
 
 
 /***/ })
