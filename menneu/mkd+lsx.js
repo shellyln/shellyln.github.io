@@ -1,6 +1,6 @@
 const start = (async () => {
     const buf = await menneu.render(Array.from(document.querySelectorAll('script[type="text/markdown"]'), x => x.innerHTML).join(' '), {}, {
-        rawInput: true,
+        rawInput: false,
         inputFormat: 'md',
         outputFormat: 'html',
         title: 'Markdown example',
