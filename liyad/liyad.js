@@ -100,27 +100,180 @@ return /******/ (function(modules) { // webpackBootstrap
 /*!**********************!*\
   !*** ./src/index.ts ***!
   \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: defaultReservedNames, defaultConfig, SExpression, SExpressionAsync, S, L, LS, lisp, L_async, LS_async, lisp_async, LM, LM_async, LSX, LSX_async */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./s-exp/s-expression */ "./src/s-exp/s-expression.ts");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "defaultReservedNames", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["defaultReservedNames"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "defaultConfig", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["defaultConfig"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SExpression", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["SExpression"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SExpressionAsync", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["SExpressionAsync"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "S", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["S"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "L", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["L"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LS", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["LS"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "lisp", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["lisp"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "L_async", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["L_async"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LS_async", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["LS_async"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "lisp_async", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["lisp_async"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LM", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["LM"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LM_async", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["LM_async"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LSX", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["LSX"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LSX_async", function() { return _s_exp_s_expression__WEBPACK_IMPORTED_MODULE_0__["LSX_async"]; });
+
+// Copyright (c) 2018, Shellyl_N and Authors
+// license: ISC
+// https://github.com/shellyln
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+/***/ }),
 
-var _sExpression = __webpack_require__(/*! ./s-exp/s-expression */ "./src/s-exp/s-expression.ts");
+/***/ "./src/lib/data.ts":
+/*!*************************!*\
+  !*** ./src/lib/data.ts ***!
+  \*************************/
+/*! exports provided: Query, query */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-Object.keys(_sExpression).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _sExpression[key];
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Query", function() { return Query; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "query", function() { return query; });
+// Copyright (c) 2017, Shellyl_N and Authors
+// license: ISC
+// https://github.com/shellyln
+class Query {
+  constructor(data) {
+    this.data = data;
+  }
+
+  orderBy(condition) {
+    let fn;
+
+    if (Array.isArray(condition)) {
+      fn = (x, y) => {
+        for (const c of condition) {
+          if (typeof c === 'string') {
+            if (x[c] > y[c]) return 1;
+            if (x[c] < y[c]) return -1;
+          } else {
+            const desc = c[1] === 'desc' ? -1 : 1;
+            if (x[c[0]] > y[c[0]]) return 1 * desc;
+            if (x[c[0]] < y[c[0]]) return -1 * desc;
+          }
+        }
+
+        return 0;
+      };
+    } else {
+      fn = condition;
     }
-  });
-});
+
+    return new Query(this.data.slice(0).sort(fn));
+  }
+
+  groupBy(condition) {
+    let fn;
+
+    if (Array.isArray(condition)) {
+      fn = (x, y) => {
+        for (const c of condition) {
+          if (x[c] !== y[c]) return false;
+        }
+
+        return true;
+      };
+    } else {
+      fn = condition;
+    }
+
+    const r = [];
+    let start = 0;
+    let i = 1;
+
+    for (; i < this.data.length; i++) {
+      if (!fn(this.data[start], this.data[i], i, this.data)) {
+        r.push(this.data.slice(start, i));
+        start = i;
+      }
+    }
+
+    r.push(this.data.slice(start, i));
+    return new Query(r);
+  }
+
+  groupEvery(n) {
+    if (typeof n === 'number') {
+      return this.groupBy((a, b, index, array) => {
+        if (index % n === 0) return false;
+        return true;
+      });
+    } else {
+      const w = Object.assign({
+        first: n.intermediate,
+        last: n.intermediate
+      }, n);
+      const r = this.groupBy((a, b, index, array) => {
+        if (w.single >= array.length) {
+          if (index % w.single === 0) return false;
+          return true;
+        } else if (index <= w.first) {
+          if (index % w.first === 0) return false;
+          return true;
+        } else {
+          if ((index - w.first) % w.intermediate === 0) return false;
+          return true;
+        }
+      });
+
+      if (r.data.length === 1) {
+        if (w.single < r.data[0].length) {
+          r.data.push([]);
+        }
+      } else {
+        if (w.first < r.data[0].length) {
+          // case of w.first === 0
+          r.data.unshift([]);
+        }
+      }
+
+      if (r.data.length > 1) {
+        if (r.data[r.data.length - 1].length > w.last) {
+          r.data.push([]);
+        }
+      }
+
+      return r;
+    }
+  }
+
+  where(fn) {
+    return new Query(this.data.filter(fn));
+  }
+
+  select(fn) {
+    return fn ? this.data.map(fn) : this.data;
+  }
+
+}
+function query(data) {
+  return new Query(data);
+}
 
 /***/ }),
 
@@ -128,36 +281,35 @@ Object.keys(_sExpression).forEach(function (key) {
 /*!*****************************!*\
   !*** ./src/s-exp/errors.ts ***!
   \*****************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: setEvaluationCount, checkParamsLength */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.setEvaluationCount = setEvaluationCount;
-exports.checkParamsLength = checkParamsLength;
-
-var _types = __webpack_require__(/*! ./types */ "./src/s-exp/types.ts");
-
-function setEvaluationCount(state) {
-    state.evalCount++;
-    if (state.config.maxEvalCount && state.config.maxEvalCount < state.evalCount) {
-        throw new _types.MaxEvaluationCountError();
-    }
-} // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setEvaluationCount", function() { return setEvaluationCount; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "checkParamsLength", function() { return checkParamsLength; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types */ "./src/s-exp/types.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
+
+function setEvaluationCount(state) {
+  state.evalCount++;
+
+  if (state.config.maxEvalCount && state.config.maxEvalCount < state.evalCount) {
+    throw new _types__WEBPACK_IMPORTED_MODULE_0__["MaxEvaluationCountError"]();
+  }
+}
 function checkParamsLength(name, args, min, max) {
-    if (args.length < min) {
-        throw new Error('[SX] ' + name + ': Invalid argument length: expected: ' + min + ' / args: ' + args.length + '.');
-    }
-    if (max && max < args.length) {
-        throw new Error('[SX] ' + name + ': Invalid argument length: expected: ' + max + ' / args: ' + args.length + '.');
-    }
-    return true;
+  if (args.length < min) {
+    throw new Error(`[SX] ${name}: Invalid argument length: expected: ${min} / args: ${args.length}.`);
+  }
+
+  if (max && max < args.length) {
+    throw new Error(`[SX] ${name}: Invalid argument length: expected: ${max} / args: ${args.length}.`);
+  }
+
+  return true;
 }
 
 /***/ }),
@@ -166,244 +318,287 @@ function checkParamsLength(name, args, min, max) {
 /*!*******************************!*\
   !*** ./src/s-exp/evaluate.ts ***!
   \*******************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: toNumber, resolveMacro, resolveFunctionSymbol, resolveValueSymbolScope, resolveValueSymbol, installScope, uninstallScope, getScope, getGlobalScope, optimizeTailCall, evaluate */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toNumber", function() { return toNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resolveMacro", function() { return resolveMacro; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resolveFunctionSymbol", function() { return resolveFunctionSymbol; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resolveValueSymbolScope", function() { return resolveValueSymbolScope; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resolveValueSymbol", function() { return resolveValueSymbol; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "installScope", function() { return installScope; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "uninstallScope", function() { return uninstallScope; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getScope", function() { return getScope; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getGlobalScope", function() { return getGlobalScope; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "optimizeTailCall", function() { return optimizeTailCall; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "evaluate", function() { return evaluate; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types */ "./src/s-exp/types.ts");
+/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors */ "./src/s-exp/errors.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
 
-exports.toNumber = toNumber;
-exports.resolveMacro = resolveMacro;
-exports.resolveFunctionSymbol = resolveFunctionSymbol;
-exports.resolveValueSymbolScope = resolveValueSymbolScope;
-exports.resolveValueSymbol = resolveValueSymbol;
-exports.installScope = installScope;
-exports.uninstallScope = uninstallScope;
-exports.getScope = getScope;
-exports.getGlobalScope = getGlobalScope;
-exports.optimizeTailCall = optimizeTailCall;
-exports.evaluate = evaluate;
-
-var _types = __webpack_require__(/*! ./types */ "./src/s-exp/types.ts");
-
-var _errors = __webpack_require__(/*! ./errors */ "./src/s-exp/errors.ts");
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 function toNumber(x) {
-    switch (typeof x === 'undefined' ? 'undefined' : _typeof(x)) {
-        case 'object':
-        case 'symbol':
-        case 'function':
-            return NaN;
-        default:
-            return Number(x);
-    }
+  switch (typeof x) {
+    case 'object':
+    case 'symbol':
+    case 'function':
+      return NaN;
+
+    default:
+      return Number(x);
+  }
 }
 function resolveMacro(state, x) {
-    var macroInfo = state.macroMap.get(x.symbol);
-    if (macroInfo) {
-        return macroInfo.fn(state, x.symbol);
-    } else {
-        return false;
-    }
+  const macroInfo = state.macroMap.get(x.symbol);
+
+  if (macroInfo) {
+    return macroInfo.fn(state, x.symbol);
+  } else {
+    return false;
+  }
 }
 function resolveFunctionSymbol(state, x) {
-    if (typeof x === 'function') {
-        return x;
+  if (typeof x === 'function') {
+    return x;
+  }
+
+  const funcInfo = state.funcMap.get(x.symbol);
+
+  if (funcInfo) {
+    return funcInfo.fn(state, x.symbol);
+  } else {
+    const v = resolveValueSymbol(state, x);
+
+    if (typeof v === 'function') {
+      return v;
     }
-    var funcInfo = state.funcMap.get(x.symbol);
-    if (funcInfo) {
-        return funcInfo.fn(state, x.symbol);
-    } else {
-        var v = resolveValueSymbol(state, x);
-        if (typeof v === 'function') {
-            return v;
-        }
-        if (state.config.funcSymbolResolverFallback) {
-            return state.config.funcSymbolResolverFallback(state, x.symbol);
-        }
-        if (state.config.raiseOnUnresolvedSymbol) {
-            throw new Error('[SX] resolveFunctionSymbol: Unresolved symbol: ' + x.symbol + '.');
-        }
-        return x.symbol;
+
+    if (state.config.funcSymbolResolverFallback) {
+      return state.config.funcSymbolResolverFallback(state, x.symbol);
     }
+
+    if (state.config.raiseOnUnresolvedSymbol) {
+      throw new Error(`[SX] resolveFunctionSymbol: Unresolved symbol: ${x.symbol}.`);
+    }
+
+    return x.symbol;
+  }
 }
 function resolveValueSymbolScope(state, x, nullIfNotDefined) {
-    for (var i = state.scopes.length - 1; i > 0; i--) {
-        var localScope = state.scopes[i];
-        if (localScope && Object.prototype.hasOwnProperty.call(localScope.scope, x.symbol)) {
-            return localScope.scope;
-        }
-        if (!localScope.isBlockLocal) {
-            break;
-        }
+  for (let i = state.scopes.length - 1; i > 0; i--) {
+    const localScope = state.scopes[i];
+
+    if (localScope && Object.prototype.hasOwnProperty.call(localScope.scope, x.symbol)) {
+      return localScope.scope;
     }
-    var globalScope = getGlobalScope(state);
-    if (Object.prototype.hasOwnProperty.call(globalScope.scope, x.symbol)) {
-        return globalScope.scope;
+
+    if (!localScope.isBlockLocal) {
+      break;
     }
-    return nullIfNotDefined ? null : getScope(state).scope;
+  }
+
+  const globalScope = getGlobalScope(state);
+
+  if (Object.prototype.hasOwnProperty.call(globalScope.scope, x.symbol)) {
+    return globalScope.scope;
+  }
+
+  return nullIfNotDefined ? null : getScope(state).scope;
 }
 function resolveValueSymbol(state, x) {
-    var scope = resolveValueSymbolScope(state, x, true);
-    if (scope) {
-        return scope[x.symbol];
+  const scope = resolveValueSymbolScope(state, x, true);
+
+  if (scope) {
+    return scope[x.symbol];
+  }
+
+  const symInfo = state.symbolMap.get(x.symbol);
+
+  if (symInfo) {
+    return symInfo.fn(state, x.symbol);
+  } else {
+    if (state.config.valueSymbolResolverFallback) {
+      return state.config.valueSymbolResolverFallback(state, x.symbol);
     }
-    var symInfo = state.symbolMap.get(x.symbol);
-    if (symInfo) {
-        return symInfo.fn(state, x.symbol);
-    } else {
-        if (state.config.valueSymbolResolverFallback) {
-            return state.config.valueSymbolResolverFallback(state, x.symbol);
-        }
-        if (state.config.raiseOnUnresolvedSymbol) {
-            throw new Error('[SX] resolveValueSymbol: Unresolved symbol: ' + x.symbol + '.');
-        }
-        return x.symbol;
+
+    if (state.config.raiseOnUnresolvedSymbol) {
+      throw new Error(`[SX] resolveValueSymbol: Unresolved symbol: ${x.symbol}.`);
     }
+
+    return x.symbol;
+  }
 }
 function installScope(state, scope, isBlockLocal) {
-    state.scopes.push({ isBlockLocal: isBlockLocal, scope: scope });
+  state.scopes.push({
+    isBlockLocal,
+    scope
+  });
 }
 function uninstallScope(state) {
-    if (state.scopes.length < 2) {
-        throw new Error('[SX] uninstallScope: Unable to pop stack.');
-    }
-    return state.scopes.pop();
+  if (state.scopes.length < 2) {
+    throw new Error(`[SX] uninstallScope: Unable to pop stack.`);
+  }
+
+  return state.scopes.pop();
 }
 function getScope(state) {
-    return state.scopes[state.scopes.length - 1];
+  return state.scopes[state.scopes.length - 1];
 }
 function getGlobalScope(state) {
-    return state.scopes[0];
+  return state.scopes[0];
 }
 function optimizeTailCall(state, formalArgs, fnBody) {
-    // S expression: ($__lambda '(sym1 ... symN) 'expr1 ... 'exprN)
-    //    formalArgs: 'sym1 ... 'symN
-    //        fnBody: 'expr1 ... 'exprN
-    if (Array.isArray(fnBody[fnBody.length - 1])) {
-        var front = fnBody.slice(0, fnBody.length - 1);
-        var tail = fnBody[fnBody.length - 1];
-        if (tail && tail[0].symbol === state.config.reservedNames.if) {
-            // S expression: ($if cond t-expr f-expr)
-            if (tail[3][0].symbol === state.config.reservedNames.self) {
-                // S expression (recursive):
-                //     (   ;; fnBody
-                //         expr1 ... exprN-1             ;; front
-                //         ($if cond                     ;; tail[0] [1]
-                //             t-expr                    ;;     [2]
-                //             ($self                    ;;     [3]
-                //                 rArgs1 ... rArgsN) )  ;; tail
-                //     )
-                //
-                //  -> S exp (tail call optimization):
-                //     (   ;; fnBody
-                //         ($do-until cond
-                //             expr1 ... exprN-1
-                //             ($let sym1 rArgs1) ... ($let symN rArgsN) )
-                //         t-expr
-                //     )
-                return [[{ symbol: state.config.reservedNames.until }, tail[1]].concat(_toConsumableArray(front), _toConsumableArray(tail[3].slice(1).map(function (x, idx) {
-                    return [{ symbol: state.config.reservedNames.let }, formalArgs[idx], x];
-                }))), tail[2]];
-            }
-        }
+  // S expression: ($__lambda '(sym1 ... symN) 'expr1 ... 'exprN)
+  //    formalArgs: 'sym1 ... 'symN
+  //        fnBody: 'expr1 ... 'exprN
+  if (Array.isArray(fnBody[fnBody.length - 1])) {
+    const front = fnBody.slice(0, fnBody.length - 1);
+    const tail = fnBody[fnBody.length - 1];
+
+    if (tail && tail[0].symbol === state.config.reservedNames.if) {
+      // S expression: ($if cond t-expr f-expr)
+      if (tail[3][0].symbol === state.config.reservedNames.self) {
+        // S expression (recursive):
+        //     (   ;; fnBody
+        //         expr1 ... exprN-1             ;; front
+        //         ($if cond                     ;; tail[0] [1]
+        //             t-expr                    ;;     [2]
+        //             ($self                    ;;     [3]
+        //                 rArgs1 ... rArgsN) )  ;; tail
+        //     )
+        //
+        //  -> S exp (tail call optimization):
+        //     (   ;; fnBody
+        //         ($do-until cond
+        //             expr1 ... exprN-1
+        //             ($let sym1 rArgs1) ... ($let symN rArgsN) )
+        //         t-expr
+        //     )
+        return [[{
+          symbol: state.config.reservedNames.until
+        }, tail[1], ...front, ...tail[3].slice(1).map((x, idx) => [{
+          symbol: state.config.reservedNames.let
+        }, formalArgs[idx], x])], tail[2]];
+      }
     }
-    return fnBody;
+  }
+
+  return fnBody;
 }
 function evaluate(state, x) {
-    (0, _errors.setEvaluationCount)(state);
-    if (x === null || x === void 0) {
-        return x;
-    }
-    var r = x;
-    for (;;) {
-        if (Array.isArray(r)) {
-            if (r.length === 0) {
-                return r;
-            }
-            var sym = (0, _types.isSymbol)(r[0]);
-            if (sym) {
-                var m = resolveMacro(state, sym);
-                if (m) {
-                    r = m(r);
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        } else {
-            break;
-        }
-        (0, _errors.setEvaluationCount)(state);
-    }
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["setEvaluationCount"])(state);
+
+  if (x === null || x === void 0) {
+    return x;
+  }
+
+  let r = x;
+
+  for (;;) {
     if (Array.isArray(r)) {
-        r = r.slice(0);
-        if (0 < r.length) {
-            var _sym = (0, _types.isSymbol)(r[0]);
-            if (_sym) {
-                if (_sym.symbol === state.config.reservedNames.quote) {
-                    return r.slice(1, 2)[0];
-                }
-                if (_sym.symbol === state.config.reservedNames.eval) {
-                    return evaluate(state, r[1]);
-                }
-            }
-            for (var i = r.length - 1; i > 0; i--) {
-                var symSpr = Array.isArray(r[i]) && (0, _types.isSymbol)(r[i][0], state.config.reservedNames.spread);
-                if (symSpr) {
-                    var a = evaluate(state, r[i][1]);
-                    a = Array.isArray(a) ? a : [a];
-                    r = r.slice(0, i).concat(a, r.slice(i + 1));
-                } else {
-                    r[i] = evaluate(state, r[i]);
-                }
-            }
-            var fn = void 0;
-            if (typeof r[0] === 'function') {
-                fn = r[0];
-            } else if (_sym) {
-                fn = resolveFunctionSymbol(state, _sym);
-            } else {
-                fn = evaluate(state, r[0]);
-            }
-            if (typeof fn === 'function') {
-                r = fn.apply(undefined, _toConsumableArray(r.slice(1)));
-            } else {
-                throw new Error('[SX] evaluate: First item of list is not a function: ' + JSON.stringify(r) + '.');
-            }
-        }
-    } else if (state.config.wrapExternalValue && Object.prototype.hasOwnProperty.call(r, 'value')) {
-        r = r.value;
-    } else if (Object.prototype.hasOwnProperty.call(r, 'symbol')) {
-        r = resolveValueSymbol(state, r);
-    } else if (Object.prototype.hasOwnProperty.call(r, 'car')) {
-        var car = evaluate(state, r.car);
-        var cdr = evaluate(state, r.cdr);
-        if (Array.isArray(cdr)) {
-            var _a = cdr.slice(0);
-            _a.unshift(car);
-            r = _a;
+      if (r.length === 0) {
+        return r;
+      }
+
+      const sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(r[0]);
+
+      if (sym) {
+        const m = resolveMacro(state, sym);
+
+        if (m) {
+          r = m(r);
         } else {
-            r = { car: car, cdr: cdr };
+          break;
         }
-    } else if (Object.prototype.hasOwnProperty.call(r, 'dotted')) {
-        r = [evaluate(state, r.dotted)];
-    } else if (Object.prototype.hasOwnProperty.call(r, 'comment')) {
-        r = [];
+      } else {
+        break;
+      }
+    } else {
+      break;
     }
-    return r;
+
+    Object(_errors__WEBPACK_IMPORTED_MODULE_1__["setEvaluationCount"])(state);
+  }
+
+  if (Array.isArray(r)) {
+    r = r.slice(0);
+
+    if (0 < r.length) {
+      const sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(r[0]);
+
+      if (sym) {
+        if (sym.symbol === state.config.reservedNames.quote) {
+          return r.slice(1, 2)[0];
+        }
+
+        if (sym.symbol === state.config.reservedNames.eval) {
+          return evaluate(state, r[1]);
+        }
+      }
+
+      const sprs = [];
+
+      for (let i = 1; i < r.length; i++) {
+        const symSpr = Array.isArray(r[i]) && Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(r[i][0], state.config.reservedNames.spread);
+
+        if (symSpr) {
+          sprs.push(i);
+          const a = evaluate(state, r[i][1]);
+          r[i] = Array.isArray(a) ? a : [a];
+        } else {
+          r[i] = evaluate(state, r[i]);
+        }
+      }
+
+      for (const i of sprs.reverse()) {
+        r = r.slice(0, i).concat(r[i], r.slice(i + 1));
+      }
+
+      let fn;
+
+      if (typeof r[0] === 'function') {
+        fn = r[0];
+      } else if (sym) {
+        fn = resolveFunctionSymbol(state, sym);
+      } else {
+        fn = evaluate(state, r[0]);
+      }
+
+      if (typeof fn === 'function') {
+        r = fn(...r.slice(1));
+      } else {
+        throw new Error(`[SX] evaluate: First item of list is not a function: ${JSON.stringify(r)}.`);
+      }
+    }
+  } else if (state.config.wrapExternalValue && Object.prototype.hasOwnProperty.call(r, 'value')) {
+    r = r.value;
+  } else if (Object.prototype.hasOwnProperty.call(r, 'symbol')) {
+    r = resolveValueSymbol(state, r);
+  } else if (Object.prototype.hasOwnProperty.call(r, 'car')) {
+    const car = evaluate(state, r.car);
+    const cdr = evaluate(state, r.cdr);
+
+    if (Array.isArray(cdr)) {
+      const a = cdr.slice(0);
+      a.unshift(car);
+      r = a;
+    } else {
+      r = {
+        car,
+        cdr
+      };
+    }
+  } else if (Object.prototype.hasOwnProperty.call(r, 'dotted')) {
+    r = [evaluate(state, r.dotted)];
+  } else if (Object.prototype.hasOwnProperty.call(r, 'comment')) {
+    r = [];
+  }
+
+  return r;
 }
 
 /***/ }),
@@ -412,374 +607,257 @@ function evaluate(state, x) {
 /*!*********************************************************!*\
   !*** ./src/s-exp/operators/arithmetic/arithmetic.fn.ts ***!
   \*********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: $bitLShift, $$bitLShift, $bitSRShift, $$bitSRShift, $bitURShift, $$bitURShift, $bitNot, $$bitNot, $bitAnd, $$bitAnd, $bitOr, $$bitOr, $bitXor, $$bitXor, $add, $$add, $sub, $$sub, $mul, $$mul, $sup, $$sup, $div, $$div, $mod, $$mod, $max, $$max, $min, $$min, $avg, $$avg, $floor, $$floor, $ceil, $$ceil, $round, $$round, $abs, $$abs, $sign, $$sign */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.$$sign = exports.$sign = exports.$$abs = exports.$abs = exports.$$round = exports.$round = exports.$$ceil = exports.$ceil = exports.$$floor = exports.$floor = exports.$$avg = exports.$avg = exports.$$min = exports.$min = exports.$$max = exports.$max = exports.$$mod = exports.$mod = exports.$$div = exports.$div = exports.$$sup = exports.$sup = exports.$$mul = exports.$mul = exports.$$sub = exports.$sub = exports.$$add = exports.$add = exports.$$bitXor = exports.$bitXor = exports.$$bitOr = exports.$bitOr = exports.$$bitAnd = exports.$bitAnd = exports.$$bitNot = exports.$bitNot = exports.$$bitURShift = exports.$bitURShift = exports.$$bitSRShift = exports.$bitSRShift = exports.$$bitLShift = exports.$bitLShift = undefined;
-
-var _evaluate = __webpack_require__(/*! ../../evaluate */ "./src/s-exp/evaluate.ts");
-
-var _errors = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
-
-var _core = __webpack_require__(/*! ../core/core.fn */ "./src/s-exp/operators/core/core.fn.ts");
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$bitLShift", function() { return $bitLShift; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$bitLShift", function() { return $$bitLShift; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$bitSRShift", function() { return $bitSRShift; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$bitSRShift", function() { return $$bitSRShift; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$bitURShift", function() { return $bitURShift; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$bitURShift", function() { return $$bitURShift; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$bitNot", function() { return $bitNot; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$bitNot", function() { return $$bitNot; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$bitAnd", function() { return $bitAnd; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$bitAnd", function() { return $$bitAnd; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$bitOr", function() { return $bitOr; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$bitOr", function() { return $$bitOr; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$bitXor", function() { return $bitXor; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$bitXor", function() { return $$bitXor; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$add", function() { return $add; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$add", function() { return $$add; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$sub", function() { return $sub; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$sub", function() { return $$sub; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$mul", function() { return $mul; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$mul", function() { return $$mul; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$sup", function() { return $sup; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$sup", function() { return $$sup; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$div", function() { return $div; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$div", function() { return $$div; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$mod", function() { return $mod; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$mod", function() { return $$mod; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$max", function() { return $max; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$max", function() { return $$max; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$min", function() { return $min; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$min", function() { return $$min; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$avg", function() { return $avg; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$avg", function() { return $$avg; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$floor", function() { return $floor; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$floor", function() { return $$floor; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$ceil", function() { return $ceil; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$ceil", function() { return $$ceil; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$round", function() { return $round; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$round", function() { return $$round; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$abs", function() { return $abs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$abs", function() { return $$abs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$sign", function() { return $sign; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$sign", function() { return $$sign; });
+/* harmony import */ var _evaluate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../evaluate */ "./src/s-exp/evaluate.ts");
+/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
+/* harmony import */ var _core_core_fn__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../core/core.fn */ "./src/s-exp/operators/core/core.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
 
-var $bitLShift = exports.$bitLShift = function $bitLShift(state, name) {
-    return function () {
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-        }
 
-        // S expression: (<< number shift)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$bitLShift', args, 2, 2);
+const $bitLShift = (state, name) => (...args) => {
+  // S expression: (<< number shift)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$bitLShift', args, 2, 2);
+  let {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+  car = Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car);
+  cdr = Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(cdr);
 
-        var _$$firstAndSecond = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond.car,
-            cdr = _$$firstAndSecond.cdr;
-
-        car = (0, _evaluate.toNumber)(car);
-        cdr = (0, _evaluate.toNumber)(cdr);
-        if (0 <= cdr) {
-            return cdr < 32 ? car << cdr : 0;
-        } else {
-            return cdr > -32 ? car >>> -cdr : 0;
-        }
-    };
+  if (0 <= cdr) {
+    return cdr < 32 ? car << cdr : 0;
+  } else {
+    return cdr > -32 ? car >>> -cdr : 0;
+  }
 };
-var $$bitLShift = exports.$$bitLShift = $bitLShift(null, null);
-var $bitSRShift = exports.$bitSRShift = function $bitSRShift(state, name) {
-    return function () {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-        }
+const $$bitLShift = $bitLShift(null, null);
+const $bitSRShift = (state, name) => (...args) => {
+  // S expression: (>> number shift)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$bitSRShift', args, 2, 2);
+  let {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+  car = Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car);
+  cdr = Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(cdr);
 
-        // S expression: (>> number shift)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$bitSRShift', args, 2, 2);
-
-        var _$$firstAndSecond2 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond2.car,
-            cdr = _$$firstAndSecond2.cdr;
-
-        car = (0, _evaluate.toNumber)(car);
-        cdr = (0, _evaluate.toNumber)(cdr);
-        if (0 <= cdr) {
-            return cdr < 32 ? car >> cdr : car & 0x080000000 ? -1 : 0;
-        } else {
-            return cdr > -32 ? car << -cdr : 0;
-        }
-    };
+  if (0 <= cdr) {
+    return cdr < 32 ? car >> cdr : car & 0x080000000 ? -1 : 0;
+  } else {
+    return cdr > -32 ? car << -cdr : 0;
+  }
 };
-var $$bitSRShift = exports.$$bitSRShift = $bitSRShift(null, null);
-var $bitURShift = exports.$bitURShift = function $bitURShift(state, name) {
-    return function () {
-        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-        }
+const $$bitSRShift = $bitSRShift(null, null);
+const $bitURShift = (state, name) => (...args) => {
+  // S expression: (>>> number shift)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$bitURShift', args, 2, 2);
+  let {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+  car = Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car);
+  cdr = Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(cdr);
 
-        // S expression: (>>> number shift)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$bitURShift', args, 2, 2);
-
-        var _$$firstAndSecond3 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond3.car,
-            cdr = _$$firstAndSecond3.cdr;
-
-        car = (0, _evaluate.toNumber)(car);
-        cdr = (0, _evaluate.toNumber)(cdr);
-        if (0 <= cdr) {
-            return cdr < 32 ? car >>> cdr : 0;
-        } else {
-            return cdr > -32 ? car << -cdr : 0;
-        }
-    };
+  if (0 <= cdr) {
+    return cdr < 32 ? car >>> cdr : 0;
+  } else {
+    return cdr > -32 ? car << -cdr : 0;
+  }
 };
-var $$bitURShift = exports.$$bitURShift = $bitURShift(null, null);
-var $bitNot = exports.$bitNot = function $bitNot(state, name) {
-    return function () {
-        for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            args[_key4] = arguments[_key4];
-        }
-
-        // S expression: ($bit-not number)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$bitNot', args, 1, 1);
-        var car = _core.$$first.apply(undefined, args);
-        return ~(0, _evaluate.toNumber)(car);
-    };
+const $$bitURShift = $bitURShift(null, null);
+const $bitNot = (state, name) => (...args) => {
+  // S expression: ($bit-not number)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$bitNot', args, 1, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  return ~Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car);
 };
-var $$bitNot = exports.$$bitNot = $bitNot(null, null);
-var $bitAnd = exports.$bitAnd = function $bitAnd(state, name) {
-    return function () {
-        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-            args[_key5] = arguments[_key5];
-        }
-
-        // S expression: ($bit-and numberA numberB)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$bitAnd', args, 2);
-        var car = _core.$$first.apply(undefined, args);
-        return args.slice(1).reduce(function (prev, curr) {
-            return (0, _evaluate.toNumber)(prev) & (0, _evaluate.toNumber)(curr);
-        }, (0, _evaluate.toNumber)(car));
-    };
+const $$bitNot = $bitNot(null, null);
+const $bitAnd = (state, name) => (...args) => {
+  // S expression: ($bit-and numberA numberB)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$bitAnd', args, 2);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  return args.slice(1).reduce((prev, curr) => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev) & Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car));
 };
-var $$bitAnd = exports.$$bitAnd = $bitAnd(null, null);
-var $bitOr = exports.$bitOr = function $bitOr(state, name) {
-    return function () {
-        for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-            args[_key6] = arguments[_key6];
-        }
-
-        // S expression: ($bit-or numberA numberB)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$bitOr', args, 2);
-        var car = _core.$$first.apply(undefined, args);
-        return args.slice(1).reduce(function (prev, curr) {
-            return (0, _evaluate.toNumber)(prev) | (0, _evaluate.toNumber)(curr);
-        }, (0, _evaluate.toNumber)(car));
-    };
+const $$bitAnd = $bitAnd(null, null);
+const $bitOr = (state, name) => (...args) => {
+  // S expression: ($bit-or numberA numberB)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$bitOr', args, 2);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  return args.slice(1).reduce((prev, curr) => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev) | Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car));
 };
-var $$bitOr = exports.$$bitOr = $bitOr(null, null);
-var $bitXor = exports.$bitXor = function $bitXor(state, name) {
-    return function () {
-        for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-            args[_key7] = arguments[_key7];
-        }
-
-        // S expression: ($bit-xor numberA numberB)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$bitXor', args, 2);
-        var car = _core.$$first.apply(undefined, args);
-        return args.slice(1).reduce(function (prev, curr) {
-            return (0, _evaluate.toNumber)(prev) ^ (0, _evaluate.toNumber)(curr);
-        }, (0, _evaluate.toNumber)(car));
-    };
+const $$bitOr = $bitOr(null, null);
+const $bitXor = (state, name) => (...args) => {
+  // S expression: ($bit-xor numberA numberB)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$bitXor', args, 2);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  return args.slice(1).reduce((prev, curr) => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev) ^ Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car));
 };
-var $$bitXor = exports.$$bitXor = $bitXor(null, null);
-var $add = exports.$add = function $add(state, name) {
-    return function () {
-        for (var _len8 = arguments.length, args = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-            args[_key8] = arguments[_key8];
-        }
-
-        // S expression: (+ number1 ... numberN)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$add', args, 1);
-        return args.reduce(function (prev, curr) {
-            return (0, _evaluate.toNumber)(prev) + (0, _evaluate.toNumber)(curr);
-        }, 0);
-    };
+const $$bitXor = $bitXor(null, null);
+const $add = (state, name) => (...args) => {
+  // S expression: (+ number1 ... numberN)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$add', args, 1);
+  return args.reduce((prev, curr) => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev) + Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr), 0);
 };
-var $$add = exports.$$add = $add(null, null);
-var $sub = exports.$sub = function $sub(state, name) {
-    return function () {
-        for (var _len9 = arguments.length, args = Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
-            args[_key9] = arguments[_key9];
-        }
+const $$add = $add(null, null);
+const $sub = (state, name) => (...args) => {
+  // S expression: (- number1 ... numberN)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$sub', args, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  const last = args.slice(1);
 
-        // S expression: (- number1 ... numberN)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$sub', args, 1);
-        var car = _core.$$first.apply(undefined, args);
-        var last = args.slice(1);
-        if (last.length === 0) {
-            // negate
-            return -(0, _evaluate.toNumber)(car);
-        } else {
-            // subtract
-            return args.slice(1).reduce(function (prev, curr) {
-                return (0, _evaluate.toNumber)(prev) - (0, _evaluate.toNumber)(curr);
-            }, (0, _evaluate.toNumber)(car));
-        }
-    };
+  if (last.length === 0) {
+    // negate
+    return -Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car);
+  } else {
+    // subtract
+    return args.slice(1).reduce((prev, curr) => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev) - Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car));
+  }
 };
-var $$sub = exports.$$sub = $sub(null, null);
-var $mul = exports.$mul = function $mul(state, name) {
-    return function () {
-        for (var _len10 = arguments.length, args = Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
-            args[_key10] = arguments[_key10];
-        }
-
-        // S expression: (* number1 ... numberN)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$mul', args, 2);
-        var car = _core.$$first.apply(undefined, args);
-        return args.slice(1).reduce(function (prev, curr) {
-            return (0, _evaluate.toNumber)(prev) * (0, _evaluate.toNumber)(curr);
-        }, (0, _evaluate.toNumber)(car));
-    };
+const $$sub = $sub(null, null);
+const $mul = (state, name) => (...args) => {
+  // S expression: (* number1 ... numberN)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$mul', args, 2);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  return args.slice(1).reduce((prev, curr) => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev) * Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car));
 };
-var $$mul = exports.$$mul = $mul(null, null);
-var $sup = exports.$sup = function $sup(state, name) {
-    return function () {
-        for (var _len11 = arguments.length, args = Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
-            args[_key11] = arguments[_key11];
-        }
-
-        // S expression: (** number1 ... numberN)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$sup', args, 2);
-        var car = _core.$$first.apply(undefined, args);
-        return args.slice(1).reduce(function (prev, curr) {
-            return Math.pow((0, _evaluate.toNumber)(prev), (0, _evaluate.toNumber)(curr));
-        }, (0, _evaluate.toNumber)(car));
-    };
+const $$mul = $mul(null, null);
+const $sup = (state, name) => (...args) => {
+  // S expression: (** number1 ... numberN)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$sup', args, 2);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  return args.slice(1).reduce((prev, curr) => Math.pow(Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr)), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car));
 };
-var $$sup = exports.$$sup = $sup(null, null);
-var $div = exports.$div = function $div(state, name) {
-    return function () {
-        for (var _len12 = arguments.length, args = Array(_len12), _key12 = 0; _key12 < _len12; _key12++) {
-            args[_key12] = arguments[_key12];
-        }
-
-        // S expression: (/ number1 ... numberN)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$div', args, 2);
-        var car = _core.$$first.apply(undefined, args);
-        return args.slice(1).reduce(function (prev, curr) {
-            return (0, _evaluate.toNumber)(prev) / (0, _evaluate.toNumber)(curr);
-        }, (0, _evaluate.toNumber)(car));
-    };
+const $$sup = $sup(null, null);
+const $div = (state, name) => (...args) => {
+  // S expression: (/ number1 ... numberN)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$div', args, 2);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  return args.slice(1).reduce((prev, curr) => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev) / Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car));
 };
-var $$div = exports.$$div = $div(null, null);
-var $mod = exports.$mod = function $mod(state, name) {
-    return function () {
-        for (var _len13 = arguments.length, args = Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
-            args[_key13] = arguments[_key13];
-        }
-
-        // S expression: (% number1 ... numberN)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$mod', args, 2);
-        var car = _core.$$first.apply(undefined, args);
-        return args.slice(1).reduce(function (prev, curr) {
-            return (0, _evaluate.toNumber)(prev) % (0, _evaluate.toNumber)(curr);
-        }, (0, _evaluate.toNumber)(car));
-    };
+const $$div = $div(null, null);
+const $mod = (state, name) => (...args) => {
+  // S expression: (% number1 ... numberN)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$mod', args, 2);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
+  return args.slice(1).reduce((prev, curr) => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(prev) % Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(curr), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car));
 };
-var $$mod = exports.$$mod = $mod(null, null);
-var $max = exports.$max = function $max(state, name) {
-    return function () {
-        for (var _len14 = arguments.length, args = Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
-            args[_key14] = arguments[_key14];
-        }
-
-        // S expression: ($max val1 ... valN)
-        //  -> S expr  : value
-        return Math.max.apply(Math, _toConsumableArray(args.map(function (x) {
-            return (0, _evaluate.toNumber)(x);
-        })));
-    };
+const $$mod = $mod(null, null);
+const $max = (state, name) => (...args) => {
+  // S expression: ($max val1 ... valN)
+  //  -> S expr  : value
+  return Math.max(...args.map(x => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(x)));
 };
-var $$max = exports.$$max = $max(null, null);
-var $min = exports.$min = function $min(state, name) {
-    return function () {
-        for (var _len15 = arguments.length, args = Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
-            args[_key15] = arguments[_key15];
-        }
-
-        // S expression: ($min val1 ... valN)
-        //  -> S expr  : value
-        return Math.min.apply(Math, _toConsumableArray(args.map(function (x) {
-            return (0, _evaluate.toNumber)(x);
-        })));
-    };
+const $$max = $max(null, null);
+const $min = (state, name) => (...args) => {
+  // S expression: ($min val1 ... valN)
+  //  -> S expr  : value
+  return Math.min(...args.map(x => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(x)));
 };
-var $$min = exports.$$min = $min(null, null);
-var $avg = exports.$avg = function $avg(state, name) {
-    return function () {
-        for (var _len16 = arguments.length, args = Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
-            args[_key16] = arguments[_key16];
-        }
-
-        // S expression: ($avg val1 ... valN)
-        //  -> S expr  : value
-        var a = args.map(function (x) {
-            return (0, _evaluate.toNumber)(x);
-        });
-        return a.length > 0 ? a.reduce(function (prev, curr) {
-            return prev + curr;
-        }, 0) / a.length : NaN;
-    };
+const $$min = $min(null, null);
+const $avg = (state, name) => (...args) => {
+  // S expression: ($avg val1 ... valN)
+  //  -> S expr  : value
+  const a = args.map(x => Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(x));
+  return a.length > 0 ? a.reduce((prev, curr) => prev + curr, 0) / a.length : NaN;
 };
-var $$avg = exports.$$avg = $avg(null, null);
-var $floor = exports.$floor = function $floor(state, name) {
-    return function () {
-        for (var _len17 = arguments.length, args = Array(_len17), _key17 = 0; _key17 < _len17; _key17++) {
-            args[_key17] = arguments[_key17];
-        }
-
-        // S expression: ($floor number)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$floor', args, 1, 1);
-        return Math.floor((0, _evaluate.toNumber)(_core.$$first.apply(undefined, args)));
-    };
+const $$avg = $avg(null, null);
+const $floor = (state, name) => (...args) => {
+  // S expression: ($floor number)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$floor', args, 1, 1);
+  return Math.floor(Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args)));
 };
-var $$floor = exports.$$floor = $floor(null, null);
-var $ceil = exports.$ceil = function $ceil(state, name) {
-    return function () {
-        for (var _len18 = arguments.length, args = Array(_len18), _key18 = 0; _key18 < _len18; _key18++) {
-            args[_key18] = arguments[_key18];
-        }
-
-        // S expression: ($ceil number)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$ceil', args, 1, 1);
-        return Math.ceil((0, _evaluate.toNumber)(_core.$$first.apply(undefined, args)));
-    };
+const $$floor = $floor(null, null);
+const $ceil = (state, name) => (...args) => {
+  // S expression: ($ceil number)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$ceil', args, 1, 1);
+  return Math.ceil(Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args)));
 };
-var $$ceil = exports.$$ceil = $ceil(null, null);
-var $round = exports.$round = function $round(state, name) {
-    return function () {
-        for (var _len19 = arguments.length, args = Array(_len19), _key19 = 0; _key19 < _len19; _key19++) {
-            args[_key19] = arguments[_key19];
-        }
-
-        // S expression: ($round number)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$round', args, 1, 1);
-        return Math.round((0, _evaluate.toNumber)(_core.$$first.apply(undefined, args)));
-    };
+const $$ceil = $ceil(null, null);
+const $round = (state, name) => (...args) => {
+  // S expression: ($round number)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$round', args, 1, 1);
+  return Math.round(Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args)));
 };
-var $$round = exports.$$round = $round(null, null);
-var $abs = exports.$abs = function $abs(state, name) {
-    return function () {
-        for (var _len20 = arguments.length, args = Array(_len20), _key20 = 0; _key20 < _len20; _key20++) {
-            args[_key20] = arguments[_key20];
-        }
-
-        // S expression: ($abs number)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$abs', args, 1, 1);
-        return Math.abs((0, _evaluate.toNumber)(_core.$$first.apply(undefined, args)));
-    };
+const $$round = $round(null, null);
+const $abs = (state, name) => (...args) => {
+  // S expression: ($abs number)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$abs', args, 1, 1);
+  return Math.abs(Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args)));
 };
-var $$abs = exports.$$abs = $abs(null, null);
-var $sign = exports.$sign = function $sign(state, name) {
-    return function () {
-        for (var _len21 = arguments.length, args = Array(_len21), _key21 = 0; _key21 < _len21; _key21++) {
-            args[_key21] = arguments[_key21];
-        }
-
-        // S expression: ($sign number)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$sign', args, 1, 1);
-        return Math.sign((0, _evaluate.toNumber)(_core.$$first.apply(undefined, args)));
-    };
+const $$abs = $abs(null, null);
+const $sign = (state, name) => (...args) => {
+  // S expression: ($sign number)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$sign', args, 1, 1);
+  return Math.sign(Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args)));
 };
-var $$sign = exports.$$sign = $sign(null, null);
+const $$sign = $sign(null, null);
 
 /***/ }),
 
@@ -787,20 +865,17 @@ var $$sign = exports.$$sign = $sign(null, null);
 /*!************************************************************!*\
   !*** ./src/s-exp/operators/arithmetic/arithmetic.macro.ts ***!
   \************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: macros, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "macros", function() { return macros; });
 // Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-var macros = exports.macros = [];
-exports.default = macros;
+const macros = [];
+/* harmony default export */ __webpack_exports__["default"] = (macros);
 
 /***/ }),
 
@@ -808,123 +883,115 @@ exports.default = macros;
 /*!***************************************************************!*\
   !*** ./src/s-exp/operators/arithmetic/arithmetic.operator.ts ***!
   \***************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: funcs, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.funcs = undefined;
-
-var _arithmetic = __webpack_require__(/*! ./arithmetic.fn */ "./src/s-exp/operators/arithmetic/arithmetic.fn.ts");
-
-var ops = _interopRequireWildcard(_arithmetic);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var funcs = exports.funcs = [{
-    name: '<<',
-    fn: ops.$bitLShift
-}, {
-    name: '$bit-l-shift',
-    fn: ops.$bitLShift
-}, {
-    name: '>>',
-    fn: ops.$bitSRShift
-}, {
-    name: '$bit-sr-shift',
-    fn: ops.$bitSRShift
-}, {
-    name: '>>>',
-    fn: ops.$bitURShift
-}, {
-    name: '$bit-ur-shift',
-    fn: ops.$bitURShift
-}, {
-    name: '$bit-not',
-    fn: ops.$bitNot
-}, {
-    name: '$bit-and',
-    fn: ops.$bitAnd
-}, {
-    name: '$bit-or',
-    fn: ops.$bitOr
-}, {
-    name: '$bit-xor',
-    fn: ops.$bitXor
-}, {
-    name: '+',
-    fn: ops.$add
-}, {
-    name: '$add',
-    fn: ops.$add
-}, {
-    name: '$sum',
-    fn: ops.$add
-}, {
-    name: '-',
-    fn: ops.$sub
-}, {
-    name: '$sub',
-    fn: ops.$sub
-}, {
-    name: '$neg',
-    fn: ops.$sub
-}, {
-    name: '*',
-    fn: ops.$mul
-}, {
-    name: '$mul',
-    fn: ops.$mul
-}, {
-    name: '**',
-    fn: ops.$sup
-}, {
-    name: '$sup',
-    fn: ops.$sup
-}, {
-    name: '/',
-    fn: ops.$div
-}, {
-    name: '$div',
-    fn: ops.$div
-}, {
-    name: '%',
-    fn: ops.$mod
-}, {
-    name: '$mod',
-    fn: ops.$mod
-}, {
-    name: '$max',
-    fn: ops.$max
-}, {
-    name: '$min',
-    fn: ops.$min
-}, {
-    name: '$avg',
-    fn: ops.$avg
-}, {
-    name: '$floor',
-    fn: ops.$floor
-}, {
-    name: '$ceil',
-    fn: ops.$ceil
-}, {
-    name: '$round',
-    fn: ops.$round
-}, {
-    name: '$abs',
-    fn: ops.$abs
-}, {
-    name: '$sign',
-    fn: ops.$sign
-}]; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "funcs", function() { return funcs; });
+/* harmony import */ var _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arithmetic.fn */ "./src/s-exp/operators/arithmetic/arithmetic.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-exports.default = funcs;
+
+const funcs = [{
+  name: '<<',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitLShift"]
+}, {
+  name: '$bit-l-shift',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitLShift"]
+}, {
+  name: '>>',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitSRShift"]
+}, {
+  name: '$bit-sr-shift',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitSRShift"]
+}, {
+  name: '>>>',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitURShift"]
+}, {
+  name: '$bit-ur-shift',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitURShift"]
+}, {
+  name: '$bit-not',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitNot"]
+}, {
+  name: '$bit-and',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitAnd"]
+}, {
+  name: '$bit-or',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitOr"]
+}, {
+  name: '$bit-xor',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$bitXor"]
+}, {
+  name: '+',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$add"]
+}, {
+  name: '$add',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$add"]
+}, {
+  name: '$sum',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$add"]
+}, {
+  name: '-',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$sub"]
+}, {
+  name: '$sub',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$sub"]
+}, {
+  name: '$neg',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$sub"]
+}, {
+  name: '*',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$mul"]
+}, {
+  name: '$mul',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$mul"]
+}, {
+  name: '**',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$sup"]
+}, {
+  name: '$sup',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$sup"]
+}, {
+  name: '/',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$div"]
+}, {
+  name: '$div',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$div"]
+}, {
+  name: '%',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$mod"]
+}, {
+  name: '$mod',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$mod"]
+}, {
+  name: '$max',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$max"]
+}, {
+  name: '$min',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$min"]
+}, {
+  name: '$avg',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$avg"]
+}, {
+  name: '$floor',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$floor"]
+}, {
+  name: '$ceil',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$ceil"]
+}, {
+  name: '$round',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$round"]
+}, {
+  name: '$abs',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$abs"]
+}, {
+  name: '$sign',
+  fn: _arithmetic_fn__WEBPACK_IMPORTED_MODULE_0__["$sign"]
+}];
+/* harmony default export */ __webpack_exports__["default"] = (funcs);
 
 /***/ }),
 
@@ -932,20 +999,17 @@ exports.default = funcs;
 /*!*************************************************************!*\
   !*** ./src/s-exp/operators/arithmetic/arithmetic.symbol.ts ***!
   \*************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: symbols, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "symbols", function() { return symbols; });
 // Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-var symbols = exports.symbols = [];
-exports.default = symbols;
+const symbols = [];
+/* harmony default export */ __webpack_exports__["default"] = (symbols);
 
 /***/ }),
 
@@ -953,39 +1017,27 @@ exports.default = symbols;
 /*!*************************************************!*\
   !*** ./src/s-exp/operators/arithmetic/index.ts ***!
   \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = install;
-
-var _arithmetic = __webpack_require__(/*! ./arithmetic.operator */ "./src/s-exp/operators/arithmetic/arithmetic.operator.ts");
-
-var _arithmetic2 = _interopRequireDefault(_arithmetic);
-
-var _arithmetic3 = __webpack_require__(/*! ./arithmetic.macro */ "./src/s-exp/operators/arithmetic/arithmetic.macro.ts");
-
-var _arithmetic4 = _interopRequireDefault(_arithmetic3);
-
-var _arithmetic5 = __webpack_require__(/*! ./arithmetic.symbol */ "./src/s-exp/operators/arithmetic/arithmetic.symbol.ts");
-
-var _arithmetic6 = _interopRequireDefault(_arithmetic5);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function install(config) {
-    config.funcs = (config.funcs || []).concat(_arithmetic2.default);
-    config.macros = (config.macros || []).concat(_arithmetic4.default);
-    config.symbols = (config.symbols || []).concat(_arithmetic6.default);
-    return config;
-} // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return install; });
+/* harmony import */ var _arithmetic_operator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./arithmetic.operator */ "./src/s-exp/operators/arithmetic/arithmetic.operator.ts");
+/* harmony import */ var _arithmetic_macro__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./arithmetic.macro */ "./src/s-exp/operators/arithmetic/arithmetic.macro.ts");
+/* harmony import */ var _arithmetic_symbol__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./arithmetic.symbol */ "./src/s-exp/operators/arithmetic/arithmetic.symbol.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
+
+
+
+function install(config) {
+  config.funcs = (config.funcs || []).concat(_arithmetic_operator__WEBPACK_IMPORTED_MODULE_0__["default"]);
+  config.macros = (config.macros || []).concat(_arithmetic_macro__WEBPACK_IMPORTED_MODULE_1__["default"]);
+  config.symbols = (config.symbols || []).concat(_arithmetic_symbol__WEBPACK_IMPORTED_MODULE_2__["default"]);
+  return config;
+}
 
 /***/ }),
 
@@ -993,269 +1045,211 @@ function install(config) {
 /*!*********************************************************!*\
   !*** ./src/s-exp/operators/concurrent/concurrent.fn.ts ***!
   \*********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: $__letAsync, $$__letAsync, $__setAsync, $$__setAsync, $then, $$then, $resolveAll, $$resolveAll, $resolveAny, $$resolveAny, $resolvePipe, $$resolvePipe, $resolveFork, $$resolveFork */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.$$resolveFork = exports.$resolveFork = exports.$$resolvePipe = exports.$resolvePipe = exports.$$resolveAny = exports.$resolveAny = exports.$$resolveAll = exports.$resolveAll = exports.$$then = exports.$then = exports.$$__setAsync = exports.$__setAsync = exports.$$__letAsync = exports.$__letAsync = undefined;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__letAsync", function() { return $__letAsync; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$__letAsync", function() { return $$__letAsync; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__setAsync", function() { return $__setAsync; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$__setAsync", function() { return $$__setAsync; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$then", function() { return $then; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$then", function() { return $$then; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$resolveAll", function() { return $resolveAll; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$resolveAll", function() { return $$resolveAll; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$resolveAny", function() { return $resolveAny; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$resolveAny", function() { return $$resolveAny; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$resolvePipe", function() { return $resolvePipe; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$resolvePipe", function() { return $$resolvePipe; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$resolveFork", function() { return $resolveFork; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$resolveFork", function() { return $$resolveFork; });
+/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
+/* harmony import */ var _core_core_fn__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../core/core.fn */ "./src/s-exp/operators/core/core.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
+ // tslint:disable-next-line:variable-name
 
-var _errors = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
+const $__letAsync = (state, name) => (...args) => {
+  // S expression: ($__let-async 'nameStrOrSymbol promise)
+  //  -> S expr  : promise
+  Object(_errors__WEBPACK_IMPORTED_MODULE_0__["checkParamsLength"])('$__letAsync', args, 2, 2);
+  let promise = args[1];
 
-var _core = __webpack_require__(/*! ../core/core.fn */ "./src/s-exp/operators/core/core.fn.ts");
+  if (typeof promise !== 'object' || typeof promise.then !== 'function') {
+    promise = Promise.resolve(promise);
+  }
 
-// tslint:disable-next-line:variable-name
-var $__letAsync = exports.$__letAsync = function $__letAsync(state, name) {
-    return function () {
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-        }
+  promise = promise.then(v => {
+    try {
+      Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_1__["$__let"])(state, '')(args[0], v);
+      return v;
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  });
+  return promise;
+}; // tslint:disable-next-line:variable-name
 
-        // S expression: ($__let-async 'nameStrOrSymbol promise)
-        //  -> S expr  : promise
-        (0, _errors.checkParamsLength)('$__letAsync', args, 2, 2);
-        var promise = args[1];
-        if ((typeof promise === 'undefined' ? 'undefined' : _typeof(promise)) !== 'object' || typeof promise.then !== 'function') {
-            promise = Promise.resolve(promise);
-        }
-        promise = promise.then(function (v) {
-            try {
-                (0, _core.$__let)(state, '')(args[0], v);
-                return v;
-            } catch (e) {
-                return Promise.reject(e);
-            }
-        });
-        return promise;
-    };
+const $$__letAsync = $__letAsync(null, null); // tslint:disable-next-line:variable-name
+
+const $__setAsync = (state, name) => (...args) => {
+  // S expression: ($__set-async 'nameOrListOfNameOrIndex promise)
+  //  -> S expr  : promise
+  Object(_errors__WEBPACK_IMPORTED_MODULE_0__["checkParamsLength"])('$__setAsync', args, 2, 2);
+  let promise = args[1];
+
+  if (typeof promise !== 'object' || typeof promise.then !== 'function') {
+    promise = Promise.resolve(promise);
+  }
+
+  promise = promise.then(v => {
+    try {
+      Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_1__["$__set"])(state, '')(args[0], v);
+      return v;
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  });
+  return promise;
+}; // tslint:disable-next-line:variable-name
+
+const $$__setAsync = $__setAsync(null, null);
+const $then = (state, name) => (...args) => {
+  // S expression: ($then promise (lambda (val) ...) (lambda (err) ...))
+  //  -> S expr  : promise
+  Object(_errors__WEBPACK_IMPORTED_MODULE_0__["checkParamsLength"])('$then', args, 2, 3);
+  let promise = args[0];
+
+  if (typeof promise !== 'object' || typeof promise.then !== 'function') {
+    promise = Promise.resolve(promise);
+  }
+
+  if (typeof args[2] === 'function') {
+    promise = promise.then(args[1], args[2]);
+  } else {
+    if (typeof args[1] !== 'function') {
+      throw new Error(`[SX] $then: Invalid argument(s): args[1] is not function.`);
+    }
+
+    promise = promise.then(args[1]);
+  }
+
+  return promise;
 };
-// tslint:disable-next-line:variable-name
-var $$__letAsync = exports.$$__letAsync = $__letAsync(null, null);
-// tslint:disable-next-line:variable-name
-var $__setAsync = exports.$__setAsync = function $__setAsync(state, name) {
-    return function () {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-        }
+const $$then = $then(null, null);
+const $resolveAll = (state, name) => (...args) => {
+  // S expression: ($resolve-all promise1 ... promiseN)
+  //  -> S expr  : promise
+  const promises = args.slice(0);
 
-        // S expression: ($__set-async 'nameOrListOfNameOrIndex promise)
-        //  -> S expr  : promise
-        (0, _errors.checkParamsLength)('$__setAsync', args, 2, 2);
-        var promise = args[1];
-        if ((typeof promise === 'undefined' ? 'undefined' : _typeof(promise)) !== 'object' || typeof promise.then !== 'function') {
-            promise = Promise.resolve(promise);
-        }
-        promise = promise.then(function (v) {
-            try {
-                (0, _core.$__set)(state, '')(args[0], v);
-                return v;
-            } catch (e) {
-                return Promise.reject(e);
-            }
-        });
-        return promise;
-    };
+  for (let i = 0; i < promises.length; i++) {
+    if (typeof promises[i] !== 'object' || typeof promises[i].then !== 'function') {
+      promises[i] = Promise.resolve(promises[i]);
+    }
+  }
+
+  return Promise.all(promises);
 };
-// tslint:disable-next-line:variable-name
-var $$__setAsync = exports.$$__setAsync = $__setAsync(null, null);
-var $then = exports.$then = function $then(state, name) {
-    return function () {
-        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-        }
+const $$resolveAll = $resolveAll(null, null);
+const $resolveAny = (state, name) => (...args) => {
+  // S expression: ($resolve-any promise1 ... promiseN)
+  //  -> S expr  : promise
+  const promises = args.slice(0);
 
-        // S expression: ($then promise (lambda (val) ...) (lambda (err) ...))
-        //  -> S expr  : promise
-        (0, _errors.checkParamsLength)('$then', args, 2, 3);
-        var promise = args[0];
-        if ((typeof promise === 'undefined' ? 'undefined' : _typeof(promise)) !== 'object' || typeof promise.then !== 'function') {
-            promise = Promise.resolve(promise);
-        }
-        if (typeof args[2] === 'function') {
-            promise = promise.then(args[1], args[2]);
-        } else {
-            if (typeof args[1] !== 'function') {
-                throw new Error('[SX] $then: Invalid argument(s): args[1] is not function.');
-            }
-            promise = promise.then(args[1]);
-        }
-        return promise;
-    };
+  for (let i = 0; i < promises.length; i++) {
+    if (typeof promises[i] !== 'object' || typeof promises[i].then !== 'function') {
+      promises[i] = Promise.resolve(promises[i]);
+    }
+  } // https://stackoverflow.com/questions/39940152/get-first-fulfilled-promise
+  // firstOf: This will return the value of the first fulfilled promise,
+  //          or if all reject, an array of rejection reasons.
+
+
+  const invert = p => new Promise((res, rej) => p.then(rej, res));
+
+  const firstOf = ps => invert(Promise.all(ps.map(invert)));
+
+  return firstOf(promises);
 };
-var $$then = exports.$$then = $then(null, null);
-var $resolveAll = exports.$resolveAll = function $resolveAll(state, name) {
-    return function () {
-        for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            args[_key4] = arguments[_key4];
-        }
+const $$resolveAny = $resolveAny(null, null);
+const $resolvePipe = (state, name) => (...args) => {
+  // S expression: ($resolve-pipe promise<val1> (lambda (val1) ... promiseOrVal2) (lambda (val2) ... promiseOrVal3) ... (lambda (valN-1) ... promiseOrValN))
+  //  -> S expr  : promise
+  // remarks: If the formal argument lambda is a non-lambda value, the value is then piped as is.
+  Object(_errors__WEBPACK_IMPORTED_MODULE_0__["checkParamsLength"])('$resolvePipe', args, 1);
+  let promise = args[0];
 
-        // S expression: ($resolve-all promise1 ... promiseN)
-        //  -> S expr  : promise
-        var promises = args.slice(0);
-        for (var i = 0; i < promises.length; i++) {
-            if (_typeof(promises[i]) !== 'object' || typeof promises[i].then !== 'function') {
-                promises[i] = Promise.resolve(promises[i]);
-            }
-        }
-        return Promise.all(promises);
-    };
+  if (typeof promise !== 'object' || typeof promise.then !== 'function') {
+    promise = Promise.resolve(promise);
+  }
+
+  const lambdas = args.slice(1);
+
+  for (let i = 0; i < lambdas.length; i++) {
+    if (typeof lambdas[i] !== 'function') {
+      const v = lambdas[i];
+
+      lambdas[i] = () => v;
+    }
+  }
+
+  let p = promise;
+
+  for (const l of lambdas) {
+    p = p.then(l);
+  }
+
+  return p;
 };
-var $$resolveAll = exports.$$resolveAll = $resolveAll(null, null);
-var $resolveAny = exports.$resolveAny = function $resolveAny(state, name) {
-    return function () {
-        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-            args[_key5] = arguments[_key5];
+const $$resolvePipe = $resolvePipe(null, null);
+const $resolveFork = (state, name) => (...args) => {
+  // S expression: ($resolve-fork promise<val1> (lambda (val1) ... promiseOrVal2a) ... (lambda (val1) ... promiseOrVal2z))
+  //  -> S expr  : (promise<val2a> ... promise<val2z>)
+  // remarks: If the formal argument lambda is a non-lambda value, the value is then piped as is.
+  Object(_errors__WEBPACK_IMPORTED_MODULE_0__["checkParamsLength"])('$resolveFork', args, 1);
+  let promise = args[0];
+
+  if (typeof promise !== 'object' || typeof promise.then !== 'function') {
+    promise = Promise.resolve(promise);
+  }
+
+  const lambdas = args.slice(1);
+
+  for (let i = 0; i < lambdas.length; i++) {
+    if (typeof lambdas[i] !== 'function') {
+      const v = lambdas[i];
+
+      lambdas[i] = () => v;
+    }
+  }
+
+  const resolvers = new Array(lambdas.length);
+  const rejectors = new Array(lambdas.length);
+  const pa = [];
+
+  for (let i = 0; i < lambdas.length; i++) {
+    pa.push(new Promise((resolve, reject) => {
+      resolvers[i] = v => {
+        let lp = lambdas[i](v);
+
+        if (typeof lp !== 'object' || typeof lp.then !== 'function') {
+          lp = Promise.resolve(lp);
         }
 
-        // S expression: ($resolve-any promise1 ... promiseN)
-        //  -> S expr  : promise
-        var promises = args.slice(0);
-        for (var i = 0; i < promises.length; i++) {
-            if (_typeof(promises[i]) !== 'object' || typeof promises[i].then !== 'function') {
-                promises[i] = Promise.resolve(promises[i]);
-            }
-        }
-        // https://stackoverflow.com/questions/39940152/get-first-fulfilled-promise
-        // firstOf: This will return the value of the first fulfilled promise,
-        //          or if all reject, an array of rejection reasons.
-        var invert = function invert(p) {
-            return new Promise(function (res, rej) {
-                return p.then(rej, res);
-            });
-        };
-        var firstOf = function firstOf(ps) {
-            return invert(Promise.all(ps.map(invert)));
-        };
-        return firstOf(promises);
-    };
+        lp.then(x => resolve(x)).catch(e => reject(e));
+      };
+
+      rejectors[i] = reject;
+    }));
+  }
+
+  promise.then(v => resolvers.forEach(f => f(v)), e => rejectors.forEach(f => f(e)));
+  return pa;
 };
-var $$resolveAny = exports.$$resolveAny = $resolveAny(null, null);
-var $resolvePipe = exports.$resolvePipe = function $resolvePipe(state, name) {
-    return function () {
-        for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-            args[_key6] = arguments[_key6];
-        }
-
-        // S expression: ($resolve-pipe promise<val1> (lambda (val1) ... promiseOrVal2) (lambda (val2) ... promiseOrVal3) ... (lambda (valN-1) ... promiseOrValN))
-        //  -> S expr  : promise
-        // remarks: If the formal argument lambda is a non-lambda value, the value is then piped as is.
-        (0, _errors.checkParamsLength)('$resolvePipe', args, 1);
-        var promise = args[0];
-        if ((typeof promise === 'undefined' ? 'undefined' : _typeof(promise)) !== 'object' || typeof promise.then !== 'function') {
-            promise = Promise.resolve(promise);
-        }
-        var lambdas = args.slice(1);
-        for (var i = 0; i < lambdas.length; i++) {
-            if (typeof lambdas[i] !== 'function') {
-                (function () {
-                    var v = lambdas[i];
-                    lambdas[i] = function () {
-                        return v;
-                    };
-                })();
-            }
-        }
-        var p = promise;
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-            for (var _iterator = lambdas[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var l = _step.value;
-
-                p = p.then(l);
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
-        }
-
-        return p;
-    };
-};
-var $$resolvePipe = exports.$$resolvePipe = $resolvePipe(null, null);
-var $resolveFork = exports.$resolveFork = function $resolveFork(state, name) {
-    return function () {
-        for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-            args[_key7] = arguments[_key7];
-        }
-
-        // S expression: ($resolve-fork promise<val1> (lambda (val1) ... promiseOrVal2a) ... (lambda (val1) ... promiseOrVal2z))
-        //  -> S expr  : (promise<val2a> ... promise<val2z>)
-        // remarks: If the formal argument lambda is a non-lambda value, the value is then piped as is.
-        (0, _errors.checkParamsLength)('$resolveFork', args, 1);
-        var promise = args[0];
-        if ((typeof promise === 'undefined' ? 'undefined' : _typeof(promise)) !== 'object' || typeof promise.then !== 'function') {
-            promise = Promise.resolve(promise);
-        }
-        var lambdas = args.slice(1);
-        for (var i = 0; i < lambdas.length; i++) {
-            if (typeof lambdas[i] !== 'function') {
-                (function () {
-                    var v = lambdas[i];
-                    lambdas[i] = function () {
-                        return v;
-                    };
-                })();
-            }
-        }
-        var resolvers = new Array(lambdas.length);
-        var rejectors = new Array(lambdas.length);
-        var pa = [];
-
-        var _loop = function _loop(_i) {
-            pa.push(new Promise(function (resolve, reject) {
-                resolvers[_i] = function (v) {
-                    var lp = lambdas[_i](v);
-                    if ((typeof lp === 'undefined' ? 'undefined' : _typeof(lp)) !== 'object' || typeof lp.then !== 'function') {
-                        lp = Promise.resolve(lp);
-                    }
-                    lp.then(function (x) {
-                        return resolve(x);
-                    }).catch(function (e) {
-                        return reject(e);
-                    });
-                };
-                rejectors[_i] = reject;
-            }));
-        };
-
-        for (var _i = 0; _i < lambdas.length; _i++) {
-            _loop(_i);
-        }
-        promise.then(function (v) {
-            return resolvers.forEach(function (f) {
-                return f(v);
-            });
-        }, function (e) {
-            return rejectors.forEach(function (f) {
-                return f(e);
-            });
-        });
-        return pa;
-    };
-};
-var $$resolveFork = exports.$$resolveFork = $resolveFork(null, null);
+const $$resolveFork = $resolveFork(null, null);
 
 /***/ }),
 
@@ -1263,46 +1257,41 @@ var $$resolveFork = exports.$$resolveFork = $resolveFork(null, null);
 /*!************************************************************!*\
   !*** ./src/s-exp/operators/concurrent/concurrent.macro.ts ***!
   \************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: macros, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.macros = undefined;
-
-var _types = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
-
-var _errors = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
-
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "macros", function() { return macros; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
+/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
 // Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-var macros = exports.macros = [{
-    name: '$let-async',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($let-async nameStrOrSymbol promise)
-            //  -> S expr  : ($__let-async 'nameStrOrSymbol promise)
-            (0, _errors.checkParamsLength)('$let-async', list, 3, 3);
-            return [{ symbol: '$__let-async' }, (0, _types.quote)(state, list[1]), list[2]];
-        };
-    }
+
+
+const macros = [{
+  name: '$let-async',
+  fn: (state, name) => list => {
+    // S expression: ($let-async nameStrOrSymbol promise)
+    //  -> S expr  : ($__let-async 'nameStrOrSymbol promise)
+    Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$let-async', list, 3, 3);
+    return [{
+      symbol: '$__let-async'
+    }, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[1]), list[2]];
+  }
 }, {
-    name: '$set-async',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($set-async nameOrListOfNameOrIndex promise)
-            //  -> S expr  : ($__set-async 'nameOrListOfNameOrIndex promise)
-            (0, _errors.checkParamsLength)('$set-async', list, 3, 3);
-            return [{ symbol: '$__set-async' }, (0, _types.quote)(state, list[1]), list[2]];
-        };
-    }
+  name: '$set-async',
+  fn: (state, name) => list => {
+    // S expression: ($set-async nameOrListOfNameOrIndex promise)
+    //  -> S expr  : ($__set-async 'nameOrListOfNameOrIndex promise)
+    Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$set-async', list, 3, 3);
+    return [{
+      symbol: '$__set-async'
+    }, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[1]), list[2]];
+  }
 }];
-exports.default = macros;
+/* harmony default export */ __webpack_exports__["default"] = (macros);
 
 /***/ }),
 
@@ -1310,48 +1299,40 @@ exports.default = macros;
 /*!***************************************************************!*\
   !*** ./src/s-exp/operators/concurrent/concurrent.operator.ts ***!
   \***************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: funcs, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.funcs = undefined;
-
-var _concurrent = __webpack_require__(/*! ./concurrent.fn */ "./src/s-exp/operators/concurrent/concurrent.fn.ts");
-
-var ops = _interopRequireWildcard(_concurrent);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var funcs = exports.funcs = [{
-    name: '$__let-async',
-    fn: ops.$__letAsync
-}, {
-    name: '$__set-async',
-    fn: ops.$__setAsync
-}, {
-    name: '$then',
-    fn: ops.$then
-}, {
-    name: '$resolve-all',
-    fn: ops.$resolveAll
-}, {
-    name: '$resolve-any',
-    fn: ops.$resolveAny
-}, {
-    name: '$resolve-pipe',
-    fn: ops.$resolvePipe
-}, {
-    name: '$resolve-fork',
-    fn: ops.$resolveFork
-}]; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "funcs", function() { return funcs; });
+/* harmony import */ var _concurrent_fn__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./concurrent.fn */ "./src/s-exp/operators/concurrent/concurrent.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-exports.default = funcs;
+
+const funcs = [{
+  name: '$__let-async',
+  fn: _concurrent_fn__WEBPACK_IMPORTED_MODULE_0__["$__letAsync"]
+}, {
+  name: '$__set-async',
+  fn: _concurrent_fn__WEBPACK_IMPORTED_MODULE_0__["$__setAsync"]
+}, {
+  name: '$then',
+  fn: _concurrent_fn__WEBPACK_IMPORTED_MODULE_0__["$then"]
+}, {
+  name: '$resolve-all',
+  fn: _concurrent_fn__WEBPACK_IMPORTED_MODULE_0__["$resolveAll"]
+}, {
+  name: '$resolve-any',
+  fn: _concurrent_fn__WEBPACK_IMPORTED_MODULE_0__["$resolveAny"]
+}, {
+  name: '$resolve-pipe',
+  fn: _concurrent_fn__WEBPACK_IMPORTED_MODULE_0__["$resolvePipe"]
+}, {
+  name: '$resolve-fork',
+  fn: _concurrent_fn__WEBPACK_IMPORTED_MODULE_0__["$resolveFork"]
+}];
+/* harmony default export */ __webpack_exports__["default"] = (funcs);
 
 /***/ }),
 
@@ -1359,20 +1340,17 @@ exports.default = funcs;
 /*!*************************************************************!*\
   !*** ./src/s-exp/operators/concurrent/concurrent.symbol.ts ***!
   \*************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: symbols, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "symbols", function() { return symbols; });
 // Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-var symbols = exports.symbols = [];
-exports.default = symbols;
+const symbols = [];
+/* harmony default export */ __webpack_exports__["default"] = (symbols);
 
 /***/ }),
 
@@ -1380,39 +1358,27 @@ exports.default = symbols;
 /*!*************************************************!*\
   !*** ./src/s-exp/operators/concurrent/index.ts ***!
   \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = install;
-
-var _concurrent = __webpack_require__(/*! ./concurrent.operator */ "./src/s-exp/operators/concurrent/concurrent.operator.ts");
-
-var _concurrent2 = _interopRequireDefault(_concurrent);
-
-var _concurrent3 = __webpack_require__(/*! ./concurrent.macro */ "./src/s-exp/operators/concurrent/concurrent.macro.ts");
-
-var _concurrent4 = _interopRequireDefault(_concurrent3);
-
-var _concurrent5 = __webpack_require__(/*! ./concurrent.symbol */ "./src/s-exp/operators/concurrent/concurrent.symbol.ts");
-
-var _concurrent6 = _interopRequireDefault(_concurrent5);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function install(config) {
-    config.funcs = (config.funcs || []).concat(_concurrent2.default);
-    config.macros = (config.macros || []).concat(_concurrent4.default);
-    config.symbols = (config.symbols || []).concat(_concurrent6.default);
-    return config;
-} // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return install; });
+/* harmony import */ var _concurrent_operator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./concurrent.operator */ "./src/s-exp/operators/concurrent/concurrent.operator.ts");
+/* harmony import */ var _concurrent_macro__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./concurrent.macro */ "./src/s-exp/operators/concurrent/concurrent.macro.ts");
+/* harmony import */ var _concurrent_symbol__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./concurrent.symbol */ "./src/s-exp/operators/concurrent/concurrent.symbol.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
+
+
+
+function install(config) {
+  config.funcs = (config.funcs || []).concat(_concurrent_operator__WEBPACK_IMPORTED_MODULE_0__["default"]);
+  config.macros = (config.macros || []).concat(_concurrent_macro__WEBPACK_IMPORTED_MODULE_1__["default"]);
+  config.symbols = (config.symbols || []).concat(_concurrent_symbol__WEBPACK_IMPORTED_MODULE_2__["default"]);
+  return config;
+}
 
 /***/ }),
 
@@ -1420,1540 +1386,1144 @@ function install(config) {
 /*!*********************************************!*\
   !*** ./src/s-exp/operators/core/core.fn.ts ***!
   \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: $car, $$car, $cdr, $$cdr, $cons, $$cons, $first, $$first, $second, $$second, $last, $$last, $rest, $$rest, $firstAndSecond, $$firstAndSecond, $atom, $$atom, $eq, $$eq, $notEq, $$notEq, $list, $$list, $__scope, $__globalScope, $__lambda, $__defun, $apply, $$apply, $__call, $__try, $raise, $$raise, $__if, $__ifNull, $__cond, $__while, $__doWhile, $__until, $__doUntil, $__repeat, $__for, $pipe, $$pipe, $__get, $__let, $__set, $boolean, $$boolean, $not, $$not, $__and, $$__and, $__or, $$__or, $ambiguousEq, $$ambiguousEq, $ambiguousNotEq, $$ambiguousNotEq, $lt, $$lt, $le, $$le, $gt, $$gt, $ge, $$ge, $isList, $$isList, $isString, $$isString, $isNumber, $$isNumber, $isNaN, $$isNaN, $isFinite, $$isFinite, $isInteger, $$isInteger, $toString, $$toString, $toNumber, $$toNumber, $__toObject, $objectAssign, $$objectAssign, $jsonStringify, $$jsonStringify, $jsonParse, $$jsonParse, $consoleLog, $$consoleLog, $consoleError, $$consoleError */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.$$consoleError = exports.$consoleError = exports.$$consoleLog = exports.$consoleLog = exports.$$jsonParse = exports.$jsonParse = exports.$$jsonStringify = exports.$jsonStringify = exports.$$objectAssign = exports.$objectAssign = exports.$__toObject = exports.$$toNumber = exports.$toNumber = exports.$$toString = exports.$toString = exports.$$isInteger = exports.$isInteger = exports.$$isFinite = exports.$isFinite = exports.$$isNaN = exports.$isNaN = exports.$$isNumber = exports.$isNumber = exports.$$isString = exports.$isString = exports.$$isList = exports.$isList = exports.$$ge = exports.$ge = exports.$$gt = exports.$gt = exports.$$le = exports.$le = exports.$$lt = exports.$lt = exports.$$ambiguousNotEq = exports.$ambiguousNotEq = exports.$$ambiguousEq = exports.$ambiguousEq = exports.$$__or = exports.$__or = exports.$$__and = exports.$__and = exports.$$not = exports.$not = exports.$$boolean = exports.$boolean = exports.$__set = exports.$__let = exports.$__get = exports.$$pipe = exports.$pipe = exports.$__for = exports.$__repeat = exports.$__doUntil = exports.$__until = exports.$__doWhile = exports.$__while = exports.$__cond = exports.$__ifNull = exports.$__if = exports.$$raise = exports.$raise = exports.$__try = exports.$__call = exports.$__defun = exports.$__lambda = exports.$__globalScope = exports.$__scope = exports.$$list = exports.$list = exports.$$notEq = exports.$notEq = exports.$$eq = exports.$eq = exports.$$atom = exports.$atom = exports.$$firstAndSecond = exports.$firstAndSecond = exports.$$rest = exports.$rest = exports.$$last = exports.$last = exports.$$second = exports.$second = exports.$$first = exports.$first = exports.$$cons = exports.$cons = exports.$$cdr = exports.$cdr = exports.$$car = exports.$car = undefined;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$car", function() { return $car; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$car", function() { return $$car; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$cdr", function() { return $cdr; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$cdr", function() { return $$cdr; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$cons", function() { return $cons; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$cons", function() { return $$cons; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$first", function() { return $first; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$first", function() { return $$first; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$second", function() { return $second; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$second", function() { return $$second; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$last", function() { return $last; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$last", function() { return $$last; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$rest", function() { return $rest; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$rest", function() { return $$rest; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$firstAndSecond", function() { return $firstAndSecond; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$firstAndSecond", function() { return $$firstAndSecond; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$atom", function() { return $atom; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$atom", function() { return $$atom; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$eq", function() { return $eq; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$eq", function() { return $$eq; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$notEq", function() { return $notEq; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$notEq", function() { return $$notEq; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$list", function() { return $list; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$list", function() { return $$list; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__scope", function() { return $__scope; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__globalScope", function() { return $__globalScope; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__lambda", function() { return $__lambda; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__defun", function() { return $__defun; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$apply", function() { return $apply; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$apply", function() { return $$apply; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__call", function() { return $__call; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__try", function() { return $__try; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$raise", function() { return $raise; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$raise", function() { return $$raise; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__if", function() { return $__if; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__ifNull", function() { return $__ifNull; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__cond", function() { return $__cond; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__while", function() { return $__while; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__doWhile", function() { return $__doWhile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__until", function() { return $__until; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__doUntil", function() { return $__doUntil; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__repeat", function() { return $__repeat; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__for", function() { return $__for; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$pipe", function() { return $pipe; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$pipe", function() { return $$pipe; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__get", function() { return $__get; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__let", function() { return $__let; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__set", function() { return $__set; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$boolean", function() { return $boolean; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$boolean", function() { return $$boolean; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$not", function() { return $not; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$not", function() { return $$not; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__and", function() { return $__and; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$__and", function() { return $$__and; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__or", function() { return $__or; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$__or", function() { return $$__or; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$ambiguousEq", function() { return $ambiguousEq; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$ambiguousEq", function() { return $$ambiguousEq; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$ambiguousNotEq", function() { return $ambiguousNotEq; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$ambiguousNotEq", function() { return $$ambiguousNotEq; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$lt", function() { return $lt; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$lt", function() { return $$lt; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$le", function() { return $le; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$le", function() { return $$le; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$gt", function() { return $gt; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$gt", function() { return $$gt; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$ge", function() { return $ge; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$ge", function() { return $$ge; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$isList", function() { return $isList; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$isList", function() { return $$isList; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$isString", function() { return $isString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$isString", function() { return $$isString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$isNumber", function() { return $isNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$isNumber", function() { return $$isNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$isNaN", function() { return $isNaN; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$isNaN", function() { return $$isNaN; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$isFinite", function() { return $isFinite; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$isFinite", function() { return $$isFinite; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$isInteger", function() { return $isInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$isInteger", function() { return $$isInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$toString", function() { return $toString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$toString", function() { return $$toString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$toNumber", function() { return $toNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$toNumber", function() { return $$toNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__toObject", function() { return $__toObject; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$objectAssign", function() { return $objectAssign; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$objectAssign", function() { return $$objectAssign; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$jsonStringify", function() { return $jsonStringify; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$jsonStringify", function() { return $$jsonStringify; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$jsonParse", function() { return $jsonParse; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$jsonParse", function() { return $$jsonParse; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$consoleLog", function() { return $consoleLog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$consoleLog", function() { return $$consoleLog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$consoleError", function() { return $consoleError; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$consoleError", function() { return $$consoleError; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
+/* harmony import */ var _evaluate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../evaluate */ "./src/s-exp/evaluate.ts");
+/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
 
-var _types = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
 
-var _evaluate = __webpack_require__(/*! ../../evaluate */ "./src/s-exp/evaluate.ts");
+const $car = (state, name) => (...args) => {
+  // S expression: ($car '(first second ... last))
+  //  -> S expr  : first
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$car', args, 1, 1);
+  const car = $$first(...args);
 
-var _errors = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
+  if (!Array.isArray(car)) {
+    throw new Error(`[SX] $car: Invalid argument(s): args[0] is not array.`);
+  }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+  if (car.length === 0) {
+    throw new Error(`[SX] $car: Invalid argument(s): args[0] is nil.`);
+  }
 
-var $car = exports.$car = function $car(state, name) {
-    return function () {
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-        }
-
-        // S expression: ($car '(first second ... last))
-        //  -> S expr  : first
-        (0, _errors.checkParamsLength)('$car', args, 1, 1);
-        var car = $$first.apply(undefined, args);
-        if (!Array.isArray(car)) {
-            throw new Error('[SX] $car: Invalid argument(s): args[0] is not array.');
-        }
-        if (car.length === 0) {
-            throw new Error('[SX] $car: Invalid argument(s): args[0] is nil.');
-        }
-        return car[0];
-    };
+  return car[0];
 };
-var $$car = exports.$$car = $car(null, null);
-var $cdr = exports.$cdr = function $cdr(state, name) {
-    return function () {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-        }
+const $$car = $car(null, null);
+const $cdr = (state, name) => (...args) => {
+  // S expression: ($cdr '(first second ... last))
+  //  -> S expr  : (second ... last)
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$cdr', args, 1, 1);
+  const car = $$first(...args);
 
-        // S expression: ($cdr '(first second ... last))
-        //  -> S expr  : (second ... last)
-        (0, _errors.checkParamsLength)('$cdr', args, 1, 1);
-        var car = $$first.apply(undefined, args);
-        if (!Array.isArray(car)) {
-            throw new Error('[SX] $car: Invalid argument(s): args[0] is not array.');
-        }
-        if (car.length === 0) {
-            throw new Error('[SX] $car: Invalid argument(s): args[0] is nil.');
-        }
-        return car.slice(1);
-    };
+  if (!Array.isArray(car)) {
+    throw new Error(`[SX] $car: Invalid argument(s): args[0] is not array.`);
+  }
+
+  if (car.length === 0) {
+    throw new Error(`[SX] $car: Invalid argument(s): args[0] is nil.`);
+  }
+
+  return car.slice(1);
 };
-var $$cdr = exports.$$cdr = $cdr(null, null);
-var $cons = exports.$cons = function $cons(state, name) {
-    return function () {
-        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-        }
+const $$cdr = $cdr(null, null);
+const $cons = (state, name) => (...args) => {
+  // S expression: ($cons arg1 '(arg2-item1 ...) ... argN)
+  //  -> S expr  : (arg1 arg2-item1 ...)
+  // S expression: ($cons arg1 nilOrNull ... argN)
+  //  -> S expr  : (arg1)
+  // S expression: ($cons arg1 arg2 ... argN)
+  //  -> S expr  : arg1.arg2
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$cons', args, 2, 2);
+  let {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
 
-        // S expression: ($cons arg1 '(arg2-item1 ...) ... argN)
-        //  -> S expr  : (arg1 arg2-item1 ...)
-        // S expression: ($cons arg1 nilOrNull ... argN)
-        //  -> S expr  : (arg1)
-        // S expression: ($cons arg1 arg2 ... argN)
-        //  -> S expr  : arg1.arg2
-        (0, _errors.checkParamsLength)('$cons', args, 2, 2);
+  if (car === null) {
+    car = [];
+  }
 
-        var _$$firstAndSecond = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond.car,
-            cdr = _$$firstAndSecond.cdr;
+  if (cdr === null) {
+    cdr = [];
+  }
 
-        if (car === null) {
-            car = [];
-        }
-        if (cdr === null) {
-            cdr = [];
-        }
-        if (Array.isArray(cdr)) {
-            cdr.unshift(car);
-            return cdr;
+  if (Array.isArray(cdr)) {
+    cdr.unshift(car);
+    return cdr;
+  } else {
+    return {
+      car,
+      cdr
+    };
+  }
+};
+const $$cons = $cons(null, null);
+const $first = (state, name) => (...args) => {
+  // S expression: ($first first second ... last)
+  //  -> S expr  : first
+  // S expression: ($first)
+  //  -> S expr  : null
+  const car = args.slice(0, 1);
+  return car.length === 1 ? car[0] : null;
+};
+const $$first = $first(null, null);
+const $second = (state, name) => (...args) => {
+  // S expression: ($second first second ... last)
+  //  -> S expr  : second
+  // S expression: ($second first)
+  //  -> S expr  : null
+  const cdr = args.slice(1, 2);
+  return cdr.length === 1 ? cdr[0] : null;
+};
+const $$second = $second(null, null);
+const $last = (state, name) => (...args) => {
+  // S expression: ($last first second ... last)
+  //  -> S expr  : last
+  // S expression: ($last)
+  //  -> S expr  : null
+  const car = args.slice(args.length - 1, args.length);
+  return car.length === 1 ? car[0] : null;
+};
+const $$last = $last(null, null);
+const $rest = (state, name) => (...args) => {
+  // S expression: ($rest first second ... last)
+  //  -> S expr  : (second ... last)
+  // S expression: ($rest first)
+  //  -> S expr  : null
+  const cdr = args.slice(1);
+  return 0 < cdr.length ? cdr : null;
+};
+const $$rest = $rest(null, null);
+const $firstAndSecond = (state, name) => (...args) => {
+  // S expression: ($first-and-second first second ... last)
+  //  -> S expr  : first.second
+  let car = args.slice(0, 1);
+  car = car.length === 1 ? car[0] : null;
+  let cdr = args.slice(1, 2);
+  cdr = cdr.length === 1 ? cdr[0] : null;
+  return {
+    car,
+    cdr
+  };
+};
+const $$firstAndSecond = $firstAndSecond(null, null);
+const $atom = (state, name) => (...args) => {
+  // S expression: ($atom arg1 ...)
+  //  -> (if arg1 is list or dotted pair)  S expr  : false
+  //  -> (if arg1 is nil or anything else) S expr  : true
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$atom', args, 1, 1);
+  const car = $$first(...args);
+
+  if (car === null || car === void 0) {
+    return true;
+  }
+
+  if (Array.isArray(car)) {
+    if (car.length === 0) return true;else return false;
+  }
+
+  switch (typeof car) {
+    case 'number':
+    case 'string':
+    case 'function':
+    case 'boolean':
+      return true;
+
+    case 'object':
+      return Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(car) ? true : false;
+  }
+
+  return false;
+};
+const $$atom = $atom(null, null);
+const $eq = (state, name) => (...args) => {
+  // S expression: ($eq arg1 arg2)
+  //  -> (if arg1 === arg2)  S expr  : true
+  //  -> (else)              S expr  : false
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$eq', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  return car === cdr;
+};
+const $$eq = $eq(null, null);
+const $notEq = (state, name) => (...args) => {
+  // S expression: ($not-eq arg1 arg2)
+  //  -> (if arg1 !== arg2)  S expr  : true
+  //  -> (else)              S expr  : false
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$notEq', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  return car !== cdr;
+};
+const $$notEq = $notEq(null, null);
+const $list = (state, name) => (...args) => // S expression: ($list arg1 ... argN)
+//  -> S expr  : (arg1 ... argN)
+args.slice(0);
+const $$list = $list(null, null); // tslint:disable-next-line:variable-name
+
+const $__scope = (state, name) => (...args) => {
+  // S expression: ($__scope isBlockLocal returnMultiple '((name value) | name ...) 'expr1 ... 'exprN)
+  //  -> (if returnMultiple)  S expr  : [expr1 ... exprN]
+  //  -> (else)               S expr  : exprN
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__scope', args, 3);
+  const isBlockLocal = $$first(...args);
+  const returnMultiple = $$second(...args);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args.slice(2));
+  let r = null;
+  let scopeInstalled = false;
+
+  try {
+    const scope = {};
+
+    if (Array.isArray(car)) {
+      for (const x of car) {
+        if (Array.isArray(x)) {
+          const kv = $$firstAndSecond(...x);
+          const kvSym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(kv.car);
+          scope[kvSym ? kvSym.symbol : String(kv.car)] = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, kv.cdr);
         } else {
-            return { car: car, cdr: cdr };
+          const xSym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(x);
+          scope[xSym ? xSym.symbol : String(x)] = null;
         }
-    };
+      }
+    }
+
+    Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["installScope"])(state, scope, isBlockLocal);
+    scopeInstalled = true;
+
+    if (4 < args.length) {
+      if (returnMultiple) {
+        r = [];
+
+        for (const x of args.slice(3)) {
+          r.push(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x));
+        }
+      } else {
+        for (const x of args.slice(3)) {
+          r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+        }
+      }
+    } else {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, cdr);
+    }
+  } finally {
+    if (scopeInstalled) {
+      Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["uninstallScope"])(state);
+    }
+  }
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__globalScope = (state, name) => (...args) => {
+  // S expression: ($__global returnMultiple 'expr1 ... 'exprN)
+  //  -> (if returnMultiple)  S expr  : [expr1 ... exprN]
+  //  -> (else)               S expr  : exprN
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__globalScope', args, 1);
+  const returnMultiple = $$first(...args);
+  const cdr = $$second(...args);
+  let r = null;
+
+  try {
+    Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["installScope"])(state, Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["getGlobalScope"])(state).scope, true);
+
+    if (2 < args.length) {
+      if (returnMultiple) {
+        r = [];
+
+        for (const x of args.slice(1)) {
+          r.push(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x));
+        }
+      } else {
+        for (const x of args.slice(1)) {
+          r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+        }
+      }
+    } else {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, cdr);
+    }
+  } finally {
+    Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["uninstallScope"])(state);
+  }
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__lambda = (state, name) => (...args) => {
+  // S expression: ($__lambda '(sym1 ... symN) 'expr1 ... 'exprN)
+  //  -> S expr  : fn
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__lambda', args, 2);
+  const formalArgs = args[0];
+
+  if (!Array.isArray(formalArgs)) {
+    throw new Error(`[SX] $__lambda: Invalid argument(s): args[0] is not array.`);
+  }
+
+  let lastIsSpread = false;
+
+  for (let i = 0; i < formalArgs.length; i++) {
+    const fa = formalArgs[i];
+
+    if (i === formalArgs.length - 1 && state.config.enableSpread && Array.isArray(fa) && Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(fa[0], state.config.reservedNames.spread)) {
+      if (!Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(fa[1])) {
+        throw new Error(`[SX] $__lambda: Invalid formal argument(s): item(s) of args[${i}] is not symbol.`);
+      }
+
+      formalArgs[i] = fa[1];
+      lastIsSpread = true;
+    } else if (!Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(fa)) {
+      throw new Error(`[SX] $__lambda: Invalid formal argument(s): item(s) of args[${i}] is not symbol.`);
+    }
+  }
+
+  let fnBody = args.slice(1);
+
+  if (state.config.enableTailCallOptimization) {
+    fnBody = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["optimizeTailCall"])(state, formalArgs, fnBody);
+  }
+
+  const fn = (...actualArgs) => {
+    if (actualArgs.length + (lastIsSpread ? 1 : 0) < formalArgs.length) {
+      throw new Error(`[SX] func call: Actual args too short: actual ${actualArgs.length} / formal ${formalArgs.length}.`);
+    }
+
+    return $__scope(state, name)(false, false, [[state.config.reservedNames.self, fn], ...formalArgs.map((x, index) => [x.symbol, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, lastIsSpread && index === formalArgs.length - 1 ? actualArgs.slice(index) : actualArgs[index])])], ...fnBody);
+  };
+
+  return fn;
+}; // tslint:disable-next-line:variable-name
+
+const $__defun = (state, name) => (...args) => {
+  // S expression: ($__defun 'name '(sym1 ... symN) 'expr ... 'expr)
+  //  -> S expr  : fn
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__defun', args, 3);
+  const car = $$first(...args);
+  const fn = $__lambda(state, name)(...args.slice(1));
+  state.funcMap.set(car.symbol, {
+    name: car.symbol,
+    fn: (st, nm) => fn
+  });
+  return fn;
 };
-var $$cons = exports.$$cons = $cons(null, null);
-var $first = exports.$first = function $first(state, name) {
-    return function () {
-        for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            args[_key4] = arguments[_key4];
-        }
+const $apply = (state, name) => (...args) => {
+  // S expression: ($apply fn arg1 ... argN)
+  //  -> S expr  : fn'
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$apply', args, 1);
+  const car = $$first(...args);
 
-        // S expression: ($first first second ... last)
-        //  -> S expr  : first
-        // S expression: ($first)
-        //  -> S expr  : null
-        var car = args.slice(0, 1);
-        return car.length === 1 ? car[0] : null;
-    };
+  if (typeof car !== 'function') {
+    throw new Error(`[SX] $apply: Invalid argument(s): args[0] is not function.`);
+  }
+
+  return (...p) => car.apply(null, args.slice(1).concat(p));
 };
-var $$first = exports.$$first = $first(null, null);
-var $second = exports.$second = function $second(state, name) {
-    return function () {
-        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-            args[_key5] = arguments[_key5];
-        }
+const $$apply = $apply(null, null); // tslint:disable-next-line:variable-name
 
-        // S expression: ($second first second ... last)
-        //  -> S expr  : second
-        // S expression: ($second first)
-        //  -> S expr  : null
-        var cdr = args.slice(1, 2);
-        return cdr.length === 1 ? cdr[0] : null;
-    };
+const $__call = (state, name) => (...args) => {
+  // S expression: ($__call thisArg 'symbol arg1 ... argN)
+  //  -> S expr  : fn
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__call', args, 2);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  const sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(cdr);
+  return Function.prototype.apply.call(car[sym ? sym.symbol : Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, cdr)], car, args.slice(2));
+}; // tslint:disable-next-line:variable-name
+
+const $__try = (state, name) => (...args) => {
+  // S expression: ($__try 'expr 'catch-expr)
+  //  ->                               S expr  : expr
+  //  -> (if error is raised in expr)  S expr  : catch-expr
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__try', args, 1, 2);
+  let r = [];
+
+  try {
+    r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, args[0]);
+  } catch (e) {
+    if (e instanceof _types__WEBPACK_IMPORTED_MODULE_0__["FatalError"]) {
+      throw e;
+    }
+
+    if (1 < args.length) {
+      r = $__scope(state, name)(true, false, [['$error', Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, e)], ['$parent', Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["getScope"])(state))]], args[1]);
+    } else {
+      r = null;
+    }
+  }
+
+  return r;
 };
-var $$second = exports.$$second = $second(null, null);
-var $last = exports.$last = function $last(state, name) {
-    return function () {
-        for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-            args[_key6] = arguments[_key6];
-        }
-
-        // S expression: ($last first second ... last)
-        //  -> S expr  : last
-        // S expression: ($last)
-        //  -> S expr  : null
-        var car = args.slice(args.length - 1, args.length);
-        return car.length === 1 ? car[0] : null;
-    };
+const $raise = (state, name) => (...args) => {
+  // S expression: ($raise 'expr)
+  //  -> S expr  : -
+  const car = $$first(...args);
+  throw car;
 };
-var $$last = exports.$$last = $last(null, null);
-var $rest = exports.$rest = function $rest(state, name) {
-    return function () {
-        for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-            args[_key7] = arguments[_key7];
-        }
+const $$raise = $raise(null, null); // tslint:disable-next-line:variable-name
 
-        // S expression: ($rest first second ... last)
-        //  -> S expr  : (second ... last)
-        // S expression: ($rest first)
-        //  -> S expr  : null
-        var cdr = args.slice(1);
-        return 0 < cdr.length ? cdr : null;
-    };
+const $__if = (state, name) => (...args) => {
+  // S expression: ($__if condition 't-expr 'f-expr)
+  //  -> (if condition is true ) S expr  : t-expr
+  //  -> (if condition is false) S expr  : f-expr
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__if', args, 2, 3);
+  const car = $$first(...args);
+  let r = [];
+
+  if ($$boolean(car)) {
+    r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, args[1]);
+  } else {
+    if (2 < args.length) {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, args[2]);
+    } else {
+      r = null;
+    }
+  }
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__ifNull = (state, name) => (...args) => {
+  // S expression: ($__if-null condition 'null-expr)
+  //  -> (if condition is not null ) S expr  : condition
+  //  -> (if condition is null)      S expr  : null-expr
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__ifNull', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  let r = [];
+
+  if (!$$ambiguousEq(car, null)) {
+    r = car;
+  } else {
+    r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, cdr);
+  }
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__cond = (state, name) => (...args) => {
+  // S expression: ($__cond 'cond1 'expr1 ... 'condN 'exprN)
+  //  -> (if (eval condI) is true ) S expr  : exprI
+  //  -> (if no matched)            S expr  : null
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__cond', args, 1);
+
+  for (let i = 0; i < args.length - 1; i += 2) {
+    const c = args[i];
+    const x = args[i + 1];
+
+    if ($$boolean(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, c))) {
+      return Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+    }
+  }
+
+  return null;
+}; // tslint:disable-next-line:variable-name
+
+const $__while = (state, name) => (...args) => {
+  // S expression: ($__while 'condition 'expr1 ... 'exprN)
+  //  -> (if condition is true at least 1 or more times) S expr  : exprN
+  //  -> (else)                                          S expr  : null
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__while', args, 1);
+  const car = $$first(...args);
+  const cdr = args.slice(1);
+  let r = null;
+
+  while ($$boolean(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, car))) {
+    for (const x of cdr) {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+    }
+  }
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__doWhile = (state, name) => (...args) => {
+  // S expression: ($__do-while 'condition 'expr1 ... 'exprN)
+  //  -> (if condition is true at least 1 or more times) S expr  : exprN
+  //  -> (else)                                          S expr  : null
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__doWhile', args, 1);
+  const car = $$first(...args);
+  const cdr = args.slice(1);
+  let r = null;
+
+  do {
+    for (const x of cdr) {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+    }
+  } while ($$boolean(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, car)));
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__until = (state, name) => (...args) => {
+  // S expression: ($__until 'condition 'expr1 ... 'exprN)
+  //  -> (if condition is true at least 1 or more times) S expr  : exprN
+  //  -> (else)                                          S expr  : null
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__until', args, 1);
+  const car = $$first(...args);
+  const cdr = args.slice(1);
+  let r = null;
+
+  while ($$not(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, car))) {
+    for (const x of cdr) {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+    }
+  }
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__doUntil = (state, name) => (...args) => {
+  // S expression: ($__do-until 'condition 'expr1 ... 'exprN)
+  //  -> (if condition is true at least 1 or more times) S expr  : exprN
+  //  -> (else)                                          S expr  : null
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__doUntil', args, 1);
+  const car = $$first(...args);
+  const cdr = args.slice(1);
+  let r = null;
+
+  do {
+    for (const x of cdr) {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+    }
+  } while ($$not(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, car)));
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__repeat = (state, name) => (...args) => {
+  // S expression: ($__repeat 'i n-times 'expr1 ... 'exprN)
+  //  -> (if n > 0) S expr  : exprN
+  //  -> (else)     S expr  : null
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__repeat', args, 2);
+  const sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])($$first(...args));
+
+  if (!sym) {
+    throw new Error(`[SX] $__repeat: Invalid argument(s): item(s) of args[0] is not symbol.`);
+  }
+
+  const scope = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["resolveValueSymbolScope"])(state, sym, false);
+  const n = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])($$second(...args));
+  const cdr = args.slice(2);
+  let r = null;
+
+  for (let i = 0; i < n; i++) {
+    scope[sym.symbol] = i;
+
+    for (const x of cdr) {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+    }
+  }
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__for = (state, name) => (...args) => {
+  // S expression: ($__for 'x list 'expr1 ... 'exprN)
+  //  -> (if list.length > 0) S expr  : exprN
+  //  -> (else)               S expr  : null
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__for', args, 2);
+  const sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])($$first(...args));
+
+  if (!sym) {
+    throw new Error(`[SX] $__for: Invalid argument(s): item(s) of args[0] is not symbol.`);
+  }
+
+  const scope = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["resolveValueSymbolScope"])(state, sym, false);
+  const list = $$second(...args);
+
+  if (!Array.isArray(list)) {
+    throw new Error(`[SX] $__for: Invalid argument(s): item(s) of args[1] is not array.`);
+  }
+
+  const cdr = args.slice(2);
+  let r = null;
+
+  for (const q of list) {
+    scope[sym.symbol] = q;
+
+    for (const x of cdr) {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x);
+    }
+  }
+
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $pipe = (state, name) => (...args) => {
+  // S expression: ($__get v fn1 ... fnN)
+  //  -> S expr  : any
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$pipe', args, 1);
+  let v = args[0];
+
+  for (let i = 1; i < args.length; i++) {
+    v = args[i](v);
+  }
+
+  return v;
 };
-var $$rest = exports.$$rest = $rest(null, null);
-var $firstAndSecond = exports.$firstAndSecond = function $firstAndSecond(state, name) {
-    return function () {
-        for (var _len8 = arguments.length, args = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-            args[_key8] = arguments[_key8];
-        }
+const $$pipe = $pipe(null, null); // tslint:disable-next-line:variable-name
 
-        // S expression: ($first-and-second first second ... last)
-        //  -> S expr  : first.second
-        var car = args.slice(0, 1);
-        car = car.length === 1 ? car[0] : null;
-        var cdr = args.slice(1, 2);
-        cdr = cdr.length === 1 ? cdr[0] : null;
-        return { car: car, cdr: cdr };
-    };
-};
-var $$firstAndSecond = exports.$$firstAndSecond = $firstAndSecond(null, null);
-var $atom = exports.$atom = function $atom(state, name) {
-    return function () {
-        for (var _len9 = arguments.length, args = Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
-            args[_key9] = arguments[_key9];
-        }
+const $__get = (state, name) => (...args) => {
+  // S expression: ($__get 'nameOrIndex1 ... 'nameOrIndexN)
+  //  -> S expr  : any
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__get', args, 1);
+  let v = null;
+  let sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(args[0]);
 
-        // S expression: ($atom arg1 ...)
-        //  -> (if arg1 is list or dotted pair)  S expr  : false
-        //  -> (if arg1 is nil or anything else) S expr  : true
-        (0, _errors.checkParamsLength)('$atom', args, 1, 1);
-        var car = $$first.apply(undefined, args);
-        if (car === null || car === void 0) {
-            return true;
-        }
-        if (Array.isArray(car)) {
-            if (car.length === 0) return true;else return false;
-        }
-        switch (typeof car === 'undefined' ? 'undefined' : _typeof(car)) {
-            case 'number':
-            case 'string':
-            case 'function':
-            case 'boolean':
-                return true;
-            case 'object':
-                return (0, _types.isSymbol)(car) ? true : false;
-        }
-        return false;
-    };
-};
-var $$atom = exports.$$atom = $atom(null, null);
-var $eq = exports.$eq = function $eq(state, name) {
-    return function () {
-        for (var _len10 = arguments.length, args = Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
-            args[_key10] = arguments[_key10];
-        }
-
-        // S expression: ($eq arg1 arg2)
-        //  -> (if arg1 === arg2)  S expr  : true
-        //  -> (else)              S expr  : false
-        (0, _errors.checkParamsLength)('$eq', args, 2, 2);
-
-        var _$$firstAndSecond2 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond2.car,
-            cdr = _$$firstAndSecond2.cdr;
-
-        return car === cdr;
-    };
-};
-var $$eq = exports.$$eq = $eq(null, null);
-var $notEq = exports.$notEq = function $notEq(state, name) {
-    return function () {
-        for (var _len11 = arguments.length, args = Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
-            args[_key11] = arguments[_key11];
-        }
-
-        // S expression: ($not-eq arg1 arg2)
-        //  -> (if arg1 !== arg2)  S expr  : true
-        //  -> (else)              S expr  : false
-        (0, _errors.checkParamsLength)('$notEq', args, 2, 2);
-
-        var _$$firstAndSecond3 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond3.car,
-            cdr = _$$firstAndSecond3.cdr;
-
-        return car !== cdr;
-    };
-};
-var $$notEq = exports.$$notEq = $notEq(null, null);
-var $list = exports.$list = function $list(state, name) {
-    return function () {
-        for (var _len12 = arguments.length, args = Array(_len12), _key12 = 0; _key12 < _len12; _key12++) {
-            args[_key12] = arguments[_key12];
-        }
-
-        return (
-            // S expression: ($list arg1 ... argN)
-            //  -> S expr  : (arg1 ... argN)
-            args.slice(0)
-        );
-    };
-};
-var $$list = exports.$$list = $list(null, null);
-// tslint:disable-next-line:variable-name
-var $__scope = exports.$__scope = function $__scope(state, name) {
-    return function () {
-        for (var _len13 = arguments.length, args = Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
-            args[_key13] = arguments[_key13];
-        }
-
-        // S expression: ($__scope isBlockLocal returnMultiple '((name value) | name ...) 'expr1 ... 'exprN)
-        //  -> (if returnMultiple)  S expr  : [expr1 ... exprN]
-        //  -> (else)               S expr  : exprN
-        (0, _errors.checkParamsLength)('$__scope', args, 3);
-        var isBlockLocal = $$first.apply(undefined, args);
-        var returnMultiple = $$second.apply(undefined, args);
-
-        var _$$firstAndSecond4 = $$firstAndSecond.apply(undefined, _toConsumableArray(args.slice(2))),
-            car = _$$firstAndSecond4.car,
-            cdr = _$$firstAndSecond4.cdr;
-
-        var r = null;
-        var scopeInstalled = false;
-        try {
-            var scope = {};
-            if (Array.isArray(car)) {
-                var _iteratorNormalCompletion = true;
-                var _didIteratorError = false;
-                var _iteratorError = undefined;
-
-                try {
-                    for (var _iterator = car[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                        var x = _step.value;
-
-                        if (Array.isArray(x)) {
-                            var kv = $$firstAndSecond.apply(undefined, _toConsumableArray(x));
-                            var kvSym = (0, _types.isSymbol)(kv.car);
-                            scope[kvSym ? kvSym.symbol : String(kv.car)] = (0, _evaluate.evaluate)(state, kv.cdr);
-                        } else {
-                            var xSym = (0, _types.isSymbol)(x);
-                            scope[xSym ? xSym.symbol : String(x)] = null;
-                        }
-                    }
-                } catch (err) {
-                    _didIteratorError = true;
-                    _iteratorError = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion && _iterator.return) {
-                            _iterator.return();
-                        }
-                    } finally {
-                        if (_didIteratorError) {
-                            throw _iteratorError;
-                        }
-                    }
-                }
-            }
-            (0, _evaluate.installScope)(state, scope, isBlockLocal);
-            scopeInstalled = true;
-            if (4 < args.length) {
-                if (returnMultiple) {
-                    r = [];
-                    var _iteratorNormalCompletion2 = true;
-                    var _didIteratorError2 = false;
-                    var _iteratorError2 = undefined;
-
-                    try {
-                        for (var _iterator2 = args.slice(3)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                            var _x = _step2.value;
-
-                            r.push((0, _evaluate.evaluate)(state, _x));
-                        }
-                    } catch (err) {
-                        _didIteratorError2 = true;
-                        _iteratorError2 = err;
-                    } finally {
-                        try {
-                            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                                _iterator2.return();
-                            }
-                        } finally {
-                            if (_didIteratorError2) {
-                                throw _iteratorError2;
-                            }
-                        }
-                    }
-                } else {
-                    var _iteratorNormalCompletion3 = true;
-                    var _didIteratorError3 = false;
-                    var _iteratorError3 = undefined;
-
-                    try {
-                        for (var _iterator3 = args.slice(3)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                            var _x2 = _step3.value;
-
-                            r = (0, _evaluate.evaluate)(state, _x2);
-                        }
-                    } catch (err) {
-                        _didIteratorError3 = true;
-                        _iteratorError3 = err;
-                    } finally {
-                        try {
-                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                                _iterator3.return();
-                            }
-                        } finally {
-                            if (_didIteratorError3) {
-                                throw _iteratorError3;
-                            }
-                        }
-                    }
-                }
-            } else {
-                r = (0, _evaluate.evaluate)(state, cdr);
-            }
-        } finally {
-            if (scopeInstalled) {
-                (0, _evaluate.uninstallScope)(state);
-            }
-        }
-        return r;
-    };
-};
-// tslint:disable-next-line:variable-name
-var $__globalScope = exports.$__globalScope = function $__globalScope(state, name) {
-    return function () {
-        for (var _len14 = arguments.length, args = Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
-            args[_key14] = arguments[_key14];
-        }
-
-        // S expression: ($__global returnMultiple 'expr1 ... 'exprN)
-        //  -> (if returnMultiple)  S expr  : [expr1 ... exprN]
-        //  -> (else)               S expr  : exprN
-        (0, _errors.checkParamsLength)('$__globalScope', args, 1);
-        var returnMultiple = $$first.apply(undefined, args);
-        var cdr = $$second.apply(undefined, args);
-        var r = null;
-        try {
-            (0, _evaluate.installScope)(state, (0, _evaluate.getGlobalScope)(state).scope, true);
-            if (2 < args.length) {
-                if (returnMultiple) {
-                    r = [];
-                    var _iteratorNormalCompletion4 = true;
-                    var _didIteratorError4 = false;
-                    var _iteratorError4 = undefined;
-
-                    try {
-                        for (var _iterator4 = args.slice(1)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                            var x = _step4.value;
-
-                            r.push((0, _evaluate.evaluate)(state, x));
-                        }
-                    } catch (err) {
-                        _didIteratorError4 = true;
-                        _iteratorError4 = err;
-                    } finally {
-                        try {
-                            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                                _iterator4.return();
-                            }
-                        } finally {
-                            if (_didIteratorError4) {
-                                throw _iteratorError4;
-                            }
-                        }
-                    }
-                } else {
-                    var _iteratorNormalCompletion5 = true;
-                    var _didIteratorError5 = false;
-                    var _iteratorError5 = undefined;
-
-                    try {
-                        for (var _iterator5 = args.slice(1)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                            var _x3 = _step5.value;
-
-                            r = (0, _evaluate.evaluate)(state, _x3);
-                        }
-                    } catch (err) {
-                        _didIteratorError5 = true;
-                        _iteratorError5 = err;
-                    } finally {
-                        try {
-                            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                                _iterator5.return();
-                            }
-                        } finally {
-                            if (_didIteratorError5) {
-                                throw _iteratorError5;
-                            }
-                        }
-                    }
-                }
-            } else {
-                r = (0, _evaluate.evaluate)(state, cdr);
-            }
-        } finally {
-            (0, _evaluate.uninstallScope)(state);
-        }
-        return r;
-    };
-};
-// tslint:disable-next-line:variable-name
-var $__lambda = exports.$__lambda = function $__lambda(state, name) {
-    return function () {
-        for (var _len15 = arguments.length, args = Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
-            args[_key15] = arguments[_key15];
-        }
-
-        // S expression: ($__lambda '(sym1 ... symN) 'expr1 ... 'exprN)
-        //  -> S expr  : fn
-        (0, _errors.checkParamsLength)('$__lambda', args, 2);
-        var formalArgs = args[0];
-        if (!Array.isArray(formalArgs)) {
-            throw new Error('[SX] $__lambda: Invalid argument(s): args[0] is not array.');
-        }
-        var lastIsSpread = false;
-        for (var i = 0; i < formalArgs.length; i++) {
-            var fa = formalArgs[i];
-            if (i === formalArgs.length - 1 && state.config.enableSpread && Array.isArray(fa) && (0, _types.isSymbol)(fa[0], state.config.reservedNames.spread)) {
-                if (!(0, _types.isSymbol)(fa[1])) {
-                    throw new Error('[SX] $__lambda: Invalid formal argument(s): item(s) of args[' + i + '] is not symbol.');
-                }
-                formalArgs[i] = fa[1];
-                lastIsSpread = true;
-            } else if (!(0, _types.isSymbol)(fa)) {
-                throw new Error('[SX] $__lambda: Invalid formal argument(s): item(s) of args[' + i + '] is not symbol.');
-            }
-        }
-        var fnBody = args.slice(1);
-        if (state.config.enableTailCallOptimization) {
-            fnBody = (0, _evaluate.optimizeTailCall)(state, formalArgs, fnBody);
-        }
-        var fn = function fn() {
-            for (var _len16 = arguments.length, actualArgs = Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
-                actualArgs[_key16] = arguments[_key16];
-            }
-
-            if (actualArgs.length + (lastIsSpread ? 1 : 0) < formalArgs.length) {
-                throw new Error('[SX] func call: Actual args too short: actual ' + actualArgs.length + ' / formal ' + formalArgs.length + '.');
-            }
-            return $__scope(state, name).apply(undefined, [false, false, [[state.config.reservedNames.self, fn]].concat(_toConsumableArray(formalArgs.map(function (x, index) {
-                return [x.symbol, (0, _types.quote)(state, lastIsSpread && index === formalArgs.length - 1 ? actualArgs.slice(index) : actualArgs[index])];
-            })))].concat(_toConsumableArray(fnBody)));
+  if (!sym) {
+    switch (typeof args[0]) {
+      case 'string':
+      case 'number':
+        sym = {
+          symbol: String(args[0])
         };
-        return fn;
-    };
-};
-// tslint:disable-next-line:variable-name
-var $__defun = exports.$__defun = function $__defun(state, name) {
-    return function () {
-        for (var _len17 = arguments.length, args = Array(_len17), _key17 = 0; _key17 < _len17; _key17++) {
-            args[_key17] = arguments[_key17];
-        }
+        break;
 
-        // S expression: ($__defun 'name '(sym1 ... symN) 'expr ... 'expr)
-        //  -> S expr  : fn
-        (0, _errors.checkParamsLength)('$__defun', args, 3);
-        var car = $$first.apply(undefined, args);
-        var _fn = $__lambda(state, name).apply(undefined, _toConsumableArray(args.slice(1)));
-        state.funcMap.set(car.symbol, {
-            name: car.symbol,
-            fn: function fn(st, nm) {
-                return _fn;
-            }
-        });
-        return _fn;
-    };
-};
-// tslint:disable-next-line:variable-name
-var $__call = exports.$__call = function $__call(state, name) {
-    return function () {
-        for (var _len18 = arguments.length, args = Array(_len18), _key18 = 0; _key18 < _len18; _key18++) {
-            args[_key18] = arguments[_key18];
-        }
+      default:
+        v = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, args[0]);
+        break;
+    }
+  }
 
-        // S expression: ($__call thisArg 'symbol arg1 ... argN)
-        //  -> S expr  : fn
-        (0, _errors.checkParamsLength)('$__call', args, 2);
+  if (sym) {
+    const scope = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["resolveValueSymbolScope"])(state, sym, true);
 
-        var _$$firstAndSecond5 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond5.car,
-            cdr = _$$firstAndSecond5.cdr;
+    if (!scope) {
+      throw new Error(`[SX] $__get: Invalid argument(s): args[0]: symbol "${sym.symbol}" is not defined.`);
+    }
 
-        var sym = (0, _types.isSymbol)(cdr);
-        return Function.prototype.apply.call(car[sym ? sym.symbol : (0, _evaluate.evaluate)(state, cdr)], car, args.slice(2));
-    };
-};
-// tslint:disable-next-line:variable-name
-var $__try = exports.$__try = function $__try(state, name) {
-    return function () {
-        for (var _len19 = arguments.length, args = Array(_len19), _key19 = 0; _key19 < _len19; _key19++) {
-            args[_key19] = arguments[_key19];
-        }
+    v = scope[sym.symbol];
+  }
 
-        // S expression: ($__try 'expr 'catch-expr)
-        //  ->                               S expr  : expr
-        //  -> (if error is raised in expr)  S expr  : catch-expr
-        (0, _errors.checkParamsLength)('$__try', args, 1, 2);
-        var r = [];
-        try {
-            r = (0, _evaluate.evaluate)(state, args[0]);
-        } catch (e) {
-            if (e instanceof _types.FatalError) {
-                throw e;
-            }
-            if (1 < args.length) {
-                r = $__scope(state, name)(true, false, [['$error', (0, _types.quote)(state, e)], ['$parent', (0, _types.quote)(state, (0, _evaluate.getScope)(state))]], args[1]);
+  for (let i = 1; i < args.length; i++) {
+    let q = args[i];
+    let inprog = true;
+
+    while (inprog) {
+      switch (typeof q) {
+        case 'function':
+          v = q(v);
+          inprog = false;
+          break;
+
+        case 'object':
+          if (Array.isArray(q)) {
+            q = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, q);
+          } else {
+            sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(q);
+
+            if (sym) {
+              q = sym.symbol;
+            } else if (Object.prototype.hasOwnProperty.call(q, 'value')) {
+              q = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, q);
             } else {
-                r = null;
+              throw new Error(`[SX] $__get: Invalid argument(s): invalid name path.`);
             }
-        }
-        return r;
-    };
-};
-var $raise = exports.$raise = function $raise(state, name) {
-    return function () {
-        // S expression: ($raise 'expr)
-        //  -> S expr  : -
-        var car = $$first.apply(undefined, arguments);
-        throw car;
-    };
-};
-var $$raise = exports.$$raise = $raise(null, null);
-// tslint:disable-next-line:variable-name
-var $__if = exports.$__if = function $__if(state, name) {
-    return function () {
-        for (var _len20 = arguments.length, args = Array(_len20), _key20 = 0; _key20 < _len20; _key20++) {
-            args[_key20] = arguments[_key20];
-        }
+          }
 
-        // S expression: ($__if condition 't-expr 'f-expr)
-        //  -> (if condition is true ) S expr  : t-expr
-        //  -> (if condition is false) S expr  : f-expr
-        (0, _errors.checkParamsLength)('$__if', args, 2, 3);
-        var car = $$first.apply(undefined, args);
-        var r = [];
-        if ($$boolean(car)) {
-            r = (0, _evaluate.evaluate)(state, args[1]);
-        } else {
-            if (2 < args.length) {
-                r = (0, _evaluate.evaluate)(state, args[2]);
+          break;
+
+        case 'number':
+          if (q < 0) {
+            q = v.length + q;
+          }
+
+        // FALL_THRU
+
+        case 'string':
+          v = v[q];
+          inprog = false;
+          break;
+
+        default:
+          throw new Error(`[SX] $__get: Invalid argument(s): invalid name path.`);
+      }
+    }
+  }
+
+  return v;
+}; // tslint:disable-next-line:variable-name
+
+const $__let = (state, name) => (...args) => {
+  // S expression: ($__let 'nameStrOrSymbol expr)
+  //  -> S expr  : any
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__let', args, 2, 2);
+  let sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])($$first(...args));
+
+  if (!sym) {
+    if (typeof args[0] === 'string') {
+      sym = {
+        symbol: args[0]
+      };
+    } else {
+      throw new Error(`[SX] $__let: Invalid argument(s): invalid name.`);
+    }
+  }
+
+  const scope = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["resolveValueSymbolScope"])(state, sym, false);
+  scope[sym.symbol] = args[1];
+  return args[1];
+}; // tslint:disable-next-line:variable-name
+
+const $__set = (state, name) => (...args) => {
+  // S expression: ($__set 'nameOrListOfNameOrIndex expr)
+  //  -> S expr  : any
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__set', args, 2, 2);
+  let path = [];
+
+  if (Array.isArray(args[0])) {
+    path = args[0];
+  } else {
+    path.push(args[0]);
+  }
+
+  let sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(path[0]);
+
+  if (!sym) {
+    if (typeof path[0] === 'string') {
+      sym = {
+        symbol: path[0]
+      };
+    } else {
+      throw new Error(`[SX] $__set: Invalid argument(s): invalid name.`);
+    }
+  }
+
+  let scope = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["resolveValueSymbolScope"])(state, sym, true);
+
+  if (scope === null) {
+    throw new Error(`[SX] $__set: Unresolved symbol: ${sym.symbol}.`);
+  }
+
+  let subst = false;
+
+  for (let i = 0; i < path.length; i++) {
+    let q = path[i];
+    let inprog = true;
+    const last = i === path.length - 1;
+
+    while (inprog) {
+      switch (typeof q) {
+        case 'function':
+          scope = q(scope);
+          inprog = false;
+          break;
+
+        case 'object':
+          if (Array.isArray(q)) {
+            q = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, q);
+          } else {
+            sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(q);
+
+            if (sym) {
+              q = sym.symbol;
+            } else if (Object.prototype.hasOwnProperty.call(q, 'value')) {
+              q = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, q);
             } else {
-                r = null;
+              throw new Error(`[SX] $__set: Invalid argument(s): invalid name.`);
             }
-        }
-        return r;
-    };
+          }
+
+          break;
+
+        case 'number':
+          if (q < 0) {
+            q = scope.length + q;
+          }
+
+        // FALL_THRU
+
+        case 'string':
+          if (last) {
+            scope[q] = args[1];
+            subst = true;
+          } else {
+            scope = scope[q];
+          }
+
+          inprog = false;
+          break;
+
+        default:
+          throw new Error(`[SX] $__set: Invalid argument(s): invalid name.`);
+      }
+    }
+  }
+
+  if (!subst) {
+    throw new Error(`[SX] $__set: Invalid argument(s): last path is not lvalue.`);
+  }
+
+  return args[1];
 };
-// tslint:disable-next-line:variable-name
-var $__ifNull = exports.$__ifNull = function $__ifNull(state, name) {
-    return function () {
-        for (var _len21 = arguments.length, args = Array(_len21), _key21 = 0; _key21 < _len21; _key21++) {
-            args[_key21] = arguments[_key21];
-        }
-
-        // S expression: ($__if-null condition 'null-expr)
-        //  -> (if condition is not null ) S expr  : condition
-        //  -> (if condition is null)      S expr  : null-expr
-        (0, _errors.checkParamsLength)('$__ifNull', args, 2, 2);
-
-        var _$$firstAndSecond6 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond6.car,
-            cdr = _$$firstAndSecond6.cdr;
-
-        var r = [];
-        if (!$$ambiguousEq(car, null)) {
-            r = car;
-        } else {
-            r = (0, _evaluate.evaluate)(state, cdr);
-        }
-        return r;
-    };
+const $boolean = (state, name) => (...args) => {
+  // S expression: ($boolean any)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$boolean', args, 1, 1);
+  const car = $$first(...args);
+  if (Array.isArray(car) && car.length === 0) return false;else return Boolean(car);
 };
-// tslint:disable-next-line:variable-name
-var $__cond = exports.$__cond = function $__cond(state, name) {
-    return function () {
-        for (var _len22 = arguments.length, args = Array(_len22), _key22 = 0; _key22 < _len22; _key22++) {
-            args[_key22] = arguments[_key22];
-        }
-
-        // S expression: ($__cond 'cond1 'expr1 ... 'condN 'exprN)
-        //  -> (if (eval condI) is true ) S expr  : exprI
-        //  -> (if no matched)            S expr  : null
-        (0, _errors.checkParamsLength)('$__cond', args, 1);
-        for (var i = 0; i < args.length - 1; i += 2) {
-            var c = args[i];
-            var x = args[i + 1];
-            if ($$boolean((0, _evaluate.evaluate)(state, c))) {
-                return (0, _evaluate.evaluate)(state, x);
-            }
-        }
-        return null;
-    };
+const $$boolean = $boolean(null, null);
+const $not = (state, name) => (...args) => {
+  // S expression: ($not any)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$not', args, 1, 1);
+  return !$$boolean(...args);
 };
-// tslint:disable-next-line:variable-name
-var $__while = exports.$__while = function $__while(state, name) {
-    return function () {
-        for (var _len23 = arguments.length, args = Array(_len23), _key23 = 0; _key23 < _len23; _key23++) {
-            args[_key23] = arguments[_key23];
-        }
+const $$not = $not(null, null); // tslint:disable-next-line:variable-name
 
-        // S expression: ($__while 'condition 'expr1 ... 'exprN)
-        //  -> (if condition is true at least 1 or more times) S expr  : exprN
-        //  -> (else)                                          S expr  : null
-        (0, _errors.checkParamsLength)('$__while', args, 1);
-        var car = $$first.apply(undefined, args);
-        var cdr = args.slice(1);
-        var r = null;
-        while ($$boolean((0, _evaluate.evaluate)(state, car))) {
-            var _iteratorNormalCompletion6 = true;
-            var _didIteratorError6 = false;
-            var _iteratorError6 = undefined;
+const $__and = (state, name) => (...args) => {
+  // S expression: ($__and 'expr1 ... 'exprN)
+  //  -> (if all of ($boolean expr1) ... ($boolean exprN) are true) S expr  : exprN
+  //  -> (else)                                                     S expr  : expr-i (false left most)
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__and', args, 1);
+  let prev = null;
 
-            try {
-                for (var _iterator6 = cdr[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                    var x = _step6.value;
+  for (let i = 0; i < args.length; i++) {
+    const curr = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, args[i]);
 
-                    r = (0, _evaluate.evaluate)(state, x);
-                }
-            } catch (err) {
-                _didIteratorError6 = true;
-                _iteratorError6 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                        _iterator6.return();
-                    }
-                } finally {
-                    if (_didIteratorError6) {
-                        throw _iteratorError6;
-                    }
-                }
-            }
-        }
-        return r;
-    };
+    if (!$$boolean(curr)) {
+      return curr;
+    }
+
+    prev = curr;
+  }
+
+  return prev;
+}; // tslint:disable-next-line:variable-name
+
+const $$__and = $__and(null, null); // tslint:disable-next-line:variable-name
+
+const $__or = (state, name) => (...args) => {
+  // S expression: ($__or 'expr1 ... 'exprN)
+  //  -> (if any ($boolean expr1) ... ($boolean exprN) are true) S expr  : expr-i (where i: index of item first ($boolean expr-i) is to be true)
+  //  -> (else)                                                  S expr  : expr-i (false right most)
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__or', args, 1);
+  let prev = null;
+
+  for (let i = 0; i < args.length; i++) {
+    const curr = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, args[i]);
+
+    if ($$boolean(curr)) {
+      return curr;
+    }
+
+    prev = curr;
+  }
+
+  return prev;
+}; // tslint:disable-next-line:variable-name
+
+const $$__or = $__or(null, null);
+const $ambiguousEq = (state, name) => (...args) => {
+  // S expression: (== a b)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$ambiguousEq', args, 2, 2);
+  let {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  if (Array.isArray(car) && car.length === 0) car = null;
+  if (Array.isArray(cdr) && cdr.length === 0) cdr = null;
+  if (car === void 0) car = null;
+  if (cdr === void 0) cdr = null; // tslint:disable-next-line:triple-equals
+
+  return car == cdr;
 };
-// tslint:disable-next-line:variable-name
-var $__doWhile = exports.$__doWhile = function $__doWhile(state, name) {
-    return function () {
-        for (var _len24 = arguments.length, args = Array(_len24), _key24 = 0; _key24 < _len24; _key24++) {
-            args[_key24] = arguments[_key24];
-        }
-
-        // S expression: ($__do-while 'condition 'expr1 ... 'exprN)
-        //  -> (if condition is true at least 1 or more times) S expr  : exprN
-        //  -> (else)                                          S expr  : null
-        (0, _errors.checkParamsLength)('$__doWhile', args, 1);
-        var car = $$first.apply(undefined, args);
-        var cdr = args.slice(1);
-        var r = null;
-        do {
-            var _iteratorNormalCompletion7 = true;
-            var _didIteratorError7 = false;
-            var _iteratorError7 = undefined;
-
-            try {
-                for (var _iterator7 = cdr[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-                    var x = _step7.value;
-
-                    r = (0, _evaluate.evaluate)(state, x);
-                }
-            } catch (err) {
-                _didIteratorError7 = true;
-                _iteratorError7 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion7 && _iterator7.return) {
-                        _iterator7.return();
-                    }
-                } finally {
-                    if (_didIteratorError7) {
-                        throw _iteratorError7;
-                    }
-                }
-            }
-        } while ($$boolean((0, _evaluate.evaluate)(state, car)));
-        return r;
-    };
+const $$ambiguousEq = $ambiguousEq(null, null);
+const $ambiguousNotEq = (state, name) => (...args) => {
+  // S expression: (!= a b)
+  //  -> S expr  : boolean
+  return !$$ambiguousEq(...args);
 };
-// tslint:disable-next-line:variable-name
-var $__until = exports.$__until = function $__until(state, name) {
-    return function () {
-        for (var _len25 = arguments.length, args = Array(_len25), _key25 = 0; _key25 < _len25; _key25++) {
-            args[_key25] = arguments[_key25];
-        }
-
-        // S expression: ($__until 'condition 'expr1 ... 'exprN)
-        //  -> (if condition is true at least 1 or more times) S expr  : exprN
-        //  -> (else)                                          S expr  : null
-        (0, _errors.checkParamsLength)('$__until', args, 1);
-        var car = $$first.apply(undefined, args);
-        var cdr = args.slice(1);
-        var r = null;
-        while ($$not((0, _evaluate.evaluate)(state, car))) {
-            var _iteratorNormalCompletion8 = true;
-            var _didIteratorError8 = false;
-            var _iteratorError8 = undefined;
-
-            try {
-                for (var _iterator8 = cdr[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-                    var x = _step8.value;
-
-                    r = (0, _evaluate.evaluate)(state, x);
-                }
-            } catch (err) {
-                _didIteratorError8 = true;
-                _iteratorError8 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion8 && _iterator8.return) {
-                        _iterator8.return();
-                    }
-                } finally {
-                    if (_didIteratorError8) {
-                        throw _iteratorError8;
-                    }
-                }
-            }
-        }
-        return r;
-    };
+const $$ambiguousNotEq = $ambiguousNotEq(null, null);
+const $lt = (state, name) => (...args) => {
+  // S expression: (< a b)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$lt', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  return Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])(car) < Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])(cdr);
 };
-// tslint:disable-next-line:variable-name
-var $__doUntil = exports.$__doUntil = function $__doUntil(state, name) {
-    return function () {
-        for (var _len26 = arguments.length, args = Array(_len26), _key26 = 0; _key26 < _len26; _key26++) {
-            args[_key26] = arguments[_key26];
-        }
-
-        // S expression: ($__do-until 'condition 'expr1 ... 'exprN)
-        //  -> (if condition is true at least 1 or more times) S expr  : exprN
-        //  -> (else)                                          S expr  : null
-        (0, _errors.checkParamsLength)('$__doUntil', args, 1);
-        var car = $$first.apply(undefined, args);
-        var cdr = args.slice(1);
-        var r = null;
-        do {
-            var _iteratorNormalCompletion9 = true;
-            var _didIteratorError9 = false;
-            var _iteratorError9 = undefined;
-
-            try {
-                for (var _iterator9 = cdr[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-                    var x = _step9.value;
-
-                    r = (0, _evaluate.evaluate)(state, x);
-                }
-            } catch (err) {
-                _didIteratorError9 = true;
-                _iteratorError9 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion9 && _iterator9.return) {
-                        _iterator9.return();
-                    }
-                } finally {
-                    if (_didIteratorError9) {
-                        throw _iteratorError9;
-                    }
-                }
-            }
-        } while ($$not((0, _evaluate.evaluate)(state, car)));
-        return r;
-    };
+const $$lt = $lt(null, null);
+const $le = (state, name) => (...args) => {
+  // S expression: (<= a b)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$le', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  return Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])(car) <= Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])(cdr);
 };
-// tslint:disable-next-line:variable-name
-var $__repeat = exports.$__repeat = function $__repeat(state, name) {
-    return function () {
-        for (var _len27 = arguments.length, args = Array(_len27), _key27 = 0; _key27 < _len27; _key27++) {
-            args[_key27] = arguments[_key27];
-        }
-
-        // S expression: ($__repeat 'i n-times 'expr1 ... 'exprN)
-        //  -> (if n > 0) S expr  : exprN
-        //  -> (else)     S expr  : null
-        (0, _errors.checkParamsLength)('$__repeat', args, 2);
-        var sym = (0, _types.isSymbol)($$first.apply(undefined, args));
-        if (!sym) {
-            throw new Error('[SX] $__repeat: Invalid argument(s): item(s) of args[0] is not symbol.');
-        }
-        var scope = (0, _evaluate.resolveValueSymbolScope)(state, sym, false);
-        var n = (0, _evaluate.toNumber)($$second.apply(undefined, args));
-        var cdr = args.slice(2);
-        var r = null;
-        for (var i = 0; i < n; i++) {
-            scope[sym.symbol] = i;
-            var _iteratorNormalCompletion10 = true;
-            var _didIteratorError10 = false;
-            var _iteratorError10 = undefined;
-
-            try {
-                for (var _iterator10 = cdr[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-                    var x = _step10.value;
-
-                    r = (0, _evaluate.evaluate)(state, x);
-                }
-            } catch (err) {
-                _didIteratorError10 = true;
-                _iteratorError10 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion10 && _iterator10.return) {
-                        _iterator10.return();
-                    }
-                } finally {
-                    if (_didIteratorError10) {
-                        throw _iteratorError10;
-                    }
-                }
-            }
-        }
-        return r;
-    };
+const $$le = $le(null, null);
+const $gt = (state, name) => (...args) => {
+  // S expression: (> a b)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$gt', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  return Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])(car) > Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])(cdr);
 };
-// tslint:disable-next-line:variable-name
-var $__for = exports.$__for = function $__for(state, name) {
-    return function () {
-        for (var _len28 = arguments.length, args = Array(_len28), _key28 = 0; _key28 < _len28; _key28++) {
-            args[_key28] = arguments[_key28];
-        }
-
-        // S expression: ($__for 'x list 'expr1 ... 'exprN)
-        //  -> (if list.length > 0) S expr  : exprN
-        //  -> (else)               S expr  : null
-        (0, _errors.checkParamsLength)('$__for', args, 2);
-        var sym = (0, _types.isSymbol)($$first.apply(undefined, args));
-        if (!sym) {
-            throw new Error('[SX] $__for: Invalid argument(s): item(s) of args[0] is not symbol.');
-        }
-        var scope = (0, _evaluate.resolveValueSymbolScope)(state, sym, false);
-        var list = $$second.apply(undefined, args);
-        if (!Array.isArray(list)) {
-            throw new Error('[SX] $__for: Invalid argument(s): item(s) of args[1] is not array.');
-        }
-        var cdr = args.slice(2);
-        var r = null;
-        var _iteratorNormalCompletion11 = true;
-        var _didIteratorError11 = false;
-        var _iteratorError11 = undefined;
-
-        try {
-            for (var _iterator11 = list[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-                var q = _step11.value;
-
-                scope[sym.symbol] = q;
-                var _iteratorNormalCompletion12 = true;
-                var _didIteratorError12 = false;
-                var _iteratorError12 = undefined;
-
-                try {
-                    for (var _iterator12 = cdr[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-                        var x = _step12.value;
-
-                        r = (0, _evaluate.evaluate)(state, x);
-                    }
-                } catch (err) {
-                    _didIteratorError12 = true;
-                    _iteratorError12 = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion12 && _iterator12.return) {
-                            _iterator12.return();
-                        }
-                    } finally {
-                        if (_didIteratorError12) {
-                            throw _iteratorError12;
-                        }
-                    }
-                }
-            }
-        } catch (err) {
-            _didIteratorError11 = true;
-            _iteratorError11 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion11 && _iterator11.return) {
-                    _iterator11.return();
-                }
-            } finally {
-                if (_didIteratorError11) {
-                    throw _iteratorError11;
-                }
-            }
-        }
-
-        return r;
-    };
+const $$gt = $gt(null, null);
+const $ge = (state, name) => (...args) => {
+  // S expression: (>= a b)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$ge', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = $$firstAndSecond(...args);
+  return Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])(car) >= Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])(cdr);
 };
-// tslint:disable-next-line:variable-name
-var $pipe = exports.$pipe = function $pipe(state, name) {
-    return function () {
-        for (var _len29 = arguments.length, args = Array(_len29), _key29 = 0; _key29 < _len29; _key29++) {
-            args[_key29] = arguments[_key29];
-        }
-
-        // S expression: ($__get v fn1 ... fnN)
-        //  -> S expr  : any
-        (0, _errors.checkParamsLength)('$pipe', args, 1);
-        var v = args[0];
-        for (var i = 1; i < args.length; i++) {
-            v = args[i](v);
-        }
-        return v;
-    };
+const $$ge = $ge(null, null);
+const $isList = (state, name) => (...args) => {
+  // S expression: ($is-list x)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$isList', args, 1, 1);
+  return Array.isArray($$first(...args));
 };
-var $$pipe = exports.$$pipe = $pipe(null, null);
-// tslint:disable-next-line:variable-name
-var $__get = exports.$__get = function $__get(state, name) {
-    return function () {
-        for (var _len30 = arguments.length, args = Array(_len30), _key30 = 0; _key30 < _len30; _key30++) {
-            args[_key30] = arguments[_key30];
-        }
-
-        // S expression: ($__get 'nameOrIndex1 ... 'nameOrIndexN)
-        //  -> S expr  : any
-        (0, _errors.checkParamsLength)('$__get', args, 1);
-        var v = null;
-        var sym = (0, _types.isSymbol)(args[0]);
-        if (!sym) {
-            switch (_typeof(args[0])) {
-                case 'string':
-                case 'number':
-                    sym = { symbol: String(args[0]) };
-                    break;
-                default:
-                    v = (0, _evaluate.evaluate)(state, args[0]);
-                    break;
-            }
-        }
-        if (sym) {
-            var scope = (0, _evaluate.resolveValueSymbolScope)(state, sym, true);
-            if (!scope) {
-                throw new Error('[SX] $__get: Invalid argument(s): args[0]: symbol "' + sym.symbol + '" is not defined.');
-            }
-            v = scope[sym.symbol];
-        }
-        for (var i = 1; i < args.length; i++) {
-            var q = args[i];
-            var inprog = true;
-            while (inprog) {
-                switch (typeof q === 'undefined' ? 'undefined' : _typeof(q)) {
-                    case 'function':
-                        v = q(v);
-                        inprog = false;
-                        break;
-                    case 'object':
-                        if (Array.isArray(q)) {
-                            q = (0, _evaluate.evaluate)(state, q);
-                        } else {
-                            sym = (0, _types.isSymbol)(q);
-                            if (sym) {
-                                q = sym.symbol;
-                            } else if (Object.prototype.hasOwnProperty.call(q, 'value')) {
-                                q = (0, _evaluate.evaluate)(state, q);
-                            } else {
-                                throw new Error('[SX] $__get: Invalid argument(s): invalid name path.');
-                            }
-                        }
-                        break;
-                    case 'number':
-                        if (q < 0) {
-                            q = v.length + q;
-                        }
-                    // FALL_THRU
-                    case 'string':
-                        v = v[q];
-                        inprog = false;
-                        break;
-                    default:
-                        throw new Error('[SX] $__get: Invalid argument(s): invalid name path.');
-                }
-            }
-        }
-        return v;
-    };
+const $$isList = $isList(null, null);
+const $isString = (state, name) => (...args) => {
+  // S expression: ($is-string x)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$isString', args, 1, 1);
+  return typeof $$first(...args) === 'string';
 };
-// tslint:disable-next-line:variable-name
-var $__let = exports.$__let = function $__let(state, name) {
-    return function () {
-        for (var _len31 = arguments.length, args = Array(_len31), _key31 = 0; _key31 < _len31; _key31++) {
-            args[_key31] = arguments[_key31];
-        }
-
-        // S expression: ($__let 'nameStrOrSymbol expr)
-        //  -> S expr  : any
-        (0, _errors.checkParamsLength)('$__let', args, 2, 2);
-        var sym = (0, _types.isSymbol)($$first.apply(undefined, args));
-        if (!sym) {
-            if (typeof args[0] === 'string') {
-                sym = { symbol: args[0] };
-            } else {
-                throw new Error('[SX] $__let: Invalid argument(s): invalid name.');
-            }
-        }
-        var scope = (0, _evaluate.resolveValueSymbolScope)(state, sym, false);
-        scope[sym.symbol] = args[1];
-        return args[1];
-    };
+const $$isString = $isString(null, null);
+const $isNumber = (state, name) => (...args) => {
+  // S expression: ($is-number x)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$isNumber', args, 1, 1);
+  return typeof $$first(...args) === 'number';
 };
-// tslint:disable-next-line:variable-name
-var $__set = exports.$__set = function $__set(state, name) {
-    return function () {
-        for (var _len32 = arguments.length, args = Array(_len32), _key32 = 0; _key32 < _len32; _key32++) {
-            args[_key32] = arguments[_key32];
-        }
-
-        // S expression: ($__set 'nameOrListOfNameOrIndex expr)
-        //  -> S expr  : any
-        (0, _errors.checkParamsLength)('$__set', args, 2, 2);
-        var path = [];
-        if (Array.isArray(args[0])) {
-            path = args[0];
-        } else {
-            path.push(args[0]);
-        }
-        var sym = (0, _types.isSymbol)(path[0]);
-        if (!sym) {
-            if (typeof path[0] === 'string') {
-                sym = { symbol: path[0] };
-            } else {
-                throw new Error('[SX] $__set: Invalid argument(s): invalid name.');
-            }
-        }
-        var scope = (0, _evaluate.resolveValueSymbolScope)(state, sym, true);
-        if (scope === null) {
-            throw new Error('[SX] $__set: Unresolved symbol: ' + sym.symbol + '.');
-        }
-        var subst = false;
-        for (var i = 0; i < path.length; i++) {
-            var q = path[i];
-            var inprog = true;
-            var last = i === path.length - 1;
-            while (inprog) {
-                switch (typeof q === 'undefined' ? 'undefined' : _typeof(q)) {
-                    case 'function':
-                        scope = q(scope);
-                        inprog = false;
-                        break;
-                    case 'object':
-                        if (Array.isArray(q)) {
-                            q = (0, _evaluate.evaluate)(state, q);
-                        } else {
-                            sym = (0, _types.isSymbol)(q);
-                            if (sym) {
-                                q = sym.symbol;
-                            } else if (Object.prototype.hasOwnProperty.call(q, 'value')) {
-                                q = (0, _evaluate.evaluate)(state, q);
-                            } else {
-                                throw new Error('[SX] $__set: Invalid argument(s): invalid name.');
-                            }
-                        }
-                        break;
-                    case 'number':
-                        if (q < 0) {
-                            q = scope.length + q;
-                        }
-                    // FALL_THRU
-                    case 'string':
-                        if (last) {
-                            scope[q] = args[1];
-                            subst = true;
-                        } else {
-                            scope = scope[q];
-                        }
-                        inprog = false;
-                        break;
-                    default:
-                        throw new Error('[SX] $__set: Invalid argument(s): invalid name.');
-                }
-            }
-        }
-        if (!subst) {
-            throw new Error('[SX] $__set: Invalid argument(s): last path is not lvalue.');
-        }
-        return args[1];
-    };
+const $$isNumber = $isNumber(null, null);
+const $isNaN = (state, name) => (...args) => {
+  // S expression: ($is-NaN x)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$isNaN', args, 1, 1);
+  return Number.isNaN($$first(...args));
 };
-var $boolean = exports.$boolean = function $boolean(state, name) {
-    return function () {
-        for (var _len33 = arguments.length, args = Array(_len33), _key33 = 0; _key33 < _len33; _key33++) {
-            args[_key33] = arguments[_key33];
-        }
-
-        // S expression: ($boolean any)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$boolean', args, 1, 1);
-        var car = $$first.apply(undefined, args);
-        if (Array.isArray(car) && car.length === 0) return false;else return Boolean(car);
-    };
+const $$isNaN = $isNaN(null, null);
+const $isFinite = (state, name) => (...args) => {
+  // S expression: ($is-finate x)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$isFinite', args, 1, 1);
+  return Number.isFinite($$first(...args));
 };
-var $$boolean = exports.$$boolean = $boolean(null, null);
-var $not = exports.$not = function $not(state, name) {
-    return function () {
-        for (var _len34 = arguments.length, args = Array(_len34), _key34 = 0; _key34 < _len34; _key34++) {
-            args[_key34] = arguments[_key34];
-        }
-
-        // S expression: ($not any)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$not', args, 1, 1);
-        return !$$boolean.apply(undefined, args);
-    };
+const $$isFinite = $isFinite(null, null);
+const $isInteger = (state, name) => (...args) => {
+  // S expression: ($is-integer x)
+  //  -> S expr  : boolean
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$isInteger', args, 1, 1);
+  return Number.isInteger($$first(...args));
 };
-var $$not = exports.$$not = $not(null, null);
-// tslint:disable-next-line:variable-name
-var $__and = exports.$__and = function $__and(state, name) {
-    return function () {
-        for (var _len35 = arguments.length, args = Array(_len35), _key35 = 0; _key35 < _len35; _key35++) {
-            args[_key35] = arguments[_key35];
-        }
-
-        // S expression: ($__and 'expr1 ... 'exprN)
-        //  -> (if all of ($boolean expr1) ... ($boolean exprN) are true) S expr  : exprN
-        //  -> (else)                                                     S expr  : expr-i (false left most)
-        (0, _errors.checkParamsLength)('$__and', args, 1);
-        var prev = null;
-        for (var i = 0; i < args.length; i++) {
-            var curr = (0, _evaluate.evaluate)(state, args[i]);
-            if (!$$boolean(curr)) {
-                return curr;
-            }
-            prev = curr;
-        }
-        return prev;
-    };
+const $$isInteger = $isInteger(null, null);
+const $toString = (state, name) => (...args) => {
+  // S expression: ($to-string x)
+  //  -> S expr  : string
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$toString', args, 1, 1);
+  return String($$first(...args));
 };
-// tslint:disable-next-line:variable-name
-var $$__and = exports.$$__and = $__and(null, null);
-// tslint:disable-next-line:variable-name
-var $__or = exports.$__or = function $__or(state, name) {
-    return function () {
-        for (var _len36 = arguments.length, args = Array(_len36), _key36 = 0; _key36 < _len36; _key36++) {
-            args[_key36] = arguments[_key36];
-        }
-
-        // S expression: ($__or 'expr1 ... 'exprN)
-        //  -> (if any ($boolean expr1) ... ($boolean exprN) are true) S expr  : expr-i (where i: index of item first ($boolean expr-i) is to be true)
-        //  -> (else)                                                  S expr  : expr-i (false right most)
-        (0, _errors.checkParamsLength)('$__or', args, 1);
-        var prev = null;
-        for (var i = 0; i < args.length; i++) {
-            var curr = (0, _evaluate.evaluate)(state, args[i]);
-            if ($$boolean(curr)) {
-                return curr;
-            }
-            prev = curr;
-        }
-        return prev;
-    };
+const $$toString = $toString(null, null);
+const $toNumber = (state, name) => (...args) => {
+  // S expression: ($to-number x)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$toNumber', args, 1, 1);
+  return Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["toNumber"])($$first(...args));
 };
-// tslint:disable-next-line:variable-name
-var $$__or = exports.$$__or = $__or(null, null);
-var $ambiguousEq = exports.$ambiguousEq = function $ambiguousEq(state, name) {
-    return function () {
-        for (var _len37 = arguments.length, args = Array(_len37), _key37 = 0; _key37 < _len37; _key37++) {
-            args[_key37] = arguments[_key37];
-        }
+const $$toNumber = $toNumber(null, null); // tslint:disable-next-line:variable-name
 
-        // S expression: (== a b)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$ambiguousEq', args, 2, 2);
+const $__toObject = (state, name) => (...args) => {
+  // S expression: ($__# '(name value...)...)
+  //  -> JSON    : {name: value, ...}
+  const r = {};
 
-        var _$$firstAndSecond7 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond7.car,
-            cdr = _$$firstAndSecond7.cdr;
+  for (const x of args) {
+    if (Array.isArray(x) && 0 < x.length) {
+      const sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(x[0]);
+      const keyName = sym ? sym.symbol : String(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x[0]));
 
-        if (Array.isArray(car) && car.length === 0) car = null;
-        if (Array.isArray(cdr) && cdr.length === 0) cdr = null;
-        if (car === void 0) car = null;
-        if (cdr === void 0) cdr = null;
-        // tslint:disable-next-line:triple-equals
-        return car == cdr;
-    };
+      if (x.length === 1) {
+        // S expression: (# ... (keyName) ...)
+        //  -> JSON    : {..., keyName: true, ...}
+        r[keyName] = true;
+      } else if (x.length === 2) {
+        // S expression: (# ... (keyName value) ...)
+        //  -> JSON    : {..., keyName: value, ...}
+        r[keyName] = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x[1]);
+      } else {
+        // S expression: (# ... (keyName value1 value2 ...) ...)
+        //  -> JSON    : {..., keyName: [value1, value2, ], ...}
+        r[keyName] = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, [{
+          symbol: state.config.reservedNames.list
+        }].concat(x.slice(1)));
+      }
+    } else {
+      throw new Error(`[SX] $__toObject: Invalid argument(s): args[?] is not array.`);
+    }
+  }
+
+  return r;
 };
-var $$ambiguousEq = exports.$$ambiguousEq = $ambiguousEq(null, null);
-var $ambiguousNotEq = exports.$ambiguousNotEq = function $ambiguousNotEq(state, name) {
-    return function () {
-        // S expression: (!= a b)
-        //  -> S expr  : boolean
-        return !$$ambiguousEq.apply(undefined, arguments);
-    };
+const $objectAssign = (state, name) => (...args) => {
+  // S expression: ($object-assign x)
+  //  -> S expr  : string
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$objectAssign', args, 1);
+  return Object.assign(args[0], ...args.slice(1));
 };
-var $$ambiguousNotEq = exports.$$ambiguousNotEq = $ambiguousNotEq(null, null);
-var $lt = exports.$lt = function $lt(state, name) {
-    return function () {
-        for (var _len38 = arguments.length, args = Array(_len38), _key38 = 0; _key38 < _len38; _key38++) {
-            args[_key38] = arguments[_key38];
-        }
-
-        // S expression: (< a b)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$lt', args, 2, 2);
-
-        var _$$firstAndSecond8 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond8.car,
-            cdr = _$$firstAndSecond8.cdr;
-
-        return (0, _evaluate.toNumber)(car) < (0, _evaluate.toNumber)(cdr);
-    };
+const $$objectAssign = $objectAssign(null, null);
+const $jsonStringify = (state, name) => (...args) => {
+  // S expression: ($json-stringify x)
+  //  -> S expr  : string
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$jsonStringify', args, 1, 1);
+  return JSON.stringify($$first(...args));
 };
-var $$lt = exports.$$lt = $lt(null, null);
-var $le = exports.$le = function $le(state, name) {
-    return function () {
-        for (var _len39 = arguments.length, args = Array(_len39), _key39 = 0; _key39 < _len39; _key39++) {
-            args[_key39] = arguments[_key39];
-        }
+const $$jsonStringify = $jsonStringify(null, null);
+const $jsonParse = (state, name) => (...args) => {
+  // S expression: ($json-parse x)
+  //  -> S expr  : object
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$jsonParse', args, 1, 1);
+  const s = $$first(...args);
 
-        // S expression: (<= a b)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$le', args, 2, 2);
+  if (typeof s !== 'string') {
+    throw new Error(`[SX] $jsonParse: Invalid argument(s): args[0] is not string.`);
+  }
 
-        var _$$firstAndSecond9 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond9.car,
-            cdr = _$$firstAndSecond9.cdr;
-
-        return (0, _evaluate.toNumber)(car) <= (0, _evaluate.toNumber)(cdr);
-    };
+  return JSON.parse(s);
 };
-var $$le = exports.$$le = $le(null, null);
-var $gt = exports.$gt = function $gt(state, name) {
-    return function () {
-        for (var _len40 = arguments.length, args = Array(_len40), _key40 = 0; _key40 < _len40; _key40++) {
-            args[_key40] = arguments[_key40];
-        }
-
-        // S expression: (> a b)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$gt', args, 2, 2);
-
-        var _$$firstAndSecond10 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond10.car,
-            cdr = _$$firstAndSecond10.cdr;
-
-        return (0, _evaluate.toNumber)(car) > (0, _evaluate.toNumber)(cdr);
-    };
+const $$jsonParse = $jsonParse(null, null);
+const $consoleLog = (state, name) => (...args) => {
+  // S expression: ($console-log expr1 ... exprN)
+  //  -> S expr  : null
+  console.log(...args);
+  return null;
 };
-var $$gt = exports.$$gt = $gt(null, null);
-var $ge = exports.$ge = function $ge(state, name) {
-    return function () {
-        for (var _len41 = arguments.length, args = Array(_len41), _key41 = 0; _key41 < _len41; _key41++) {
-            args[_key41] = arguments[_key41];
-        }
-
-        // S expression: (>= a b)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$ge', args, 2, 2);
-
-        var _$$firstAndSecond11 = $$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond11.car,
-            cdr = _$$firstAndSecond11.cdr;
-
-        return (0, _evaluate.toNumber)(car) >= (0, _evaluate.toNumber)(cdr);
-    };
+const $$consoleLog = $consoleLog(null, null);
+const $consoleError = (state, name) => (...args) => {
+  // S expression: ($console-error expr1 ... exprN)
+  //  -> S expr  : null
+  console.error(...args);
+  return null;
 };
-var $$ge = exports.$$ge = $ge(null, null);
-var $isList = exports.$isList = function $isList(state, name) {
-    return function () {
-        for (var _len42 = arguments.length, args = Array(_len42), _key42 = 0; _key42 < _len42; _key42++) {
-            args[_key42] = arguments[_key42];
-        }
-
-        // S expression: ($is-list x)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$isList', args, 1, 1);
-        return Array.isArray($$first.apply(undefined, args));
-    };
-};
-var $$isList = exports.$$isList = $isList(null, null);
-var $isString = exports.$isString = function $isString(state, name) {
-    return function () {
-        for (var _len43 = arguments.length, args = Array(_len43), _key43 = 0; _key43 < _len43; _key43++) {
-            args[_key43] = arguments[_key43];
-        }
-
-        // S expression: ($is-string x)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$isString', args, 1, 1);
-        return typeof $$first.apply(undefined, args) === 'string';
-    };
-};
-var $$isString = exports.$$isString = $isString(null, null);
-var $isNumber = exports.$isNumber = function $isNumber(state, name) {
-    return function () {
-        for (var _len44 = arguments.length, args = Array(_len44), _key44 = 0; _key44 < _len44; _key44++) {
-            args[_key44] = arguments[_key44];
-        }
-
-        // S expression: ($is-number x)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$isNumber', args, 1, 1);
-        return typeof $$first.apply(undefined, args) === 'number';
-    };
-};
-var $$isNumber = exports.$$isNumber = $isNumber(null, null);
-var $isNaN = exports.$isNaN = function $isNaN(state, name) {
-    return function () {
-        for (var _len45 = arguments.length, args = Array(_len45), _key45 = 0; _key45 < _len45; _key45++) {
-            args[_key45] = arguments[_key45];
-        }
-
-        // S expression: ($is-NaN x)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$isNaN', args, 1, 1);
-        return Number.isNaN($$first.apply(undefined, args));
-    };
-};
-var $$isNaN = exports.$$isNaN = $isNaN(null, null);
-var $isFinite = exports.$isFinite = function $isFinite(state, name) {
-    return function () {
-        for (var _len46 = arguments.length, args = Array(_len46), _key46 = 0; _key46 < _len46; _key46++) {
-            args[_key46] = arguments[_key46];
-        }
-
-        // S expression: ($is-finate x)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$isFinite', args, 1, 1);
-        return Number.isFinite($$first.apply(undefined, args));
-    };
-};
-var $$isFinite = exports.$$isFinite = $isFinite(null, null);
-var $isInteger = exports.$isInteger = function $isInteger(state, name) {
-    return function () {
-        for (var _len47 = arguments.length, args = Array(_len47), _key47 = 0; _key47 < _len47; _key47++) {
-            args[_key47] = arguments[_key47];
-        }
-
-        // S expression: ($is-integer x)
-        //  -> S expr  : boolean
-        (0, _errors.checkParamsLength)('$isInteger', args, 1, 1);
-        return Number.isInteger($$first.apply(undefined, args));
-    };
-};
-var $$isInteger = exports.$$isInteger = $isInteger(null, null);
-var $toString = exports.$toString = function $toString(state, name) {
-    return function () {
-        for (var _len48 = arguments.length, args = Array(_len48), _key48 = 0; _key48 < _len48; _key48++) {
-            args[_key48] = arguments[_key48];
-        }
-
-        // S expression: ($to-string x)
-        //  -> S expr  : string
-        (0, _errors.checkParamsLength)('$toString', args, 1, 1);
-        return String($$first.apply(undefined, args));
-    };
-};
-var $$toString = exports.$$toString = $toString(null, null);
-var $toNumber = exports.$toNumber = function $toNumber(state, name) {
-    return function () {
-        for (var _len49 = arguments.length, args = Array(_len49), _key49 = 0; _key49 < _len49; _key49++) {
-            args[_key49] = arguments[_key49];
-        }
-
-        // S expression: ($to-number x)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$toNumber', args, 1, 1);
-        return (0, _evaluate.toNumber)($$first.apply(undefined, args));
-    };
-};
-var $$toNumber = exports.$$toNumber = $toNumber(null, null);
-// tslint:disable-next-line:variable-name
-var $__toObject = exports.$__toObject = function $__toObject(state, name) {
-    return function () {
-        for (var _len50 = arguments.length, args = Array(_len50), _key50 = 0; _key50 < _len50; _key50++) {
-            args[_key50] = arguments[_key50];
-        }
-
-        // S expression: ($__# '(name value...)...)
-        //  -> JSON    : {name: value, ...}
-        var r = {};
-        var _iteratorNormalCompletion13 = true;
-        var _didIteratorError13 = false;
-        var _iteratorError13 = undefined;
-
-        try {
-            for (var _iterator13 = args[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-                var x = _step13.value;
-
-                if (Array.isArray(x) && 0 < x.length) {
-                    var sym = (0, _types.isSymbol)(x[0]);
-                    var keyName = sym ? sym.symbol : String((0, _evaluate.evaluate)(state, x[0]));
-                    if (x.length === 1) {
-                        // S expression: (# ... (keyName) ...)
-                        //  -> JSON    : {..., keyName: true, ...}
-                        r[keyName] = true;
-                    } else if (x.length === 2) {
-                        // S expression: (# ... (keyName value) ...)
-                        //  -> JSON    : {..., keyName: value, ...}
-                        r[keyName] = (0, _evaluate.evaluate)(state, x[1]);
-                    } else {
-                        // S expression: (# ... (keyName value1 value2 ...) ...)
-                        //  -> JSON    : {..., keyName: [value1, value2, ], ...}
-                        r[keyName] = (0, _evaluate.evaluate)(state, [{ symbol: state.config.reservedNames.list }].concat(x.slice(1)));
-                    }
-                } else {
-                    throw new Error('[SX] $__toObject: Invalid argument(s): args[?] is not array.');
-                }
-            }
-        } catch (err) {
-            _didIteratorError13 = true;
-            _iteratorError13 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion13 && _iterator13.return) {
-                    _iterator13.return();
-                }
-            } finally {
-                if (_didIteratorError13) {
-                    throw _iteratorError13;
-                }
-            }
-        }
-
-        return r;
-    };
-};
-var $objectAssign = exports.$objectAssign = function $objectAssign(state, name) {
-    return function () {
-        for (var _len51 = arguments.length, args = Array(_len51), _key51 = 0; _key51 < _len51; _key51++) {
-            args[_key51] = arguments[_key51];
-        }
-
-        // S expression: ($object-assign x)
-        //  -> S expr  : string
-        (0, _errors.checkParamsLength)('$objectAssign', args, 1);
-        return Object.assign.apply(Object, [args[0]].concat(_toConsumableArray(args.slice(1))));
-    };
-};
-var $$objectAssign = exports.$$objectAssign = $objectAssign(null, null);
-var $jsonStringify = exports.$jsonStringify = function $jsonStringify(state, name) {
-    return function () {
-        for (var _len52 = arguments.length, args = Array(_len52), _key52 = 0; _key52 < _len52; _key52++) {
-            args[_key52] = arguments[_key52];
-        }
-
-        // S expression: ($json-stringify x)
-        //  -> S expr  : string
-        (0, _errors.checkParamsLength)('$jsonStringify', args, 1, 1);
-        return JSON.stringify($$first.apply(undefined, args));
-    };
-};
-var $$jsonStringify = exports.$$jsonStringify = $jsonStringify(null, null);
-var $jsonParse = exports.$jsonParse = function $jsonParse(state, name) {
-    return function () {
-        for (var _len53 = arguments.length, args = Array(_len53), _key53 = 0; _key53 < _len53; _key53++) {
-            args[_key53] = arguments[_key53];
-        }
-
-        // S expression: ($json-parse x)
-        //  -> S expr  : object
-        (0, _errors.checkParamsLength)('$jsonParse', args, 1, 1);
-        var s = $$first.apply(undefined, args);
-        if (typeof s !== 'string') {
-            throw new Error('[SX] $jsonParse: Invalid argument(s): args[0] is not string.');
-        }
-        return JSON.parse(s);
-    };
-};
-var $$jsonParse = exports.$$jsonParse = $jsonParse(null, null);
-var $consoleLog = exports.$consoleLog = function $consoleLog(state, name) {
-    return function () {
-        var _console;
-
-        // S expression: ($console-log expr1 ... exprN)
-        //  -> S expr  : null
-        (_console = console).log.apply(_console, arguments);
-        return null;
-    };
-};
-var $$consoleLog = exports.$$consoleLog = $consoleLog(null, null);
-var $consoleError = exports.$consoleError = function $consoleError(state, name) {
-    return function () {
-        var _console2;
-
-        // S expression: ($console-error expr1 ... exprN)
-        //  -> S expr  : null
-        (_console2 = console).error.apply(_console2, arguments);
-        return null;
-    };
-};
-var $$consoleError = exports.$$consoleError = $consoleError(null, null);
+const $$consoleError = $consoleError(null, null);
 
 /***/ }),
 
@@ -2961,328 +2531,283 @@ var $$consoleError = exports.$$consoleError = $consoleError(null, null);
 /*!************************************************!*\
   !*** ./src/s-exp/operators/core/core.macro.ts ***!
   \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: macros, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.macros = undefined;
-
-var _types = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
-
-var _errors = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "macros", function() { return macros; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
+/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
 
-var macros = exports.macros = [{
-    name: '$scope',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($scope isBlockLocal returnMultiple ((name value) | name ...) expr ... expr)
-            //  -> S expr  : ($__scope isBlockLocal returnMultiple '((name value) | name ...) 'expr ... 'expr)
-            return [{ symbol: '$__scope' }, list[1], list[2]].concat(_toConsumableArray(list.slice(3).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+const macros = [{
+  name: '$scope',
+  fn: (state, name) => list => {
+    // S expression: ($scope isBlockLocal returnMultiple ((name value) | name ...) expr ... expr)
+    //  -> S expr  : ($__scope isBlockLocal returnMultiple '((name value) | name ...) 'expr ... 'expr)
+    return [{
+      symbol: '$__scope'
+    }, list[1], list[2], ...list.slice(3).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$local',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($local ((name value) | name ...) expr ... expr)
-            //  -> S expr  : ($__scope isBlockLocal=true returnMultiple=false '((name value) | name ...) 'expr ... 'expr)
-            return [{ symbol: '$__scope' }, true, false].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$local',
+  fn: (state, name) => list => {
+    // S expression: ($local ((name value) | name ...) expr ... expr)
+    //  -> S expr  : ($__scope isBlockLocal=true returnMultiple=false '((name value) | name ...) 'expr ... 'expr)
+    return [{
+      symbol: '$__scope'
+    }, true, false, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$global',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($__global expr1 ... exprN)
-            //  -> S expr  : ($__global returnMultiple=false 'expr ... 'expr)
-            return [{ symbol: '$__global' }, false].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$global',
+  fn: (state, name) => list => {
+    // S expression: ($__global expr1 ... exprN)
+    //  -> S expr  : ($__global returnMultiple=false 'expr ... 'expr)
+    return [{
+      symbol: '$__global'
+    }, false, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$clisp-let',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($clisp-let ((name value) | name ...) expr ... expr)
-            //  -> S expr  : ($__scope isBlockLocal=true returnMultiple=false '((name value) | name ...) 'expr ... 'expr)
-            return [{ symbol: '$__scope' }, true, false].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$clisp-let',
+  fn: (state, name) => list => {
+    // S expression: ($clisp-let ((name value) | name ...) expr ... expr)
+    //  -> S expr  : ($__scope isBlockLocal=true returnMultiple=false '((name value) | name ...) 'expr ... 'expr)
+    return [{
+      symbol: '$__scope'
+    }, true, false, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$lambda',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($lambda (sym1 ... symN) expr ... expr)
-            //  -> S expr  : ($__lambda '(sym1 ... symN) 'expr ... 'expr)
-            return [{ symbol: '$__lambda' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$lambda',
+  fn: (state, name) => list => {
+    // S expression: ($lambda (sym1 ... symN) expr ... expr)
+    //  -> S expr  : ($__lambda '(sym1 ... symN) 'expr ... 'expr)
+    return [{
+      symbol: '$__lambda'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '->',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($lambda (sym1 ... symN) expr ... expr)
-            //  -> S expr  : ($__lambda '(sym1 ... symN) 'expr ... 'expr)
-            return [{ symbol: '$__lambda' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '->',
+  fn: (state, name) => list => {
+    // S expression: ($lambda (sym1 ... symN) expr ... expr)
+    //  -> S expr  : ($__lambda '(sym1 ... symN) 'expr ... 'expr)
+    return [{
+      symbol: '$__lambda'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$defun',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($defun name (sym1 ... symN) expr ... expr)
-            //  -> S expr  : ($__defun 'name '(sym1 ... symN) 'expr ... 'expr)
-            return [{ symbol: '$__defun' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$defun',
+  fn: (state, name) => list => {
+    // S expression: ($defun name (sym1 ... symN) expr ... expr)
+    //  -> S expr  : ($__defun 'name '(sym1 ... symN) 'expr ... 'expr)
+    return [{
+      symbol: '$__defun'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$call',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($call thisArg symbol arg1 ... argN)
-            //  -> S expr  : ($__call thisArg 'symbol arg1 ... argN)
-            (0, _errors.checkParamsLength)('$call', list, 3);
-            return [{ symbol: '$__call' }, list[1], (0, _types.quote)(state, list[2])].concat(_toConsumableArray(list.slice(3)));
-        };
-    }
+  name: '$call',
+  fn: (state, name) => list => {
+    // S expression: ($call thisArg symbol arg1 ... argN)
+    //  -> S expr  : ($__call thisArg 'symbol arg1 ... argN)
+    Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$call', list, 3);
+    return [{
+      symbol: '$__call'
+    }, list[1], Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[2]), ...list.slice(3)];
+  }
 }, {
-    name: '$try',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($try expr catch-expr)
-            //  -> S expr  : ($__try 't-expr 'catch-expr)
-            return [{ symbol: '$__try' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$try',
+  fn: (state, name) => list => {
+    // S expression: ($try expr catch-expr)
+    //  -> S expr  : ($__try 't-expr 'catch-expr)
+    return [{
+      symbol: '$__try'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$if',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($if cond t-expr f-expr)
-            //  -> S expr  : ($__if cond 't-expr 'f-expr)
-            return [{ symbol: '$__if' }, list[1]].concat(_toConsumableArray(list.slice(2).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$if',
+  fn: (state, name) => list => {
+    // S expression: ($if cond t-expr f-expr)
+    //  -> S expr  : ($__if cond 't-expr 'f-expr)
+    return [{
+      symbol: '$__if'
+    }, list[1], ...list.slice(2).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$if-null',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($if-null cond null-expr)
-            //  -> S expr  : ($__if-null cont 'null-expr)
-            return [{ symbol: '$__if-null' }, list[1]].concat(_toConsumableArray(list.slice(2).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$if-null',
+  fn: (state, name) => list => {
+    // S expression: ($if-null cond null-expr)
+    //  -> S expr  : ($__if-null cont 'null-expr)
+    return [{
+      symbol: '$__if-null'
+    }, list[1], ...list.slice(2).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '??',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: (?? cond null-expr)
-            //  -> S expr  : ($__if-null cont 'null-expr)
-            return [{ symbol: '$__if-null' }, list[1]].concat(_toConsumableArray(list.slice(2).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '??',
+  fn: (state, name) => list => {
+    // S expression: (?? cond null-expr)
+    //  -> S expr  : ($__if-null cont 'null-expr)
+    return [{
+      symbol: '$__if-null'
+    }, list[1], ...list.slice(2).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$cond',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($cond cond1 expr1 ... condN exprN)
-            //  -> S expr  : ($__cond 'cond1 'expr1 ... 'condN 'exprN)
-            return [{ symbol: '$__cond' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$cond',
+  fn: (state, name) => list => {
+    // S expression: ($cond cond1 expr1 ... condN exprN)
+    //  -> S expr  : ($__cond 'cond1 'expr1 ... 'condN 'exprN)
+    return [{
+      symbol: '$__cond'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$while',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($while condition expr1 exprN)
-            //  -> S expr  : ($__while 'condition 'expr1 'exprN)
-            return [{ symbol: '$__while' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$while',
+  fn: (state, name) => list => {
+    // S expression: ($while condition expr1 exprN)
+    //  -> S expr  : ($__while 'condition 'expr1 'exprN)
+    return [{
+      symbol: '$__while'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$do-while',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($do-while condition expr1 exprN)
-            //  -> S expr  : ($__do-while 'condition 'expr1 'exprN)
-            return [{ symbol: '$__do-while' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$do-while',
+  fn: (state, name) => list => {
+    // S expression: ($do-while condition expr1 exprN)
+    //  -> S expr  : ($__do-while 'condition 'expr1 'exprN)
+    return [{
+      symbol: '$__do-while'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$until',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($until condition expr1 exprN)
-            //  -> S expr  : ($__until 'condition 'expr1 'exprN)
-            return [{ symbol: '$__until' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$until',
+  fn: (state, name) => list => {
+    // S expression: ($until condition expr1 exprN)
+    //  -> S expr  : ($__until 'condition 'expr1 'exprN)
+    return [{
+      symbol: '$__until'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$do-until',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($do-until condition expr1 exprN)
-            //  -> S expr  : ($__do-until 'condition 'expr1 'exprN)
-            return [{ symbol: '$__do-until' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$do-until',
+  fn: (state, name) => list => {
+    // S expression: ($do-until condition expr1 exprN)
+    //  -> S expr  : ($__do-until 'condition 'expr1 'exprN)
+    return [{
+      symbol: '$__do-until'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$repeat',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($repeat i of n-times expr1 exprN)
-            //  -> S expr  : ($__repeat 'i n-times 'expr1 'exprN)
-            var symOf = (0, _types.isSymbol)(list[2], 'of');
-            if (!symOf) {
-                throw new Error('[SX] $repeat: Invalid syntax: missing \'of\' keyword.');
-            }
-            return [{ symbol: '$__repeat' }, (0, _types.quote)(state, list[1]), list[3]].concat(_toConsumableArray(list.slice(4).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
+  name: '$repeat',
+  fn: (state, name) => list => {
+    // S expression: ($repeat i of n-times expr1 exprN)
+    //  -> S expr  : ($__repeat 'i n-times 'expr1 'exprN)
+    const symOf = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(list[2], 'of');
+
+    if (!symOf) {
+      throw new Error(`[SX] $repeat: Invalid syntax: missing 'of' keyword.`);
     }
+
+    return [{
+      symbol: '$__repeat'
+    }, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[1]), list[3], ...list.slice(4).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$for',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($for x of list expr1 exprN)
-            //  -> S expr  : ($__for 'x list 'expr1 'exprN)
-            var symOf = (0, _types.isSymbol)(list[2], 'of');
-            if (!symOf) {
-                throw new Error('[SX] $for: Invalid syntax: missing \'of\' keyword.');
-            }
-            return [{ symbol: '$__for' }, (0, _types.quote)(state, list[1]), list[3]].concat(_toConsumableArray(list.slice(4).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
+  name: '$for',
+  fn: (state, name) => list => {
+    // S expression: ($for x of list expr1 exprN)
+    //  -> S expr  : ($__for 'x list 'expr1 'exprN)
+    const symOf = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(list[2], 'of');
+
+    if (!symOf) {
+      throw new Error(`[SX] $for: Invalid syntax: missing 'of' keyword.`);
     }
+
+    return [{
+      symbol: '$__for'
+    }, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[1]), list[3], ...list.slice(4).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$get',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($get nameOrIndex1 ... nameOrIndexN)
-            //  -> S expr  : ($__get 'nameOrIndex1 ... 'nameOrIndexN)
-            return [{ symbol: '$__get' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$get',
+  fn: (state, name) => list => {
+    // S expression: ($get nameOrIndex1 ... nameOrIndexN)
+    //  -> S expr  : ($__get 'nameOrIndex1 ... 'nameOrIndexN)
+    return [{
+      symbol: '$__get'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$let',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($let nameStrOrSymbol expr)
-            //  -> S expr  : ($__let 'nameStrOrSymbol expr)
-            (0, _errors.checkParamsLength)('$let', list, 3, 3);
-            return [{ symbol: '$__let' }, (0, _types.quote)(state, list[1]), list[2]];
-        };
-    }
+  name: '$let',
+  fn: (state, name) => list => {
+    // S expression: ($let nameStrOrSymbol expr)
+    //  -> S expr  : ($__let 'nameStrOrSymbol expr)
+    Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$let', list, 3, 3);
+    return [{
+      symbol: '$__let'
+    }, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[1]), list[2]];
+  }
 }, {
-    name: '$clisp-defvar',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($let nameStrOrSymbol expr)
-            //  -> S expr  : ($__let 'nameStrOrSymbol expr)
-            (0, _errors.checkParamsLength)('$clisp-defvar', list, 3, 3);
-            return [{ symbol: '$global' }, [{ symbol: '$__let' }, (0, _types.quote)(state, list[1]), list[2]]];
-        };
-    }
+  name: '$clisp-defvar',
+  fn: (state, name) => list => {
+    // S expression: ($let nameStrOrSymbol expr)
+    //  -> S expr  : ($__let 'nameStrOrSymbol expr)
+    Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$clisp-defvar', list, 3, 3);
+    return [{
+      symbol: '$global'
+    }, [{
+      symbol: '$__let'
+    }, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[1]), list[2]]];
+  }
 }, {
-    name: '$set',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($set nameOrListOfNameOrIndex expr)
-            //  -> S expr  : ($__set 'nameOrListOfNameOrIndex expr)
-            (0, _errors.checkParamsLength)('$set', list, 3, 3);
-            return [{ symbol: '$__set' }, (0, _types.quote)(state, list[1]), list[2]];
-        };
-    }
+  name: '$set',
+  fn: (state, name) => list => {
+    // S expression: ($set nameOrListOfNameOrIndex expr)
+    //  -> S expr  : ($__set 'nameOrListOfNameOrIndex expr)
+    Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$set', list, 3, 3);
+    return [{
+      symbol: '$__set'
+    }, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[1]), list[2]];
+  }
 }, {
-    name: '$clisp-setq',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($clisp-setq symbol expr)
-            //  -> S expr  : ($__set 'symbol expr)
-            (0, _errors.checkParamsLength)('$clisp-setq', list, 3, 3);
-            return [{ symbol: '$__set' }, (0, _types.quote)(state, list[1]), list[2]];
-        };
-    }
+  name: '$clisp-setq',
+  fn: (state, name) => list => {
+    // S expression: ($clisp-setq symbol expr)
+    //  -> S expr  : ($__set 'symbol expr)
+    Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$clisp-setq', list, 3, 3);
+    return [{
+      symbol: '$__set'
+    }, Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list[1]), list[2]];
+  }
 }, {
-    name: '$and',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($and expr1 ... exprN)
-            //  -> S expr  : ($__and 'expr1 ... 'exprN)
-            return [{ symbol: '$__and' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$and',
+  fn: (state, name) => list => {
+    // S expression: ($and expr1 ... exprN)
+    //  -> S expr  : ($__and 'expr1 ... 'exprN)
+    return [{
+      symbol: '$__and'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$or',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($or expr1 ... exprN)
-            //  -> S expr  : ($__or 'expr1 ... 'exprN)
-            return [{ symbol: '$__or' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$or',
+  fn: (state, name) => list => {
+    // S expression: ($or expr1 ... exprN)
+    //  -> S expr  : ($__or 'expr1 ... 'exprN)
+    return [{
+      symbol: '$__or'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '#',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: (# (name value...)...)
-            //  -> S expr  : ($__# '(name value...)...)
-            return [{ symbol: '$__#' }].concat(_toConsumableArray(list.slice(1).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '#',
+  fn: (state, name) => list => {
+    // S expression: (# (name value...)...)
+    //  -> S expr  : ($__# '(name value...)...)
+    return [{
+      symbol: '$__#'
+    }, ...list.slice(1).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }];
-exports.default = macros;
+/* harmony default export */ __webpack_exports__["default"] = (macros);
 
 /***/ }),
 
@@ -3290,204 +2815,199 @@ exports.default = macros;
 /*!***************************************************!*\
   !*** ./src/s-exp/operators/core/core.operator.ts ***!
   \***************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: funcs, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.funcs = undefined;
-
-var _core = __webpack_require__(/*! ./core.fn */ "./src/s-exp/operators/core/core.fn.ts");
-
-var ops = _interopRequireWildcard(_core);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var funcs = exports.funcs = [{
-    name: '$car',
-    fn: ops.$car
-}, {
-    name: '$cdr',
-    fn: ops.$cdr
-}, {
-    name: '$cons',
-    fn: ops.$cons
-}, {
-    name: '$first',
-    fn: ops.$first
-}, {
-    name: '$second',
-    fn: ops.$second
-}, {
-    name: '$last',
-    fn: ops.$last
-}, {
-    name: '$progn',
-    fn: ops.$last
-}, {
-    name: '$rest',
-    fn: ops.$rest
-}, {
-    name: '$first-and-second',
-    fn: ops.$firstAndSecond
-}, {
-    name: '$atom',
-    fn: ops.$atom
-}, {
-    name: '$eq',
-    fn: ops.$eq
-}, {
-    name: '===',
-    fn: ops.$eq
-}, {
-    name: '$not-eq',
-    fn: ops.$notEq
-}, {
-    name: '!==',
-    fn: ops.$notEq
-}, {
-    name: '$list',
-    fn: ops.$list
-}, {
-    name: '$__scope',
-    fn: ops.$__scope
-}, {
-    name: '$__global',
-    fn: ops.$__globalScope
-}, {
-    name: '$__lambda',
-    fn: ops.$__lambda
-}, {
-    name: '$__defun',
-    fn: ops.$__defun
-}, {
-    name: '$__call',
-    fn: ops.$__call
-}, {
-    name: '$__try',
-    fn: ops.$__try
-}, {
-    name: '$raise',
-    fn: ops.$raise
-}, {
-    name: '$__if',
-    fn: ops.$__if
-}, {
-    name: '$__if-null',
-    fn: ops.$__ifNull
-}, {
-    name: '$__cond',
-    fn: ops.$__cond
-}, {
-    name: '$__while',
-    fn: ops.$__while
-}, {
-    name: '$__do-while',
-    fn: ops.$__doWhile
-}, {
-    name: '$__until',
-    fn: ops.$__until
-}, {
-    name: '$__do-until',
-    fn: ops.$__doUntil
-}, {
-    name: '$__repeat',
-    fn: ops.$__repeat
-}, {
-    name: '$__for',
-    fn: ops.$__for
-}, {
-    name: '$pipe',
-    fn: ops.$pipe
-}, {
-    name: '$__get',
-    fn: ops.$__get
-}, {
-    name: '$__let',
-    fn: ops.$__let
-}, {
-    name: '$__set',
-    fn: ops.$__set
-}, {
-    name: '$boolean',
-    fn: ops.$boolean
-}, {
-    name: '$not',
-    fn: ops.$not
-}, {
-    name: '$__and',
-    fn: ops.$__and
-}, {
-    name: '$__or',
-    fn: ops.$__or
-}, {
-    name: '==',
-    fn: ops.$ambiguousEq
-}, {
-    name: '!=',
-    fn: ops.$ambiguousNotEq
-}, {
-    name: '<',
-    fn: ops.$lt
-}, {
-    name: '<=',
-    fn: ops.$le
-}, {
-    name: '>',
-    fn: ops.$gt
-}, {
-    name: '>=',
-    fn: ops.$ge
-}, {
-    name: '$is-list',
-    fn: ops.$isList
-}, {
-    name: '$is-string',
-    fn: ops.$isString
-}, {
-    name: '$is-number',
-    fn: ops.$isNumber
-}, {
-    name: '$is-NaN',
-    fn: ops.$isNaN
-}, {
-    name: '$is-finite',
-    fn: ops.$isFinite
-}, {
-    name: '$is-integer',
-    fn: ops.$isInteger
-}, {
-    name: '$to-string',
-    fn: ops.$toString
-}, {
-    name: '$to-number',
-    fn: ops.$toNumber
-}, {
-    name: '$__#',
-    fn: ops.$__toObject
-}, {
-    name: '$object-assign',
-    fn: ops.$objectAssign
-}, {
-    name: '$json-stringify',
-    fn: ops.$jsonStringify
-}, {
-    name: '$json-parse',
-    fn: ops.$jsonParse
-}, {
-    name: '$console-log',
-    fn: ops.$consoleLog
-}, {
-    name: '$console-error',
-    fn: ops.$consoleError
-}]; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "funcs", function() { return funcs; });
+/* harmony import */ var _core_fn__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./core.fn */ "./src/s-exp/operators/core/core.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-exports.default = funcs;
+
+const funcs = [{
+  name: '$car',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$car"]
+}, {
+  name: '$cdr',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$cdr"]
+}, {
+  name: '$cons',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$cons"]
+}, {
+  name: '$first',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$first"]
+}, {
+  name: '$second',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$second"]
+}, {
+  name: '$last',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$last"]
+}, {
+  name: '$progn',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$last"]
+}, {
+  name: '$rest',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$rest"]
+}, {
+  name: '$first-and-second',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$firstAndSecond"]
+}, {
+  name: '$atom',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$atom"]
+}, {
+  name: '$eq',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$eq"]
+}, {
+  name: '===',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$eq"]
+}, {
+  name: '$not-eq',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$notEq"]
+}, {
+  name: '!==',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$notEq"]
+}, {
+  name: '$list',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$list"]
+}, {
+  name: '$__scope',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__scope"]
+}, {
+  name: '$__global',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__globalScope"]
+}, {
+  name: '$__lambda',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__lambda"]
+}, {
+  name: '$__defun',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__defun"]
+}, {
+  name: '$apply',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$apply"]
+}, {
+  name: '$__call',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__call"]
+}, {
+  name: '$__try',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__try"]
+}, {
+  name: '$raise',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$raise"]
+}, {
+  name: '$__if',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__if"]
+}, {
+  name: '$__if-null',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__ifNull"]
+}, {
+  name: '$__cond',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__cond"]
+}, {
+  name: '$__while',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__while"]
+}, {
+  name: '$__do-while',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__doWhile"]
+}, {
+  name: '$__until',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__until"]
+}, {
+  name: '$__do-until',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__doUntil"]
+}, {
+  name: '$__repeat',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__repeat"]
+}, {
+  name: '$__for',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__for"]
+}, {
+  name: '$pipe',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$pipe"]
+}, {
+  name: '$__get',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__get"]
+}, {
+  name: '$__let',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__let"]
+}, {
+  name: '$__set',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__set"]
+}, {
+  name: '$boolean',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$boolean"]
+}, {
+  name: '$not',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$not"]
+}, {
+  name: '$__and',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__and"]
+}, {
+  name: '$__or',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__or"]
+}, {
+  name: '==',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$ambiguousEq"]
+}, {
+  name: '!=',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$ambiguousNotEq"]
+}, {
+  name: '<',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$lt"]
+}, {
+  name: '<=',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$le"]
+}, {
+  name: '>',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$gt"]
+}, {
+  name: '>=',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$ge"]
+}, {
+  name: '$is-list',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$isList"]
+}, {
+  name: '$is-string',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$isString"]
+}, {
+  name: '$is-number',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$isNumber"]
+}, {
+  name: '$is-NaN',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$isNaN"]
+}, {
+  name: '$is-finite',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$isFinite"]
+}, {
+  name: '$is-integer',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$isInteger"]
+}, {
+  name: '$to-string',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$toString"]
+}, {
+  name: '$to-number',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$toNumber"]
+}, {
+  name: '$__#',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$__toObject"]
+}, {
+  name: '$object-assign',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$objectAssign"]
+}, {
+  name: '$json-stringify',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$jsonStringify"]
+}, {
+  name: '$json-parse',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$jsonParse"]
+}, {
+  name: '$console-log',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$consoleLog"]
+}, {
+  name: '$console-error',
+  fn: _core_fn__WEBPACK_IMPORTED_MODULE_0__["$consoleError"]
+}];
+/* harmony default export */ __webpack_exports__["default"] = (funcs);
 
 /***/ }),
 
@@ -3495,56 +3015,71 @@ exports.default = funcs;
 /*!*************************************************!*\
   !*** ./src/s-exp/operators/core/core.symbol.ts ***!
   \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: symbols, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "symbols", function() { return symbols; });
 // Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-var symbols = exports.symbols = [{ name: 'nil', fn: function fn(state, name) {
-        return [];
-    } }, { name: 'null', fn: function fn(state, name) {
-        return null;
-    } }, { name: 'undefined', fn: function fn(state, name) {
-        return void 0;
-    } }, { name: 'true', fn: function fn(state, name) {
-        return true;
-    } }, { name: '#true', fn: function fn(state, name) {
-        return true;
-    } }, { name: '#t', fn: function fn(state, name) {
-        return true;
-    } }, { name: 'false', fn: function fn(state, name) {
-        return false;
-    } }, { name: '#false', fn: function fn(state, name) {
-        return false;
-    } }, { name: '#f', fn: function fn(state, name) {
-        return false;
-    } }, { name: '#Number:Infinity', fn: function fn(state, name) {
-        return Number.POSITIVE_INFINITY;
-    } }, { name: '+Infinity', fn: function fn(state, name) {
-        return Number.POSITIVE_INFINITY;
-    } }, { name: '-Infinity', fn: function fn(state, name) {
-        return Number.NEGATIVE_INFINITY;
-    } }, { name: '#Number:Epsilon', fn: function fn(state, name) {
-        return Number.EPSILON;
-    } }, { name: '#Number:MaxValue', fn: function fn(state, name) {
-        return Number.MAX_VALUE;
-    } }, { name: '#Number:MinValue', fn: function fn(state, name) {
-        return Number.MIN_VALUE;
-    } }, { name: '#Number:MinSafeInteger', fn: function fn(state, name) {
-        return Number.MAX_SAFE_INTEGER;
-    } }, { name: '#Number:MinSafeInteger', fn: function fn(state, name) {
-        return Number.MIN_SAFE_INTEGER;
-    } }, { name: 'NaN', fn: function fn(state, name) {
-        return Number.NaN;
-    } }];
-exports.default = symbols;
+const symbols = [{
+  name: 'nil',
+  fn: (state, name) => []
+}, {
+  name: 'null',
+  fn: (state, name) => null
+}, {
+  name: 'undefined',
+  fn: (state, name) => void 0
+}, {
+  name: 'true',
+  fn: (state, name) => true
+}, {
+  name: '#true',
+  fn: (state, name) => true
+}, {
+  name: '#t',
+  fn: (state, name) => true
+}, {
+  name: 'false',
+  fn: (state, name) => false
+}, {
+  name: '#false',
+  fn: (state, name) => false
+}, {
+  name: '#f',
+  fn: (state, name) => false
+}, {
+  name: '#Number:Infinity',
+  fn: (state, name) => Number.POSITIVE_INFINITY
+}, {
+  name: '+Infinity',
+  fn: (state, name) => Number.POSITIVE_INFINITY
+}, {
+  name: '-Infinity',
+  fn: (state, name) => Number.NEGATIVE_INFINITY
+}, {
+  name: '#Number:Epsilon',
+  fn: (state, name) => Number.EPSILON
+}, {
+  name: '#Number:MaxValue',
+  fn: (state, name) => Number.MAX_VALUE
+}, {
+  name: '#Number:MinValue',
+  fn: (state, name) => Number.MIN_VALUE
+}, {
+  name: '#Number:MinSafeInteger',
+  fn: (state, name) => Number.MAX_SAFE_INTEGER
+}, {
+  name: '#Number:MinSafeInteger',
+  fn: (state, name) => Number.MIN_SAFE_INTEGER
+}, {
+  name: 'NaN',
+  fn: (state, name) => Number.NaN
+}];
+/* harmony default export */ __webpack_exports__["default"] = (symbols);
 
 /***/ }),
 
@@ -3552,39 +3087,27 @@ exports.default = symbols;
 /*!*******************************************!*\
   !*** ./src/s-exp/operators/core/index.ts ***!
   \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = install;
-
-var _core = __webpack_require__(/*! ./core.operator */ "./src/s-exp/operators/core/core.operator.ts");
-
-var _core2 = _interopRequireDefault(_core);
-
-var _core3 = __webpack_require__(/*! ./core.macro */ "./src/s-exp/operators/core/core.macro.ts");
-
-var _core4 = _interopRequireDefault(_core3);
-
-var _core5 = __webpack_require__(/*! ./core.symbol */ "./src/s-exp/operators/core/core.symbol.ts");
-
-var _core6 = _interopRequireDefault(_core5);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function install(config) {
-    config.funcs = (config.funcs || []).concat(_core2.default);
-    config.macros = (config.macros || []).concat(_core4.default);
-    config.symbols = (config.symbols || []).concat(_core6.default);
-    return config;
-} // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return install; });
+/* harmony import */ var _core_operator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./core.operator */ "./src/s-exp/operators/core/core.operator.ts");
+/* harmony import */ var _core_macro__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./core.macro */ "./src/s-exp/operators/core/core.macro.ts");
+/* harmony import */ var _core_symbol__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./core.symbol */ "./src/s-exp/operators/core/core.symbol.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
+
+
+
+function install(config) {
+  config.funcs = (config.funcs || []).concat(_core_operator__WEBPACK_IMPORTED_MODULE_0__["default"]);
+  config.macros = (config.macros || []).concat(_core_macro__WEBPACK_IMPORTED_MODULE_1__["default"]);
+  config.symbols = (config.symbols || []).concat(_core_symbol__WEBPACK_IMPORTED_MODULE_2__["default"]);
+  return config;
+}
 
 /***/ }),
 
@@ -3592,52 +3115,39 @@ function install(config) {
 /*!******************************************!*\
   !*** ./src/s-exp/operators/jsx/index.ts ***!
   \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = install;
-
-var _jsx = __webpack_require__(/*! ./jsx.operator */ "./src/s-exp/operators/jsx/jsx.operator.ts");
-
-var _jsx2 = _interopRequireDefault(_jsx);
-
-var _jsx3 = __webpack_require__(/*! ./jsx.macro */ "./src/s-exp/operators/jsx/jsx.macro.ts");
-
-var _jsx4 = _interopRequireDefault(_jsx3);
-
-var _jsx5 = __webpack_require__(/*! ./jsx.symbol */ "./src/s-exp/operators/jsx/jsx.symbol.ts");
-
-var _jsx6 = _interopRequireDefault(_jsx5);
-
-var _jsx7 = __webpack_require__(/*! ./jsx.fn */ "./src/s-exp/operators/jsx/jsx.fn.ts");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return install; });
+/* harmony import */ var _jsx_operator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./jsx.operator */ "./src/s-exp/operators/jsx/jsx.operator.ts");
+/* harmony import */ var _jsx_macro__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./jsx.macro */ "./src/s-exp/operators/jsx/jsx.macro.ts");
+/* harmony import */ var _jsx_symbol__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./jsx.symbol */ "./src/s-exp/operators/jsx/jsx.symbol.ts");
+/* harmony import */ var _jsx_fn__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./jsx.fn */ "./src/s-exp/operators/jsx/jsx.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
 
-function install(config, lsxConf) {
-    var _config$funcs;
 
-    config.funcs = (config.funcs || []).concat(_jsx2.default);
-    config.macros = (config.macros || []).concat(_jsx4.default);
-    config.symbols = (config.symbols || []).concat(_jsx6.default);
-    var components = Object.entries(lsxConf.components).map(function (x) {
-        return { name: x[0], fn: (0, _jsx7.$jsxComponentTag)(x[1]) };
-    });
-    config.funcs = (_config$funcs = config.funcs).concat.apply(_config$funcs, [{ name: config.reservedNames.Template, fn: (0, _jsx7.$jsxComponentTag)(lsxConf.jsxFlagment) }].concat(_toConsumableArray(components)));
-    config.funcSymbolResolverFallback = _jsx7.$jsxStandardTag;
-    config.jsx = lsxConf.jsx;
-    config.JsxFragment = lsxConf.jsxFlagment;
-    return config;
+
+function install(config, lsxConf) {
+  config.funcs = (config.funcs || []).concat(_jsx_operator__WEBPACK_IMPORTED_MODULE_0__["default"]);
+  config.macros = (config.macros || []).concat(_jsx_macro__WEBPACK_IMPORTED_MODULE_1__["default"]);
+  config.symbols = (config.symbols || []).concat(_jsx_symbol__WEBPACK_IMPORTED_MODULE_2__["default"]);
+  const components = Object.entries(lsxConf.components).map(x => ({
+    name: x[0],
+    fn: Object(_jsx_fn__WEBPACK_IMPORTED_MODULE_3__["$jsxComponentTag"])(x[1])
+  }));
+  config.funcs = config.funcs.concat({
+    name: config.reservedNames.Template,
+    fn: Object(_jsx_fn__WEBPACK_IMPORTED_MODULE_3__["$jsxComponentTag"])(lsxConf.jsxFlagment)
+  }, ...components);
+  config.funcSymbolResolverFallback = _jsx_fn__WEBPACK_IMPORTED_MODULE_3__["$jsxStandardTag"];
+  config.jsx = lsxConf.jsx;
+  config.JsxFragment = lsxConf.jsxFlagment;
+  return config;
 }
 
 /***/ }),
@@ -3646,394 +3156,289 @@ function install(config, lsxConf) {
 /*!*******************************************!*\
   !*** ./src/s-exp/operators/jsx/jsx.fn.ts ***!
   \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: $__outputIf, $__outputForOf, $jsxProps, $jsxStandardTag, $jsxComponentTag */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.$jsxComponentTag = exports.$jsxStandardTag = exports.$jsxProps = exports.$__outputForOf = exports.$__outputIf = undefined;
-
-var _types = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
-
-var _evaluate = __webpack_require__(/*! ../../evaluate */ "./src/s-exp/evaluate.ts");
-
-var _errors = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
-
-var _core = __webpack_require__(/*! ../core/core.fn */ "./src/s-exp/operators/core/core.fn.ts");
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__outputIf", function() { return $__outputIf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__outputForOf", function() { return $__outputForOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$jsxProps", function() { return $jsxProps; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$jsxStandardTag", function() { return $jsxStandardTag; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$jsxComponentTag", function() { return $jsxComponentTag; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
+/* harmony import */ var _evaluate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../evaluate */ "./src/s-exp/evaluate.ts");
+/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
+/* harmony import */ var _core_core_fn__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../core/core.fn */ "./src/s-exp/operators/core/core.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
 
-// tslint:disable-next-line:variable-name
-var $__outputIf = exports.$__outputIf = function $__outputIf(state, name) {
-    return function () {
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-        }
 
-        // S expression: ($__outputIf cond 'expr)
-        //  -> (if cond is true ) S expr  : expr
-        //  -> (if cond is false) S expr  : ()
-        (0, _errors.checkParamsLength)('$__outputIf', args, 2);
+ // tslint:disable-next-line:variable-name
 
-        var _$$firstAndSecond = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond.car,
-            cdr = _$$firstAndSecond.cdr;
+const $__outputIf = (state, name) => (...args) => {
+  // S expression: ($__outputIf cond 'expr)
+  //  -> (if cond is true ) S expr  : expr
+  //  -> (if cond is false) S expr  : ()
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__outputIf', args, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_3__["$$firstAndSecond"])(...args);
+  let r = [];
 
-        var r = [];
-        if ((0, _core.$$boolean)(car)) {
-            if (2 < args.length) {
-                var _r;
+  if (Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_3__["$$boolean"])(car)) {
+    if (2 < args.length) {
+      r.push({
+        symbol: state.config.reservedNames.Template
+      }, ...args.slice(1));
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, r);
+    } else {
+      r = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, cdr);
+    }
+  }
 
-                (_r = r).push.apply(_r, [{ symbol: state.config.reservedNames.Template }].concat(_toConsumableArray(args.slice(1))));
-                r = (0, _evaluate.evaluate)(state, r);
-            } else {
-                r = (0, _evaluate.evaluate)(state, cdr);
-            }
-        }
-        return r;
-    };
+  return r;
+}; // tslint:disable-next-line:variable-name
+
+const $__outputForOf = (state, name) => (...args) => {
+  // S expression: ($__outputForOf list 'expr)
+  //  -> S expr  : (Template expr ... expr)
+  Object(_errors__WEBPACK_IMPORTED_MODULE_2__["checkParamsLength"])('$__outputForOf', args, 2);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_3__["$$first"])(...args);
+  const r = [];
+
+  if (Array.isArray(car)) {
+    for (let i = 0; i < car.length; i++) {
+      const x = car[i];
+      const v = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_3__["$__scope"])(state, name)(true, true, [['$data', Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x)], ['$index', i], ['$array', Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, car)], ['$parent', Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["getScope"])(state).scope)]], ...args.slice(1));
+
+      if (2 < args.length && Array.isArray(v)) {
+        r.push(...v);
+      } else {
+        r.push(v);
+      }
+    }
+  } else {
+    throw new Error(`[SX] $__outputForOf: Invalid argument(s): args[0] is not array.`);
+  } // All of r items are already evaluated.
+
+
+  return Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, [{
+    symbol: state.config.reservedNames.Template
+  }].concat(r.map(z => [{
+    symbol: state.config.reservedNames.quote
+  }, z])));
 };
-// tslint:disable-next-line:variable-name
-var $__outputForOf = exports.$__outputForOf = function $__outputForOf(state, name) {
-    return function () {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-        }
+const $jsxProps = (state, name) => (...args) => {
+  // S expression: (@ (name value...)...)
+  //  -> JSON    : {name: value, ...}
+  const r = {};
 
-        // S expression: ($__outputForOf list 'expr)
-        //  -> S expr  : (Template expr ... expr)
-        (0, _errors.checkParamsLength)('$__outputForOf', args, 2);
-        var car = _core.$$first.apply(undefined, args);
-        var r = [];
-        if (Array.isArray(car)) {
-            for (var i = 0; i < car.length; i++) {
-                var x = car[i];
-                var v = (0, _core.$__scope)(state, name).apply(undefined, [true, true, [['$data', (0, _types.quote)(state, x)], ['$index', i], ['$parent', (0, _types.quote)(state, (0, _evaluate.getScope)(state).scope)]]].concat(_toConsumableArray(args.slice(1))));
-                if (2 < args.length && Array.isArray(v)) {
-                    r.push.apply(r, _toConsumableArray(v));
-                } else {
-                    r.push(v);
-                }
-            }
-        } else {
-            throw new Error('[SX] $__outputForOf: Invalid argument(s): args[0] is not array.');
-        }
-        // All of r items are already evaluated.
-        return (0, _evaluate.evaluate)(state, [{ symbol: state.config.reservedNames.Template }].concat(r.map(function (z) {
-            return [{ symbol: state.config.reservedNames.quote }, z];
-        })));
-    };
-};
-var $jsxProps = exports.$jsxProps = function $jsxProps(state, name) {
-    return function () {
-        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-        }
+  for (const x of args) {
+    if (Array.isArray(x) && 0 < x.length) {
+      const sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(x[0]);
+      const keyName = sym ? sym.symbol : String(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x[0]));
 
-        // S expression: (@ (name value...)...)
-        //  -> JSON    : {name: value, ...}
-        var r = {};
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
+      switch (keyName) {
+        case 'style':
+          {
+            if (x.length === 1) {
+              // S expression: (@ ... (style) ...)
+              //  -> JSON    : {..., style: "", ...}
+              r[keyName] = "";
+            } else if (x.length >= 2) {
+              // S expression: (@ ... (style "styleName1: styleValue1; ..." ...) ...)
+              // S expression: (@ ... (style (styleName1 styleValue1) ...) ...)
+              //  -> JSON    : {..., style: {styleName1: styleValue1}, ...}
+              const styles = {};
 
-        try {
-            for (var _iterator = args[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var x = _step.value;
+              for (const s of x.slice(1)) {
+                if (Array.isArray(s) && 1 < s.length) {
+                  styles[String(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, s[0]))] = String(Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, s[1]));
+                } else if (typeof s === 'string') {
+                  for (const v of s.split(';')) {
+                    const matched = /^\s*(\S+)\s*:\s*(.*?)\s*$/.exec(v);
 
-                if (Array.isArray(x) && 0 < x.length) {
-                    var sym = (0, _types.isSymbol)(x[0]);
-                    var keyName = sym ? sym.symbol : String((0, _evaluate.evaluate)(state, x[0]));
-                    switch (keyName) {
-                        case 'style':
-                            {
-                                if (x.length === 1) {
-                                    // S expression: (@ ... (style) ...)
-                                    //  -> JSON    : {..., style: "", ...}
-                                    r[keyName] = "";
-                                } else if (x.length >= 2) {
-                                    // S expression: (@ ... (style "styleName1: styleValue1; ..." ...) ...)
-                                    // S expression: (@ ... (style (styleName1 styleValue1) ...) ...)
-                                    //  -> JSON    : {..., style: {styleName1: styleValue1}, ...}
-                                    var styles = {};
-                                    var _iteratorNormalCompletion2 = true;
-                                    var _didIteratorError2 = false;
-                                    var _iteratorError2 = undefined;
-
-                                    try {
-                                        for (var _iterator2 = x.slice(1)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                                            var s = _step2.value;
-
-                                            if (Array.isArray(s) && 1 < s.length) {
-                                                styles[String((0, _evaluate.evaluate)(state, s[0]))] = String((0, _evaluate.evaluate)(state, s[1]));
-                                            } else if (typeof s === 'string') {
-                                                var _iteratorNormalCompletion3 = true;
-                                                var _didIteratorError3 = false;
-                                                var _iteratorError3 = undefined;
-
-                                                try {
-                                                    for (var _iterator3 = s.split(';')[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                                                        var v = _step3.value;
-
-                                                        var matched = /^\s*(\S+)\s*:\s*(.*?)\s*$/.exec(v);
-                                                        if (matched) {
-                                                            styles[matched[1]] = matched[2];
-                                                        }
-                                                    }
-                                                } catch (err) {
-                                                    _didIteratorError3 = true;
-                                                    _iteratorError3 = err;
-                                                } finally {
-                                                    try {
-                                                        if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                                                            _iterator3.return();
-                                                        }
-                                                    } finally {
-                                                        if (_didIteratorError3) {
-                                                            throw _iteratorError3;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } catch (err) {
-                                        _didIteratorError2 = true;
-                                        _iteratorError2 = err;
-                                    } finally {
-                                        try {
-                                            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                                                _iterator2.return();
-                                            }
-                                        } finally {
-                                            if (_didIteratorError2) {
-                                                throw _iteratorError2;
-                                            }
-                                        }
-                                    }
-
-                                    r[keyName] = styles;
-                                }
-                            }
-                            break;
-                        case 'class':
-                        case 'styleClass':
-                            {
-                                if (x.length === 1) {
-                                    // S expression: (@ ... (class) ...)
-                                    //  -> JSON    : {..., class: [], ...}
-                                    r[keyName] = [];
-                                } else if (x.length >= 2) {
-                                    (function () {
-                                        // S expression: (@ ... (class "className1 className2 ...") ...)
-                                        // S expression: (@ ... (class (className1 className2 ...)) ...)
-                                        //  -> JSON    : {..., class: [className1 className2 ...], ...}
-                                        var classes = [];
-                                        var _iteratorNormalCompletion4 = true;
-                                        var _didIteratorError4 = false;
-                                        var _iteratorError4 = undefined;
-
-                                        try {
-                                            for (var _iterator4 = x.slice(1)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                                                var c = _step4.value;
-
-                                                if (Array.isArray(c)) {
-                                                    classes = classes.concat(c.map(function (z) {
-                                                        return (0, _evaluate.evaluate)(state, z);
-                                                    }));
-                                                } else if (typeof c === 'string') {
-                                                    classes = classes.concat(c.split(' '));
-                                                }
-                                            }
-                                        } catch (err) {
-                                            _didIteratorError4 = true;
-                                            _iteratorError4 = err;
-                                        } finally {
-                                            try {
-                                                if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                                                    _iterator4.return();
-                                                }
-                                            } finally {
-                                                if (_didIteratorError4) {
-                                                    throw _iteratorError4;
-                                                }
-                                            }
-                                        }
-
-                                        var cs = [];
-                                        var fn = function fn(a) {
-                                            return a.forEach(function (c) {
-                                                return c === null || c === void 0 ? void 0 : Array.isArray(c) ? fn(c) : cs.push(String(c));
-                                            });
-                                        };
-                                        fn(classes);
-                                        r[keyName] = cs;
-                                    })();
-                                }
-                            }
-                            break;
-                        case 'className':
-                            {
-                                if (x.length === 1) {
-                                    // S expression: (@ ... (class) ...)
-                                    //  -> JSON    : {..., class: "", ...}
-                                    r[keyName] = '';
-                                } else if (x.length >= 2) {
-                                    // S expression: (@ ... (class "className1 className2 ...") ...)
-                                    // S expression: (@ ... (class (className1 className2 ...)) ...)
-                                    //  -> JSON    : {..., class: "className1 className2 ...", ...}
-                                    var classes = '';
-                                    var _iteratorNormalCompletion5 = true;
-                                    var _didIteratorError5 = false;
-                                    var _iteratorError5 = undefined;
-
-                                    try {
-                                        for (var _iterator5 = x.slice(1)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                                            var c = _step5.value;
-
-                                            var fragment = '';
-                                            if (Array.isArray(c)) {
-                                                (function () {
-                                                    var cs = [];
-                                                    var fn = function fn(a) {
-                                                        return a.map(function (z) {
-                                                            return (0, _evaluate.evaluate)(state, z);
-                                                        }).forEach(function (z) {
-                                                            return z === null || z === void 0 ? void 0 : Array.isArray(z) ? fn(z) : cs.push(String(z));
-                                                        });
-                                                    };
-                                                    fn(c);
-                                                    fragment = cs.join(' ');
-                                                })();
-                                            } else if (typeof c === 'string') {
-                                                fragment = c;
-                                            }
-                                            if (0 < classes.length) classes += ' ' + fragment;else classes = fragment;
-                                        }
-                                    } catch (err) {
-                                        _didIteratorError5 = true;
-                                        _iteratorError5 = err;
-                                    } finally {
-                                        try {
-                                            if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                                                _iterator5.return();
-                                            }
-                                        } finally {
-                                            if (_didIteratorError5) {
-                                                throw _iteratorError5;
-                                            }
-                                        }
-                                    }
-
-                                    r[keyName] = classes;
-                                }
-                            }
-                            break;
-                        case 'dangerouslySetInnerHTML':
-                            {
-                                if (x.length === 1) {
-                                    r[keyName] = { __html: '' };
-                                } else if (x.length >= 2) {
-                                    r[keyName] = { __html: (0, _evaluate.evaluate)(state, x[1]) };
-                                } else {
-                                    r[keyName] = { __html: (0, _evaluate.evaluate)(state, [{ symbol: state.config.reservedNames.list }].concat(x.slice(1)))
-                                    };
-                                }
-                            }
-                            break;
-                        default:
-                            {
-                                if (x.length === 1) {
-                                    // S expression: (@ ... (keyName) ...)
-                                    //  -> JSON    : {..., keyName: true, ...}
-                                    r[keyName] = true;
-                                } else if (x.length === 2) {
-                                    // S expression: (@ ... (keyName value) ...)
-                                    //  -> JSON    : {..., keyName: value, ...}
-                                    r[keyName] = (0, _evaluate.evaluate)(state, x[1]);
-                                } else {
-                                    // S expression: (@ ... (keyName value1 value2 ...) ...)
-                                    //  -> JSON    : {..., keyName: [value1, value2, ], ...}
-                                    r[keyName] = (0, _evaluate.evaluate)(state, [{ symbol: state.config.reservedNames.list }].concat(x.slice(1)));
-                                }
-                            }
-                            break;
+                    if (matched) {
+                      styles[matched[1]] = matched[2];
                     }
-                } else {
-                    throw new Error('[SX] $jsxProps: Invalid argument(s): args[?] is not array.');
+                  }
                 }
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
-        }
+              }
 
-        return r;
-    };
+              r[keyName] = styles;
+            }
+          }
+          break;
+
+        case 'class':
+        case 'styleClass':
+          {
+            if (x.length === 1) {
+              // S expression: (@ ... (class) ...)
+              //  -> JSON    : {..., class: [], ...}
+              r[keyName] = [];
+            } else if (x.length >= 2) {
+              // S expression: (@ ... (class "className1 className2 ...") ...)
+              // S expression: (@ ... (class (className1 className2 ...)) ...)
+              //  -> JSON    : {..., class: [className1 className2 ...], ...}
+              let classes = [];
+
+              for (const c of x.slice(1)) {
+                if (Array.isArray(c)) {
+                  classes = classes.concat(c.map(z => Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, z)));
+                } else if (typeof c === 'string') {
+                  classes = classes.concat(c.split(' '));
+                }
+              }
+
+              const cs = [];
+
+              const fn = a => a.forEach(c => c === null || c === void 0 ? void 0 : Array.isArray(c) ? fn(c) : cs.push(String(c)));
+
+              fn(classes);
+              r[keyName] = cs;
+            }
+          }
+          break;
+
+        case 'className':
+          {
+            if (x.length === 1) {
+              // S expression: (@ ... (class) ...)
+              //  -> JSON    : {..., class: "", ...}
+              r[keyName] = '';
+            } else if (x.length >= 2) {
+              // S expression: (@ ... (class "className1 className2 ...") ...)
+              // S expression: (@ ... (class (className1 className2 ...)) ...)
+              //  -> JSON    : {..., class: "className1 className2 ...", ...}
+              let classes = '';
+
+              for (const c of x.slice(1)) {
+                let fragment = '';
+
+                if (Array.isArray(c)) {
+                  const cs = [];
+
+                  const fn = a => a.map(z => Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, z)).forEach(z => z === null || z === void 0 ? void 0 : Array.isArray(z) ? fn(z) : cs.push(String(z)));
+
+                  fn(c);
+                  fragment = cs.join(' ');
+                } else if (typeof c === 'string') {
+                  fragment = c;
+                }
+
+                if (0 < classes.length) classes += ' ' + fragment;else classes = fragment;
+              }
+
+              r[keyName] = classes;
+            }
+          }
+          break;
+
+        case 'dangerouslySetInnerHTML':
+          {
+            if (x.length === 1) {
+              r[keyName] = {
+                __html: ''
+              };
+            } else if (x.length >= 2) {
+              r[keyName] = {
+                __html: Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x[1])
+              };
+            } else {
+              r[keyName] = {
+                __html: Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, [{
+                  symbol: state.config.reservedNames.list
+                }].concat(x.slice(1)))
+              };
+            }
+          }
+          break;
+
+        case 'setInnerText':
+          {
+            if (x.length === 1) {
+              r[keyName] = {
+                __text: ''
+              };
+            } else if (x.length >= 2) {
+              r[keyName] = {
+                __text: Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x[1])
+              };
+            } else {
+              r[keyName] = {
+                __text: Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, [{
+                  symbol: state.config.reservedNames.list
+                }].concat(x.slice(1)))
+              };
+            }
+          }
+          break;
+
+        default:
+          {
+            if (x.length === 1) {
+              // S expression: (@ ... (keyName) ...)
+              //  -> JSON    : {..., keyName: true, ...}
+              r[keyName] = true;
+            } else if (x.length === 2) {
+              // S expression: (@ ... (keyName value) ...)
+              //  -> JSON    : {..., keyName: value, ...}
+              r[keyName] = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, x[1]);
+            } else {
+              // S expression: (@ ... (keyName value1 value2 ...) ...)
+              //  -> JSON    : {..., keyName: [value1, value2, ], ...}
+              r[keyName] = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, [{
+                symbol: state.config.reservedNames.list
+              }].concat(x.slice(1)));
+            }
+          }
+          break;
+      }
+    } else {
+      throw new Error(`[SX] $jsxProps: Invalid argument(s): args[?] is not array.`);
+    }
+  }
+
+  return r;
 };
-function getJsxTagsParams(state) {
-    for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-        args[_key4 - 1] = arguments[_key4];
-    }
 
-    var children = args;
-    var props = {};
-    if (0 < args.length && Array.isArray(args[0])) {
-        var sym = (0, _types.isSymbol)(args[0][0], '@');
-        if (sym) {
-            props = $jsxProps(state, '').apply(undefined, _toConsumableArray(args[0].slice(1)));
-            children = children.slice(1);
-        }
+function getJsxTagsParams(state, ...args) {
+  let children = args;
+  let props = {};
+
+  if (0 < args.length && Array.isArray(args[0])) {
+    const sym = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(args[0][0], '@');
+
+    if (sym) {
+      props = $jsxProps(state, '')(...args[0].slice(1));
+      children = children.slice(1);
     }
-    return { props: props, children: children };
+  }
+
+  return {
+    props,
+    children
+  };
 }
-var $jsxStandardTag = exports.$jsxStandardTag = function $jsxStandardTag(state, name) {
-    return function () {
-        var _state$config;
 
-        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-            args[_key5] = arguments[_key5];
-        }
-
-        var _getJsxTagsParams = getJsxTagsParams.apply(undefined, [state].concat(args)),
-            props = _getJsxTagsParams.props,
-            children = _getJsxTagsParams.children;
-
-        return (_state$config = state.config).jsx.apply(_state$config, [name, props].concat(_toConsumableArray(children)));
-    };
+const $jsxStandardTag = (state, name) => (...args) => {
+  const {
+    props,
+    children
+  } = getJsxTagsParams(state, ...args);
+  return state.config.jsx(name, props, ...children);
 };
-var $jsxComponentTag = exports.$jsxComponentTag = function $jsxComponentTag(component) {
-    return function (state, name) {
-        return function () {
-            var _state$config2;
-
-            for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-                args[_key6] = arguments[_key6];
-            }
-
-            var _getJsxTagsParams2 = getJsxTagsParams.apply(undefined, [state].concat(args)),
-                props = _getJsxTagsParams2.props,
-                children = _getJsxTagsParams2.children;
-
-            return (_state$config2 = state.config).jsx.apply(_state$config2, [component, props].concat(_toConsumableArray(children)));
-        };
-    };
+const $jsxComponentTag = component => (state, name) => (...args) => {
+  const {
+    props,
+    children
+  } = getJsxTagsParams(state, ...args);
+  return state.config.jsx(component, props, ...children);
 };
 
 /***/ }),
@@ -4042,55 +3447,42 @@ var $jsxComponentTag = exports.$jsxComponentTag = function $jsxComponentTag(comp
 /*!**********************************************!*\
   !*** ./src/s-exp/operators/jsx/jsx.macro.ts ***!
   \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: macros, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.macros = undefined;
-
-var _types = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "macros", function() { return macros; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
-
-var macros = exports.macros = [{
-    name: '@',
-    fn: function fn(state, name) {
-        return function (list) {
-            return (0, _types.quote)(state, list);
-        };
-    }
+const macros = [{
+  name: '@',
+  fn: (state, name) => list => {
+    return Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, list);
+  }
 }, {
-    name: '$=if',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($=if cond expr)
-            //  -> S expr  : ($=__if cond 'expr)
-            return [{ symbol: '$=__if' }, list[1]].concat(_toConsumableArray(list.slice(2).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$=if',
+  fn: (state, name) => list => {
+    // S expression: ($=if cond expr)
+    //  -> S expr  : ($=__if cond 'expr)
+    return [{
+      symbol: '$=__if'
+    }, list[1], ...list.slice(2).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }, {
-    name: '$=for',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($=for list expr)
-            //  -> S expr  : ($=__for list 'expr)
-            return [{ symbol: '$=__for' }, list[1]].concat(_toConsumableArray(list.slice(2).map(function (x) {
-                return (0, _types.quote)(state, x);
-            })));
-        };
-    }
+  name: '$=for',
+  fn: (state, name) => list => {
+    // S expression: ($=for list expr)
+    //  -> S expr  : ($=__for list 'expr)
+    return [{
+      symbol: '$=__for'
+    }, list[1], ...list.slice(2).map(x => Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, x))];
+  }
 }];
-exports.default = macros;
+/* harmony default export */ __webpack_exports__["default"] = (macros);
 
 /***/ }),
 
@@ -4098,33 +3490,25 @@ exports.default = macros;
 /*!*************************************************!*\
   !*** ./src/s-exp/operators/jsx/jsx.operator.ts ***!
   \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: funcs, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.funcs = undefined;
-
-var _jsx = __webpack_require__(/*! ./jsx.fn */ "./src/s-exp/operators/jsx/jsx.fn.ts");
-
-var ops = _interopRequireWildcard(_jsx);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var funcs = exports.funcs = [{
-    name: '$=__if',
-    fn: ops.$__outputIf
-}, {
-    name: '$=__for',
-    fn: ops.$__outputForOf
-}]; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "funcs", function() { return funcs; });
+/* harmony import */ var _jsx_fn__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./jsx.fn */ "./src/s-exp/operators/jsx/jsx.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-exports.default = funcs;
+
+const funcs = [{
+  name: '$=__if',
+  fn: _jsx_fn__WEBPACK_IMPORTED_MODULE_0__["$__outputIf"]
+}, {
+  name: '$=__for',
+  fn: _jsx_fn__WEBPACK_IMPORTED_MODULE_0__["$__outputForOf"]
+}];
+/* harmony default export */ __webpack_exports__["default"] = (funcs);
 
 /***/ }),
 
@@ -4132,20 +3516,17 @@ exports.default = funcs;
 /*!***********************************************!*\
   !*** ./src/s-exp/operators/jsx/jsx.symbol.ts ***!
   \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: symbols, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "symbols", function() { return symbols; });
 // Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-var symbols = exports.symbols = [];
-exports.default = symbols;
+const symbols = [];
+/* harmony default export */ __webpack_exports__["default"] = (symbols);
 
 /***/ }),
 
@@ -4153,39 +3534,27 @@ exports.default = symbols;
 /*!***********************************************!*\
   !*** ./src/s-exp/operators/sequence/index.ts ***!
   \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = install;
-
-var _sequence = __webpack_require__(/*! ./sequence.operator */ "./src/s-exp/operators/sequence/sequence.operator.ts");
-
-var _sequence2 = _interopRequireDefault(_sequence);
-
-var _sequence3 = __webpack_require__(/*! ./sequence.macro */ "./src/s-exp/operators/sequence/sequence.macro.ts");
-
-var _sequence4 = _interopRequireDefault(_sequence3);
-
-var _sequence5 = __webpack_require__(/*! ./sequence.symbol */ "./src/s-exp/operators/sequence/sequence.symbol.ts");
-
-var _sequence6 = _interopRequireDefault(_sequence5);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function install(config) {
-    config.funcs = (config.funcs || []).concat(_sequence2.default);
-    config.macros = (config.macros || []).concat(_sequence4.default);
-    config.symbols = (config.symbols || []).concat(_sequence6.default);
-    return config;
-} // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return install; });
+/* harmony import */ var _sequence_operator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sequence.operator */ "./src/s-exp/operators/sequence/sequence.operator.ts");
+/* harmony import */ var _sequence_macro__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sequence.macro */ "./src/s-exp/operators/sequence/sequence.macro.ts");
+/* harmony import */ var _sequence_symbol__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./sequence.symbol */ "./src/s-exp/operators/sequence/sequence.symbol.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
+
+
+
+function install(config) {
+  config.funcs = (config.funcs || []).concat(_sequence_operator__WEBPACK_IMPORTED_MODULE_0__["default"]);
+  config.macros = (config.macros || []).concat(_sequence_macro__WEBPACK_IMPORTED_MODULE_1__["default"]);
+  config.symbols = (config.symbols || []).concat(_sequence_symbol__WEBPACK_IMPORTED_MODULE_2__["default"]);
+  return config;
+}
 
 /***/ }),
 
@@ -4193,421 +3562,492 @@ function install(config) {
 /*!*****************************************************!*\
   !*** ./src/s-exp/operators/sequence/sequence.fn.ts ***!
   \*****************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: $range, $length, $$length, $trim, $$trim, $trimHead, $$trimHead, $trimTail, $$trimTail, $replaceAll, $$replaceAll, $split, $$split, $join, $$join, $concat, $$concat, $slice, $$slice, $top, $$top, $tail, $$tail, $__at, $$__at, $reverse, $$reverse, $reverseDestructive, $$reverseDestructive, $find, $$find, $filter, $$filter, $map, $$map, $reduce, $$reduce, $reduceFromTail, $$reduceFromTail, $sort, $$sort, $sortDestructive, $$sortDestructive, $groupEvery, $$groupEvery, $groupBy, $$groupBy, $orderBy, $$orderBy, $where, $$where */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.$$sortDestructive = exports.$sortDestructive = exports.$$sort = exports.$sort = exports.$$reduceFromTail = exports.$reduceFromTail = exports.$$reduce = exports.$reduce = exports.$$map = exports.$map = exports.$$filter = exports.$filter = exports.$$find = exports.$find = exports.$$reverseDestructive = exports.$reverseDestructive = exports.$$reverse = exports.$reverse = exports.$$__at = exports.$__at = exports.$$tail = exports.$tail = exports.$$top = exports.$top = exports.$$slice = exports.$slice = exports.$$concat = exports.$concat = exports.$$trimTail = exports.$trimTail = exports.$$trimHead = exports.$trimHead = exports.$$trim = exports.$trim = exports.$$length = exports.$length = exports.$range = undefined;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$range", function() { return $range; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$length", function() { return $length; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$length", function() { return $$length; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$trim", function() { return $trim; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$trim", function() { return $$trim; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$trimHead", function() { return $trimHead; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$trimHead", function() { return $$trimHead; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$trimTail", function() { return $trimTail; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$trimTail", function() { return $$trimTail; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$replaceAll", function() { return $replaceAll; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$replaceAll", function() { return $$replaceAll; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$split", function() { return $split; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$split", function() { return $$split; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$join", function() { return $join; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$join", function() { return $$join; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$concat", function() { return $concat; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$concat", function() { return $$concat; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$slice", function() { return $slice; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$slice", function() { return $$slice; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$top", function() { return $top; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$top", function() { return $$top; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$tail", function() { return $tail; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$tail", function() { return $$tail; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$__at", function() { return $__at; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$__at", function() { return $$__at; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$reverse", function() { return $reverse; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$reverse", function() { return $$reverse; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$reverseDestructive", function() { return $reverseDestructive; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$reverseDestructive", function() { return $$reverseDestructive; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$find", function() { return $find; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$find", function() { return $$find; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$filter", function() { return $filter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$filter", function() { return $$filter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$map", function() { return $map; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$map", function() { return $$map; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$reduce", function() { return $reduce; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$reduce", function() { return $$reduce; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$reduceFromTail", function() { return $reduceFromTail; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$reduceFromTail", function() { return $$reduceFromTail; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$sort", function() { return $sort; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$sort", function() { return $$sort; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$sortDestructive", function() { return $sortDestructive; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$sortDestructive", function() { return $$sortDestructive; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$groupEvery", function() { return $groupEvery; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$groupEvery", function() { return $$groupEvery; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$groupBy", function() { return $groupBy; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$groupBy", function() { return $$groupBy; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$orderBy", function() { return $orderBy; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$orderBy", function() { return $$orderBy; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$where", function() { return $where; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "$$where", function() { return $$where; });
+/* harmony import */ var _evaluate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../evaluate */ "./src/s-exp/evaluate.ts");
+/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
+/* harmony import */ var _core_core_fn__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../core/core.fn */ "./src/s-exp/operators/core/core.fn.ts");
+/* harmony import */ var _lib_data__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../lib/data */ "./src/lib/data.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
 
-var _evaluate = __webpack_require__(/*! ../../evaluate */ "./src/s-exp/evaluate.ts");
 
-var _errors = __webpack_require__(/*! ../../errors */ "./src/s-exp/errors.ts");
 
-var _core = __webpack_require__(/*! ../core/core.fn */ "./src/s-exp/operators/core/core.fn.ts");
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var $range = exports.$range = function $range(state, name) {
-    return function () {
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-        }
-
-        // S expression: ($range start end)
-        // S expression: ($range start end step)
-        //  -> S expr  : list
-        (0, _errors.checkParamsLength)('$range', args, 2, 3);
-
-        var _$$firstAndSecond = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond.car,
-            cdr = _$$firstAndSecond.cdr;
-
-        var start = (0, _evaluate.toNumber)(car) || 0;
-        var stop = (0, _evaluate.toNumber)(cdr) || 0;
-        var step = (args.length > 2 ? (0, _evaluate.toNumber)(args[2]) || 0 : 0) || (start <= stop ? 1 : -1);
-        var n = Math.sign(stop - start) + Math.sign(step) !== 0 ? Math.floor(Math.abs(stop - start) / Math.abs(step)) + 1 : 0;
-        state.evalCount += n;
-        (0, _evaluate.evaluate)(state, 0);
-        return Array.from({ length: n }, function (x, i) {
-            return start + i * step;
-        });
-    };
+const $range = (state, name) => (...args) => {
+  // S expression: ($range start end)
+  // S expression: ($range start end step)
+  //  -> S expr  : list
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$range', args, 2, 3);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+  const start = Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(car) || 0;
+  const stop = Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(cdr) || 0;
+  const step = (args.length > 2 ? Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(args[2]) || 0 : 0) || (start <= stop ? 1 : -1);
+  const n = Math.sign(stop - start) + Math.sign(step) !== 0 ? Math.floor(Math.abs(stop - start) / Math.abs(step)) + 1 : 0;
+  state.evalCount += n;
+  Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["evaluate"])(state, 0);
+  return Array.from({
+    length: n
+  }, (x, i) => start + i * step);
 };
-var $length = exports.$length = function $length(state, name) {
-    return function () {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-        }
+const $length = (state, name) => (...args) => {
+  // S expression: ($length listOrString)
+  //  -> S expr  : number
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$length', args, 1, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
 
-        // S expression: ($length listOrString)
-        //  -> S expr  : number
-        (0, _errors.checkParamsLength)('$length', args, 1, 1);
-        var car = _core.$$first.apply(undefined, args);
-        switch (typeof car === 'undefined' ? 'undefined' : _typeof(car)) {
-            case 'object':
-                if (!('length' in car)) {
-                    break;
-                }
-            // FALL_THRU
-            case 'string':
-                return car.length;
-        }
-        throw new Error('[SX] $length: Invalid argument type: object has no property \'length\'.');
-    };
+  switch (typeof car) {
+    case 'object':
+      if (!('length' in car)) {
+        break;
+      }
+
+    // FALL_THRU
+
+    case 'string':
+      return car.length;
+  }
+
+  throw new Error(`[SX] $length: Invalid argument type: object has no property 'length'.`);
 };
-var $$length = exports.$$length = $length(null, null);
-var $trim = exports.$trim = function $trim(state, name) {
-    return function () {
-        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-        }
+const $$length = $length(null, null);
+const $trim = (state, name) => (...args) => {
+  // S expression: ($trim string)
+  //  -> S expr  : string
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$trim', args, 1, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
 
-        // S expression: ($trim string)
-        //  -> S expr  : string
-        (0, _errors.checkParamsLength)('$trim', args, 1, 1);
-        var car = _core.$$first.apply(undefined, args);
-        if (typeof car === 'string') {
-            return car.trim();
-        }
-        throw new Error('[SX] $trim: Invalid argument type: args[0] is not string.');
-    };
+  if (typeof car === 'string') {
+    return car.trim();
+  }
+
+  throw new Error(`[SX] $trim: Invalid argument type: args[0] is not string.`);
 };
-var $$trim = exports.$$trim = $trim(null, null);
-var $trimHead = exports.$trimHead = function $trimHead(state, name) {
-    return function () {
-        for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            args[_key4] = arguments[_key4];
-        }
+const $$trim = $trim(null, null);
+const $trimHead = (state, name) => (...args) => {
+  // S expression: ($trim-head string)
+  //  -> S expr  : string
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$trimHead', args, 1, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
 
-        // S expression: ($trim-head string)
-        //  -> S expr  : string
-        (0, _errors.checkParamsLength)('$trimHead', args, 1, 1);
-        var car = _core.$$first.apply(undefined, args);
-        if (typeof car === 'string') {
-            return car.trimLeft();
-        }
-        throw new Error('[SX] $trimHead: Invalid argument type: args[0] is not string.');
-    };
+  if (typeof car === 'string') {
+    return car.trimLeft();
+  }
+
+  throw new Error(`[SX] $trimHead: Invalid argument type: args[0] is not string.`);
 };
-var $$trimHead = exports.$$trimHead = $trimHead(null, null);
-var $trimTail = exports.$trimTail = function $trimTail(state, name) {
-    return function () {
-        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-            args[_key5] = arguments[_key5];
-        }
+const $$trimHead = $trimHead(null, null);
+const $trimTail = (state, name) => (...args) => {
+  // S expression: ($trim-tail string)
+  //  -> S expr  : string
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$trimTail', args, 1, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
 
-        // S expression: ($trim-tail string)
-        //  -> S expr  : string
-        (0, _errors.checkParamsLength)('$trimTail', args, 1, 1);
-        var car = _core.$$first.apply(undefined, args);
-        if (typeof car === 'string') {
-            return car.trimRight();
-        }
-        throw new Error('[SX] $trimTail: Invalid argument type: args[0] is not string.');
-    };
+  if (typeof car === 'string') {
+    return car.trimRight();
+  }
+
+  throw new Error(`[SX] $trimTail: Invalid argument type: args[0] is not string.`);
 };
-var $$trimTail = exports.$$trimTail = $trimTail(null, null);
-var $concat = exports.$concat = function $concat(state, name) {
-    return function () {
-        for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-            args[_key6] = arguments[_key6];
-        }
+const $$trimTail = $trimTail(null, null);
+const $replaceAll = (state, name) => (...args) => {
+  // S expression: ($replace-all src-string match-string replacement-string)
+  //  -> S expr  : string
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$replaceAll', args, 3, 3);
 
-        // S expression: ($concat listOrString1 ... listOrStringN)
-        //  -> S expr  : listOrString
-        (0, _errors.checkParamsLength)('$concat', args, 1);
-        var car = _core.$$first.apply(undefined, args);
-        switch (typeof car === 'undefined' ? 'undefined' : _typeof(car)) {
-            case 'object':
-                if (!('concat' in car)) {
-                    break;
-                }
-            // FALL_THRU
-            case 'string':
-                return car.concat.apply(car, _toConsumableArray(args.slice(1)));
-        }
-        throw new Error('[SX] $concat: Invalid argument type: object has no property \'concat\'.');
-    };
+  if (typeof args[0] === 'string' && typeof args[1] === 'string' && typeof args[2] === 'string') {
+    return args[0].split(args[1]).join(args[2]);
+  }
+
+  throw new Error(`[SX] $replaceAll: Invalid argument type: args[0] or [1] or [2] is not string.`);
 };
-var $$concat = exports.$$concat = $concat(null, null);
-var $slice = exports.$slice = function $slice(state, name) {
-    return function () {
-        for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-            args[_key7] = arguments[_key7];
-        }
+const $$replaceAll = $replaceAll(null, null);
+const $split = (state, name) => (...args) => {
+  // S expression: ($split src-string match-string)
+  //  -> S expr  : (string ... string)
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$split', args, 2, 2);
 
-        // S expression: ($slice start end listOrString)
-        // S expression: ($slice start listOrString)
-        //  -> S expr  : listOrString
-        (0, _errors.checkParamsLength)('$slice', args, 2, 3);
-        if (args.length === 3) {
-            if (typeof args[2] === 'string' || Array.isArray(args[2])) {
-                return args[2].slice((0, _evaluate.toNumber)(args[0]), (0, _evaluate.toNumber)(args[1]));
-            }
-        }
-        if (args.length === 2) {
-            if (typeof args[1] === 'string' || Array.isArray(args[1])) {
-                return args[1].slice((0, _evaluate.toNumber)(args[0]));
-            }
-        }
-        throw new Error('[SX] $slice: Invalid argument type: args[' + (args.length - 1) + '] is not string or array.');
-    };
+  if (typeof args[0] === 'string' && typeof args[1] === 'string') {
+    return args[0].split(args[1]);
+  }
+
+  throw new Error(`[SX] $split: Invalid argument type: args[0] or [1] is not string.`);
 };
-var $$slice = exports.$$slice = $slice(null, null);
-var $top = exports.$top = function $top(state, name) {
-    return function () {
-        for (var _len8 = arguments.length, args = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-            args[_key8] = arguments[_key8];
-        }
+const $$split = $split(null, null);
+const $join = (state, name) => (...args) => {
+  // S expression: ($join '(str1 ... strN) separator)
+  //  -> S expr  : (string ... string)
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$join', args, 1, 2);
 
-        // S expression: ($top n listOrString)
-        //  -> S expr  : listOrString
-        (0, _errors.checkParamsLength)('$top', args, 2, 2);
-        if (typeof args[1] === 'string' || Array.isArray(args[1])) {
-            return args[1].slice(0, (0, _evaluate.toNumber)(args[0]));
-        }
-        throw new Error('[SX] $top: Invalid argument type: args[1] is not string or array.');
-    };
+  if (typeof Array.isArray(args[0])) {
+    if (args.length > 1) {
+      if (typeof args[1] === 'string') {
+        return args[0].join(args[1]);
+      }
+
+      throw new Error(`[SX] $join: Invalid argument type: args[1] is not string.`);
+    } else {
+      return args[0].join();
+    }
+  }
+
+  throw new Error(`[SX] $join: Invalid argument type: args[0] is not array.`);
 };
-var $$top = exports.$$top = $top(null, null);
-var $tail = exports.$tail = function $tail(state, name) {
-    return function () {
-        for (var _len9 = arguments.length, args = Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
-            args[_key9] = arguments[_key9];
-        }
+const $$join = $join(null, null);
+const $concat = (state, name) => (...args) => {
+  // S expression: ($concat listOrString1 ... listOrStringN)
+  //  -> S expr  : listOrString
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$concat', args, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
 
-        // S expression: ($tail n listOrString)
-        //  -> S expr  : listOrString
-        (0, _errors.checkParamsLength)('$tail', args, 2, 2);
-        if (typeof args[1] === 'string' || Array.isArray(args[1])) {
-            var n = -(0, _evaluate.toNumber)(args[0]);
-            return args[1].slice(n >= 0 || Number.isNaN(n) ? args[1].length : n);
-        }
-        throw new Error('[SX] $tail: Invalid argument type: args[1] is not string or array.');
-    };
+  switch (typeof car) {
+    case 'object':
+      if (!('concat' in car)) {
+        break;
+      }
+
+    // FALL_THRU
+
+    case 'string':
+      return car.concat(...args.slice(1));
+  }
+
+  throw new Error(`[SX] $concat: Invalid argument type: object has no property 'concat'.`);
 };
-var $$tail = exports.$$tail = $tail(null, null);
-// tslint:disable-next-line:variable-name
-var $__at = exports.$__at = function $__at(state, name) {
-    return function () {
-        for (var _len10 = arguments.length, args = Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
-            args[_key10] = arguments[_key10];
-        }
+const $$concat = $concat(null, null);
+const $slice = (state, name) => (...args) => {
+  // S expression: ($slice start end listOrString)
+  // S expression: ($slice start listOrString)
+  //  -> S expr  : listOrString
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$slice', args, 2, 3);
 
-        // S expression: ($__at index listOrString)
-        //  -> S expr  : any
-        (0, _errors.checkParamsLength)('$__at', args, 2, 2);
+  if (args.length === 3) {
+    if (typeof args[2] === 'string' || Array.isArray(args[2])) {
+      return args[2].slice(Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(args[0]), Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(args[1]));
+    }
+  }
 
-        var _$$firstAndSecond2 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond2.car,
-            cdr = _$$firstAndSecond2.cdr;
+  if (args.length === 2) {
+    if (typeof args[1] === 'string' || Array.isArray(args[1])) {
+      return args[1].slice(Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(args[0]));
+    }
+  }
 
-        return cdr[car];
-    };
+  throw new Error(`[SX] $slice: Invalid argument type: args[${args.length - 1}] is not string or array.`);
 };
-// tslint:disable-next-line:variable-name
-var $$__at = exports.$$__at = $__at(null, null);
-var $reverse = exports.$reverse = function $reverse(state, name) {
-    return function () {
-        for (var _len11 = arguments.length, args = Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
-            args[_key11] = arguments[_key11];
-        }
+const $$slice = $slice(null, null);
+const $top = (state, name) => (...args) => {
+  // S expression: ($top n listOrString)
+  //  -> S expr  : listOrString
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$top', args, 2, 2);
 
-        // S expression: ($reverse listOrString)
-        //  -> S expr  : listOrString
-        (0, _errors.checkParamsLength)('$reverse', args, 1, 1);
-        var car = _core.$$first.apply(undefined, args);
-        if (Array.isArray(car)) {
-            return car.slice(0).reverse();
-        }
-        throw new Error('[SX] $reverse: Invalid argument type: args[0] is not array.');
-    };
+  if (typeof args[1] === 'string' || Array.isArray(args[1])) {
+    return args[1].slice(0, Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(args[0]));
+  }
+
+  throw new Error(`[SX] $top: Invalid argument type: args[1] is not string or array.`);
 };
-var $$reverse = exports.$$reverse = $reverse(null, null);
-var $reverseDestructive = exports.$reverseDestructive = function $reverseDestructive(state, name) {
-    return function () {
-        for (var _len12 = arguments.length, args = Array(_len12), _key12 = 0; _key12 < _len12; _key12++) {
-            args[_key12] = arguments[_key12];
-        }
+const $$top = $top(null, null);
+const $tail = (state, name) => (...args) => {
+  // S expression: ($tail n listOrString)
+  //  -> S expr  : listOrString
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$tail', args, 2, 2);
 
-        // S expression: ($reverse! listOrString)
-        //  -> S expr  : listOrString
-        (0, _errors.checkParamsLength)('$reverse!', args, 1, 1);
-        var car = _core.$$first.apply(undefined, args);
-        if (Array.isArray(car)) {
-            return car.reverse();
-        }
-        throw new Error('[SX] $reverse!: Invalid argument type: args[0] is not array.');
-    };
+  if (typeof args[1] === 'string' || Array.isArray(args[1])) {
+    const n = -Object(_evaluate__WEBPACK_IMPORTED_MODULE_0__["toNumber"])(args[0]);
+    return args[1].slice(n >= 0 || Number.isNaN(n) ? args[1].length : n);
+  }
+
+  throw new Error(`[SX] $tail: Invalid argument type: args[1] is not string or array.`);
 };
-var $$reverseDestructive = exports.$$reverseDestructive = $reverseDestructive(null, null);
-var $find = exports.$find = function $find(state, name) {
-    return function () {
-        for (var _len13 = arguments.length, args = Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
-            args[_key13] = arguments[_key13];
-        }
+const $$tail = $tail(null, null); // tslint:disable-next-line:variable-name
 
-        // S expression: ($find list (lambda (v index array) (... boolean)))
-        //  -> S expr  : list
-        (0, _errors.checkParamsLength)('$find', args, 2, 2);
+const $__at = (state, name) => (...args) => {
+  // S expression: ($__at index listOrString)
+  //  -> S expr  : any
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$__at', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+  return cdr[car];
+}; // tslint:disable-next-line:variable-name
 
-        var _$$firstAndSecond3 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond3.car,
-            cdr = _$$firstAndSecond3.cdr;
+const $$__at = $__at(null, null);
+const $reverse = (state, name) => (...args) => {
+  // S expression: ($reverse listOrString)
+  //  -> S expr  : listOrString
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$reverse', args, 1, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
 
-        if (Array.isArray(car)) {
-            return car.find(cdr);
-        }
-        throw new Error('[SX] $find: Invalid argument type: args[0] is not array.');
-    };
+  if (Array.isArray(car)) {
+    return car.slice(0).reverse();
+  }
+
+  throw new Error(`[SX] $reverse: Invalid argument type: args[0] is not array.`);
 };
-var $$find = exports.$$find = $find(null, null);
-var $filter = exports.$filter = function $filter(state, name) {
-    return function () {
-        for (var _len14 = arguments.length, args = Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
-            args[_key14] = arguments[_key14];
-        }
+const $$reverse = $reverse(null, null);
+const $reverseDestructive = (state, name) => (...args) => {
+  // S expression: ($reverse! listOrString)
+  //  -> S expr  : listOrString
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$reverse!', args, 1, 1);
+  const car = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$first"])(...args);
 
-        // S expression: ($filter list (lambda (v index array) (... boolean)))
-        //  -> S expr  : list
-        (0, _errors.checkParamsLength)('$filter', args, 2, 2);
+  if (Array.isArray(car)) {
+    return car.reverse();
+  }
 
-        var _$$firstAndSecond4 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond4.car,
-            cdr = _$$firstAndSecond4.cdr;
-
-        if (Array.isArray(car)) {
-            return car.filter(cdr);
-        }
-        throw new Error('[SX] $filter: Invalid argument type: args[0] is not array.');
-    };
+  throw new Error(`[SX] $reverse!: Invalid argument type: args[0] is not array.`);
 };
-var $$filter = exports.$$filter = $filter(null, null);
-var $map = exports.$map = function $map(state, name) {
-    return function () {
-        for (var _len15 = arguments.length, args = Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
-            args[_key15] = arguments[_key15];
-        }
+const $$reverseDestructive = $reverseDestructive(null, null);
+const $find = (state, name) => (...args) => {
+  // S expression: ($find list (lambda (v index array) (... boolean)))
+  //  -> S expr  : list
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$find', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
 
-        // S expression: ($map list (lambda (v index array) (... any)))
-        //  -> S expr  : list
-        (0, _errors.checkParamsLength)('$map', args, 2, 2);
+  if (Array.isArray(car)) {
+    return car.find(cdr);
+  }
 
-        var _$$firstAndSecond5 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond5.car,
-            cdr = _$$firstAndSecond5.cdr;
-
-        if (Array.isArray(car)) {
-            return car.map(cdr);
-        }
-        throw new Error('[SX] $map: Invalid argument type: args[0] is not array.');
-    };
+  throw new Error(`[SX] $find: Invalid argument type: args[0] is not array.`);
 };
-var $$map = exports.$$map = $map(null, null);
-var $reduce = exports.$reduce = function $reduce(state, name) {
-    return function () {
-        for (var _len16 = arguments.length, args = Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
-            args[_key16] = arguments[_key16];
-        }
+const $$find = $find(null, null);
+const $filter = (state, name) => (...args) => {
+  // S expression: ($filter list (lambda (v index array) (... boolean)))
+  //  -> S expr  : list
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$filter', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
 
-        // S expression: ($reduce list (lambda (acc v index array) (... any)) initial-value)
-        // S expression: ($reduce list (lambda (acc v index array) (... any)))
-        //  -> S expr  : list
-        (0, _errors.checkParamsLength)('$reduce', args, 2, 3);
+  if (Array.isArray(car)) {
+    return car.filter(cdr);
+  }
 
-        var _$$firstAndSecond6 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond6.car,
-            cdr = _$$firstAndSecond6.cdr;
-
-        if (Array.isArray(car)) {
-            if (args.length < 3) {
-                return car.reduce(cdr);
-            } else {
-                return car.reduce(cdr, args[2]);
-            }
-        }
-        throw new Error('[SX] $reduce: Invalid argument type: args[0] is not array.');
-    };
+  throw new Error(`[SX] $filter: Invalid argument type: args[0] is not array.`);
 };
-var $$reduce = exports.$$reduce = $reduce(null, null);
-var $reduceFromTail = exports.$reduceFromTail = function $reduceFromTail(state, name) {
-    return function () {
-        for (var _len17 = arguments.length, args = Array(_len17), _key17 = 0; _key17 < _len17; _key17++) {
-            args[_key17] = arguments[_key17];
-        }
+const $$filter = $filter(null, null);
+const $map = (state, name) => (...args) => {
+  // S expression: ($map list (lambda (v index array) (... any)))
+  //  -> S expr  : list
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$map', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
 
-        // S expression: ($reduce-from-tail list (lambda (acc v index array) (... any)) initial-value)
-        // S expression: ($reduce-from-tail list (lambda (acc v index array) (... any)))
-        //  -> S expr  : list
-        (0, _errors.checkParamsLength)('$reduceFromTail', args, 2, 3);
+  if (Array.isArray(car)) {
+    return car.map(cdr);
+  }
 
-        var _$$firstAndSecond7 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond7.car,
-            cdr = _$$firstAndSecond7.cdr;
-
-        if (Array.isArray(car)) {
-            if (args.length < 3) {
-                return car.reduceRight(cdr);
-            } else {
-                return car.reduceRight(cdr, args[2]);
-            }
-        }
-        throw new Error('[SX] $reduceFromTail: Invalid argument type: args[0] is not array.');
-    };
+  throw new Error(`[SX] $map: Invalid argument type: args[0] is not array.`);
 };
-var $$reduceFromTail = exports.$$reduceFromTail = $reduceFromTail(null, null);
-var $sort = exports.$sort = function $sort(state, name) {
-    return function () {
-        for (var _len18 = arguments.length, args = Array(_len18), _key18 = 0; _key18 < _len18; _key18++) {
-            args[_key18] = arguments[_key18];
-        }
+const $$map = $map(null, null);
+const $reduce = (state, name) => (...args) => {
+  // S expression: ($reduce list (lambda (acc v index array) (... any)) initial-value)
+  // S expression: ($reduce list (lambda (acc v index array) (... any)))
+  //  -> S expr  : list
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$reduce', args, 2, 3);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
 
-        // S expression: ($sort list (lambda (a b) (... number_a-b)))
-        //  -> S expr  : list
-        (0, _errors.checkParamsLength)('$sort', args, 2, 2);
+  if (Array.isArray(car)) {
+    if (args.length < 3) {
+      return car.reduce(cdr);
+    } else {
+      return car.reduce(cdr, args[2]);
+    }
+  }
 
-        var _$$firstAndSecond8 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond8.car,
-            cdr = _$$firstAndSecond8.cdr;
-
-        if (Array.isArray(car)) {
-            return car.slice(0).sort(cdr);
-        }
-        throw new Error('[SX] $sort: Invalid argument type: args[0] is not array.');
-    };
+  throw new Error(`[SX] $reduce: Invalid argument type: args[0] is not array.`);
 };
-var $$sort = exports.$$sort = $sort(null, null);
-var $sortDestructive = exports.$sortDestructive = function $sortDestructive(state, name) {
-    return function () {
-        for (var _len19 = arguments.length, args = Array(_len19), _key19 = 0; _key19 < _len19; _key19++) {
-            args[_key19] = arguments[_key19];
-        }
+const $$reduce = $reduce(null, null);
+const $reduceFromTail = (state, name) => (...args) => {
+  // S expression: ($reduce-from-tail list (lambda (acc v index array) (... any)) initial-value)
+  // S expression: ($reduce-from-tail list (lambda (acc v index array) (... any)))
+  //  -> S expr  : list
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$reduceFromTail', args, 2, 3);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
 
-        // S expression: ($sort! list (lambda (a b) (... number_a-b)))
-        //  -> S expr  : list
-        (0, _errors.checkParamsLength)('$sort!', args, 2, 2);
+  if (Array.isArray(car)) {
+    if (args.length < 3) {
+      return car.reduceRight(cdr);
+    } else {
+      return car.reduceRight(cdr, args[2]);
+    }
+  }
 
-        var _$$firstAndSecond9 = _core.$$firstAndSecond.apply(undefined, args),
-            car = _$$firstAndSecond9.car,
-            cdr = _$$firstAndSecond9.cdr;
-
-        if (Array.isArray(car)) {
-            return car.sort(cdr);
-        }
-        throw new Error('[SX] $sort!: Invalid argument type: args[0] is not array.');
-    };
+  throw new Error(`[SX] $reduceFromTail: Invalid argument type: args[0] is not array.`);
 };
-var $$sortDestructive = exports.$$sortDestructive = $sortDestructive(null, null);
+const $$reduceFromTail = $reduceFromTail(null, null);
+const $sort = (state, name) => (...args) => {
+  // S expression: ($sort list (lambda (a b) (... number_a-b)))
+  //  -> S expr  : list
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$sort', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+
+  if (Array.isArray(car)) {
+    return car.slice(0).sort(cdr);
+  }
+
+  throw new Error(`[SX] $sort: Invalid argument type: args[0] is not array.`);
+};
+const $$sort = $sort(null, null);
+const $sortDestructive = (state, name) => (...args) => {
+  // S expression: ($sort! list (lambda (a b) (... number_a-b)))
+  //  -> S expr  : list
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$sort!', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+
+  if (Array.isArray(car)) {
+    return car.sort(cdr);
+  }
+
+  throw new Error(`[SX] $sort!: Invalid argument type: args[0] is not array.`);
+};
+const $$sortDestructive = $sortDestructive(null, null);
+const $groupEvery = (state, name) => (...args) => {
+  // S expression: ($group-every optionsOrNumber (x1 ... xN))
+  //  -> S expr  : ((x1 ... ) ... ( ... xN))
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$group-every', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+
+  if (!Array.isArray(cdr)) {
+    throw new Error(`[SX] $group-every: Invalid argument type: args[1] is not array.`);
+  }
+
+  return Object(_lib_data__WEBPACK_IMPORTED_MODULE_3__["query"])(cdr).groupEvery(car).select();
+};
+const $$groupEvery = $groupEvery(null, null);
+const $groupBy = (state, name) => (...args) => {
+  // S expression: ($group-by conditions (x1 ... xN))
+  //  -> S expr  : ((x1 ... ) ... ( ... xN))
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$group-by', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+
+  if (!Array.isArray(cdr)) {
+    throw new Error(`[SX] $group-by: Invalid argument type: args[1] is not array.`);
+  }
+
+  return Object(_lib_data__WEBPACK_IMPORTED_MODULE_3__["query"])(cdr).groupBy(car).select();
+};
+const $$groupBy = $groupBy(null, null);
+const $orderBy = (state, name) => (...args) => {
+  // S expression: ($order-by conditions (x1 ... xN))
+  //  -> S expr  : (x1 ... xN)
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$order-by', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+
+  if (!Array.isArray(cdr)) {
+    throw new Error(`[SX] $order-by: Invalid argument type: args[1] is not array.`);
+  }
+
+  return Object(_lib_data__WEBPACK_IMPORTED_MODULE_3__["query"])(cdr).orderBy(car).select();
+};
+const $$orderBy = $orderBy(null, null);
+const $where = (state, name) => (...args) => {
+  // S expression: ($where (-> (v index array) ... boolean) (x1 ... xN))
+  //  -> S expr  : ((x1 ... ) ... ( ... xN))
+  Object(_errors__WEBPACK_IMPORTED_MODULE_1__["checkParamsLength"])('$where', args, 2, 2);
+  const {
+    car,
+    cdr
+  } = Object(_core_core_fn__WEBPACK_IMPORTED_MODULE_2__["$$firstAndSecond"])(...args);
+
+  if (typeof args[0] !== 'function') {
+    throw new Error(`[SX] $where: Invalid argument type: args[0] is not function.`);
+  }
+
+  if (!Array.isArray(cdr)) {
+    throw new Error(`[SX] $where: Invalid argument type: args[1] is not array.`);
+  }
+
+  return Object(_lib_data__WEBPACK_IMPORTED_MODULE_3__["query"])(cdr).where(car).select();
+};
+const $$where = $where(null, null);
 
 /***/ }),
 
@@ -4615,36 +4055,34 @@ var $$sortDestructive = exports.$$sortDestructive = $sortDestructive(null, null)
 /*!********************************************************!*\
   !*** ./src/s-exp/operators/sequence/sequence.macro.ts ***!
   \********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: macros, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.macros = undefined;
-
-var _types = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
-
-var macros = exports.macros = [{
-    name: '$[',
-    fn: function fn(state, name) {
-        return function (list) {
-            // S expression: ($[ index ] listOrObject)
-            //  -> S expr  : ($__at listOrObject)
-            var symOf = (0, _types.isSymbol)(list[2], ']');
-            if (!symOf) {
-                throw new Error('[SX] $repeat: Invalid syntax: missing \']\' keyword.');
-            }
-            return [{ symbol: '$__at' }, list[1], list[3]];
-        };
-    }
-}]; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "macros", function() { return macros; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../types */ "./src/s-exp/types.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-exports.default = macros;
+
+const macros = [{
+  name: '$[',
+  fn: (state, name) => list => {
+    // S expression: ($[ index ] listOrObject)
+    //  -> S expr  : ($__at listOrObject)
+    const symOf = Object(_types__WEBPACK_IMPORTED_MODULE_0__["isSymbol"])(list[2], ']');
+
+    if (!symOf) {
+      throw new Error(`[SX] $repeat: Invalid syntax: missing ']' keyword.`);
+    }
+
+    return [{
+      symbol: '$__at'
+    }, list[1], list[3]];
+  }
+}];
+/* harmony default export */ __webpack_exports__["default"] = (macros);
 
 /***/ }),
 
@@ -4652,87 +4090,100 @@ exports.default = macros;
 /*!***********************************************************!*\
   !*** ./src/s-exp/operators/sequence/sequence.operator.ts ***!
   \***********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: funcs, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.funcs = undefined;
-
-var _sequence = __webpack_require__(/*! ./sequence.fn */ "./src/s-exp/operators/sequence/sequence.fn.ts");
-
-var ops = _interopRequireWildcard(_sequence);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var funcs = exports.funcs = [{
-    name: '$range',
-    fn: ops.$range
-}, {
-    name: '$length',
-    fn: ops.$length
-}, {
-    name: '$trim',
-    fn: ops.$trim
-}, {
-    name: '$trim-head',
-    fn: ops.$trimHead
-}, {
-    name: '$trim-tail',
-    fn: ops.$trimTail
-}, {
-    name: '$concat',
-    fn: ops.$concat
-}, {
-    name: '$slice',
-    fn: ops.$slice
-}, {
-    name: '$top',
-    fn: ops.$top
-}, {
-    name: '$tail',
-    fn: ops.$tail
-}, {
-    name: '$__at',
-    fn: ops.$__at
-}, {
-    name: '$reverse',
-    fn: ops.$reverse
-}, {
-    name: '$reverse!',
-    fn: ops.$reverseDestructive
-}, {
-    name: '$find',
-    fn: ops.$find
-}, {
-    name: '$filter',
-    fn: ops.$filter
-}, {
-    name: '$map',
-    fn: ops.$map
-}, {
-    name: '$reduce',
-    fn: ops.$reduce
-}, {
-    name: '$reduce-from-head',
-    fn: ops.$reduce
-}, {
-    name: '$reduce-from-tail',
-    fn: ops.$reduceFromTail
-}, {
-    name: '$sort',
-    fn: ops.$sort
-}, {
-    name: '$sort!',
-    fn: ops.$sortDestructive
-}]; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "funcs", function() { return funcs; });
+/* harmony import */ var _sequence_fn__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sequence.fn */ "./src/s-exp/operators/sequence/sequence.fn.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-exports.default = funcs;
+
+const funcs = [{
+  name: '$range',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$range"]
+}, {
+  name: '$length',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$length"]
+}, {
+  name: '$trim',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$trim"]
+}, {
+  name: '$trim-head',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$trimHead"]
+}, {
+  name: '$trim-tail',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$trimTail"]
+}, {
+  name: '$replace-all',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$replaceAll"]
+}, {
+  name: '$split',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$split"]
+}, {
+  name: '$join',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$join"]
+}, {
+  name: '$concat',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$concat"]
+}, {
+  name: '$slice',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$slice"]
+}, {
+  name: '$top',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$top"]
+}, {
+  name: '$tail',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$tail"]
+}, {
+  name: '$__at',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$__at"]
+}, {
+  name: '$reverse',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$reverse"]
+}, {
+  name: '$reverse!',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$reverseDestructive"]
+}, {
+  name: '$find',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$find"]
+}, {
+  name: '$filter',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$filter"]
+}, {
+  name: '$map',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$map"]
+}, {
+  name: '$reduce',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$reduce"]
+}, {
+  name: '$reduce-from-head',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$reduce"]
+}, {
+  name: '$reduce-from-tail',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$reduceFromTail"]
+}, {
+  name: '$sort',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$sort"]
+}, {
+  name: '$sort!',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$sortDestructive"]
+}, {
+  name: '$group-every',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$groupEvery"]
+}, {
+  name: '$group-by',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$groupBy"]
+}, {
+  name: '$order-by',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$orderBy"]
+}, {
+  name: '$where',
+  fn: _sequence_fn__WEBPACK_IMPORTED_MODULE_0__["$where"]
+}];
+/* harmony default export */ __webpack_exports__["default"] = (funcs);
 
 /***/ }),
 
@@ -4740,20 +4191,17 @@ exports.default = funcs;
 /*!*********************************************************!*\
   !*** ./src/s-exp/operators/sequence/sequence.symbol.ts ***!
   \*********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: symbols, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "symbols", function() { return symbols; });
 // Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
-var symbols = exports.symbols = [];
-exports.default = symbols;
+const symbols = [];
+/* harmony default export */ __webpack_exports__["default"] = (symbols);
 
 /***/ }),
 
@@ -4761,554 +4209,662 @@ exports.default = symbols;
 /*!*****************************!*\
   !*** ./src/s-exp/parser.ts ***!
   \*****************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: parse */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; // Copyright (c) 2018, Shellyl_N and Authors
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parse", function() { return parse; });
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types */ "./src/s-exp/types.ts");
+// Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 
 
-exports.parse = parse;
-
-var _types = __webpack_require__(/*! ./types */ "./src/s-exp/types.ts");
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 function isEOF(ch) {
-    return (typeof ch === 'undefined' ? 'undefined' : _typeof(ch)) === 'object' && Object.prototype.hasOwnProperty.call(ch, 'eof');
+  return typeof ch === 'object' && Object.prototype.hasOwnProperty.call(ch, 'eof');
 }
+
 function isSpace(ch) {
-    return typeof ch === 'string' && ch.trim().length === 0;
+  return typeof ch === 'string' && ch.trim().length === 0;
 }
+
 function isNumberFirstChar(ch) {
-    return typeof ch === 'string' && /^[0-9\+\-]$/.test(ch);
+  return typeof ch === 'string' && /^[0-9\+\-]$/.test(ch);
 }
+
 function isNumberAfterSignChar(ch) {
-    return typeof ch === 'string' && /^[0-9]$/.test(ch);
+  return typeof ch === 'string' && /^[0-9]$/.test(ch);
 }
+
 function isSymbolFirstChar(ch) {
-    return typeof ch === 'string' && !isSpace(ch) && !isNumberFirstChar(ch);
+  return typeof ch === 'string' && !isSpace(ch) && !isNumberFirstChar(ch);
 }
+
 function lookCurrentLineHint(state) {
-    return 'line: ' + state.line + ' / strings: ' + state.index + ' / pos: ' + state.pos + ' :' + (state.strings.length > state.index ? state.strings[state.index].slice(state.pos, state.pos + 20) : '');
+  return `line: ${state.line} / strings: ${state.index} / pos: ${state.pos} :${state.strings.length > state.index ? state.strings[state.index].slice(state.pos, state.pos + 20) : ''}`;
 }
+
 function getChar(state, virtualEof) {
-    if (state.strings.length <= state.index) {
-        return { eof: true };
-    }
-    if (state.strings[state.index].length <= state.pos) {
-        if (!state.values || state.values.length <= state.index) {
-            state.pos = 0;
-            state.index++;
-            return getChar(state);
-        } else {
-            var ch = { value: state.values[state.index] };
-            state.pos = 0;
-            state.index++;
-            return ch;
-        }
-    }
-    if (virtualEof) {
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
+  if (state.strings.length <= state.index) {
+    return {
+      eof: true
+    };
+  }
 
-        try {
-            for (var _iterator = virtualEof[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var v = _step.value;
+  if (state.strings[state.index].length <= state.pos) {
+    if (!state.values || state.values.length <= state.index) {
+      state.pos = 0;
+      state.index++;
+      return getChar(state);
+    } else {
+      const ch = {
+        value: state.values[state.index]
+      };
+      state.pos = 0;
+      state.index++;
+      return ch;
+    }
+  }
 
-                var _ch = state.strings[state.index].slice(state.pos, state.pos + v.length);
-                if (_ch === v) {
-                    state.pos += v.length;
-                    state.line += _ch.split('\n').length - 1;
-                    return { eof: false, eofSeq: v };
+  if (virtualEof) {
+    for (const v of virtualEof) {
+      const ch = state.strings[state.index].slice(state.pos, state.pos + v.length);
+
+      if (ch === v) {
+        state.pos += v.length;
+        state.line += ch.split('\n').length - 1;
+        return {
+          eof: false,
+          eofSeq: v
+        };
+      }
+    }
+  }
+
+  {
+    let ch = state.strings[state.index].slice(state.pos, state.pos + 1);
+    state.pos++;
+
+    if (ch === '\n') {
+      state.line++;
+    }
+
+    if (ch === '\\') {
+      if (state.strings[state.index].length <= state.pos) {
+        throw new Error(`[SX] getChar: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+      }
+
+      ch = state.strings[state.index].slice(state.pos, state.pos + 1);
+      state.pos++;
+
+      switch (ch) {
+        case 'b':
+          ch = '\b';
+          break;
+
+        case 't':
+          ch = '\t';
+          break;
+
+        case 'n':
+          ch = '\n';
+          break;
+
+        case 'v':
+          ch = '\v';
+          break;
+
+        case 'f':
+          ch = '\f';
+          break;
+
+        case 'r':
+          ch = '\r';
+          break;
+
+        case 'U':
+        case 'u':
+          {
+            if (state.strings[state.index].slice(state.pos, state.pos + 1) === '{') {
+              let ch1 = '';
+
+              for (let i = 0; i < 6; i++) {
+                const ch2 = state.strings[state.index].slice(state.pos + i, state.pos + 1 + i);
+
+                if (ch2 === '}') {
+                  if (i === 0) {
+                    throw new Error(`[SX] getChar: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+                  }
+
+                  state.pos += i;
+                  break;
+                } else if (!/^[0-9A-Fa-f]{1}$/.test(ch1)) {
+                  throw new Error(`[SX] getChar: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
                 }
+
+                ch1 += ch2;
+              }
+
+              if (state.strings[state.index].slice(state.pos, state.pos + 1) !== '}') {
+                throw new Error(`[SX] getChar: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+              }
+
+              state.pos++;
+              ch = String.fromCodePoint(Number.parseInt(ch1, 16));
+            } else {
+              const ch1 = state.strings[state.index].slice(state.pos, state.pos + 4);
+
+              if (!/^[0-9A-Fa-f]{4}$/.test(ch1)) {
+                throw new Error(`[SX] getChar: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+              }
+
+              state.pos += 4;
+              ch = String.fromCodePoint(Number.parseInt(ch1, 16));
             }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
-        }
+          }
+          break;
+      }
     }
-    {
-        var _ch2 = state.strings[state.index].slice(state.pos, state.pos + 1);
-        state.pos++;
-        if (_ch2 === '\n') {
-            state.line++;
-        }
-        if (_ch2 === '\\') {
-            if (state.strings[state.index].length <= state.pos) {
-                throw new Error('[SX] getChar: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-            }
-            _ch2 = state.strings[state.index].slice(state.pos, state.pos + 1);
-            state.pos++;
-            switch (_ch2) {
-                case 'b':
-                    _ch2 = '\b';
-                    break;
-                case 't':
-                    _ch2 = '\t';
-                    break;
-                case 'n':
-                    _ch2 = '\n';
-                    break;
-                case 'v':
-                    _ch2 = '\v';
-                    break;
-                case 'f':
-                    _ch2 = '\f';
-                    break;
-                case 'r':
-                    _ch2 = '\r';
-                    break;
-                case 'U':
-                case 'u':
-                    {
-                        if (state.strings[state.index].slice(state.pos, state.pos + 1) === '{') {
-                            var ch1 = '';
-                            for (var i = 0; i < 6; i++) {
-                                var ch2 = state.strings[state.index].slice(state.pos + i, state.pos + 1 + i);
-                                if (ch2 === '}') {
-                                    if (i === 0) {
-                                        throw new Error('[SX] getChar: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                                    }
-                                    state.pos += i;
-                                    break;
-                                } else if (!/^[0-9A-Fa-f]{1}$/.test(ch1)) {
-                                    throw new Error('[SX] getChar: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                                }
-                                ch1 += ch2;
-                            }
-                            if (state.strings[state.index].slice(state.pos, state.pos + 1) !== '}') {
-                                throw new Error('[SX] getChar: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                            }
-                            state.pos++;
-                            _ch2 = String.fromCodePoint(Number.parseInt(ch1, 16));
-                        } else {
-                            var _ch3 = state.strings[state.index].slice(state.pos, state.pos + 4);
-                            if (!/^[0-9A-Fa-f]{4}$/.test(_ch3)) {
-                                throw new Error('[SX] getChar: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                            }
-                            state.pos += 4;
-                            _ch2 = String.fromCodePoint(Number.parseInt(_ch3, 16));
-                        }
-                    }
-                    break;
-            }
-        }
-        return _ch2;
-    }
-}
-function lookAheads(state, n, virtualEof) {
-    var index = state.index;
-    var pos = state.pos;
-    var line = state.line;
-    var chs = [];
-    try {
-        for (var i = 0; i < n; i++) {
-            chs.push(getChar(state, virtualEof));
-        }
-    } finally {
-        state.index = index;
-        state.pos = pos;
-        state.line = line;
-    }
-    return chs;
-}
-function lookAhead(state, virtualEof) {
-    var index = state.index;
-    var pos = state.pos;
-    var line = state.line;
-    var ch = void 0;
-    try {
-        ch = getChar(state, virtualEof);
-    } finally {
-        state.index = index;
-        state.pos = pos;
-        state.line = line;
-    }
+
     return ch;
+  }
 }
+
+function lookAheads(state, n, virtualEof) {
+  const index = state.index;
+  const pos = state.pos;
+  const line = state.line;
+  const chs = [];
+
+  try {
+    for (let i = 0; i < n; i++) {
+      chs.push(getChar(state, virtualEof));
+    }
+  } finally {
+    state.index = index;
+    state.pos = pos;
+    state.line = line;
+  }
+
+  return chs;
+}
+
+function lookAhead(state, virtualEof) {
+  const index = state.index;
+  const pos = state.pos;
+  const line = state.line;
+  let ch;
+
+  try {
+    ch = getChar(state, virtualEof);
+  } finally {
+    state.index = index;
+    state.pos = pos;
+    state.line = line;
+  }
+
+  return ch;
+}
+
 function skipWhitespaces(state) {
-    var ch = lookAhead(state);
-    while (!isEOF(ch) && isSpace(ch)) {
-        getChar(state);
-        ch = lookAhead(state);
-    }
+  let ch = lookAhead(state);
+
+  while (!isEOF(ch) && isSpace(ch)) {
+    getChar(state);
+    ch = lookAhead(state);
+  }
 }
+
 function parseNumber(state, virtualEof) {
-    var s = '';
-    var ch = lookAhead(state, virtualEof);
-    while (!isEOF(ch)) {
-        if (typeof ch === 'string') {
-            if (/^[0-9\+\-\.EeInfinityNaN]+$/.test(s + ch)) {
-                getChar(state, virtualEof);
-                s += ch;
-            } else {
-                break;
-            }
-        } else {
-            break;
-        }
-        ch = lookAhead(state, virtualEof);
+  let s = '';
+  let ch = lookAhead(state, virtualEof);
+
+  while (!isEOF(ch)) {
+    if (typeof ch === 'string') {
+      if (/^[0-9\+\-\.EeInfinityNaN]+$/.test(s + ch)) {
+        getChar(state, virtualEof);
+        s += ch;
+      } else {
+        break;
+      }
+    } else {
+      break;
     }
-    if (!/^([\+\-]?\d*\.?\d+(?:[Ee][\+\-]?\d+)?)|([\+\-]Infinity)|(NaN)$/.test(s)) {
-        throw new Error('[SX] parseNumber: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-    }
-    return Number(s);
+
+    ch = lookAhead(state, virtualEof);
+  }
+
+  if (!/^([\+\-]?\d*\.?\d+(?:[Ee][\+\-]?\d+)?)|([\+\-]Infinity)|(NaN)$/.test(s)) {
+    throw new Error(`[SX] parseNumber: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+  }
+
+  return Number(s);
 }
+
 function parseSymbol(state, virtualEof) {
-    var s = '';
-    var ch = lookAhead(state, virtualEof);
-    while (!isEOF(ch)) {
-        if (typeof ch === 'string') {
-            if (isSpace(ch)) {
-                break;
-            } else if (ch === '#' && lookAheads(state, 2, virtualEof)[1] === '|') {
-                break;
-            } else if (/^[^.;()"]+$/.test(s + ch)) {
-                getChar(state, virtualEof);
-                s += ch;
-            } else {
-                break;
-            }
-        } else {
-            if ((typeof ch === 'undefined' ? 'undefined' : _typeof(ch)) === 'object' && Object.prototype.hasOwnProperty.call(ch, 'value')) {
-                getChar(state, virtualEof);
-                var v = ch.value;
-                s += String(ch);
-            } else {
-                throw new Error('[SX] parseSymbol: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-            }
-        }
-        ch = lookAhead(state, virtualEof);
+  let s = '';
+  let ch = lookAhead(state, virtualEof);
+
+  while (!isEOF(ch)) {
+    if (typeof ch === 'string') {
+      if (isSpace(ch)) {
+        break;
+      } else if (ch === '#' && lookAheads(state, 2, virtualEof)[1] === '|') {
+        break;
+      } else if (/^[^.;()"]+$/.test(s + ch)) {
+        getChar(state, virtualEof);
+        s += ch;
+      } else {
+        break;
+      }
+    } else {
+      if (typeof ch === 'object' && Object.prototype.hasOwnProperty.call(ch, 'value')) {
+        getChar(state, virtualEof);
+        const v = ch.value;
+        s += String(ch);
+      } else {
+        throw new Error(`[SX] parseSymbol: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+      }
     }
-    return { symbol: s };
+
+    ch = lookAhead(state, virtualEof);
+  }
+
+  return {
+    symbol: s
+  };
 }
+
 function parseStringOrComment(state, eof, valuesStartSeq, valuesStopChar) {
-    var eofSeqs = valuesStartSeq ? [].concat(_toConsumableArray(eof), [valuesStartSeq]) : eof;
-    var strings = [];
-    var values = [];
-    for (;;) {
-        var s = '';
-        var ch = lookAhead(state, eofSeqs);
-        while (!isEOF(ch)) {
-            if (typeof ch === 'string') {
-                getChar(state, eofSeqs);
-                s += ch;
-            } else {
-                if ((typeof ch === 'undefined' ? 'undefined' : _typeof(ch)) === 'object' && Object.prototype.hasOwnProperty.call(ch, 'value')) {
-                    getChar(state, eofSeqs);
-                    var v = ch.value;
-                    s += String(ch);
-                } else {
-                    throw new Error('[SX] parseStringOrComment: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                }
-            }
-            ch = lookAhead(state, eofSeqs);
-        }
+  const eofSeqs = valuesStartSeq ? [...eof, valuesStartSeq] : eof;
+  const strings = [];
+  const values = [];
+
+  for (;;) {
+    let s = '';
+    let ch = lookAhead(state, eofSeqs);
+
+    while (!isEOF(ch)) {
+      if (typeof ch === 'string') {
         getChar(state, eofSeqs);
-        if (ch.eof === true) {
-            throw new _types.ScriptTerminationError('parseStringOrComment');
-        }
-        strings.push(s);
-        if (ch.eofSeq === valuesStartSeq) {
-            values.push(parseList(state, valuesStopChar, []));
+        s += ch;
+      } else {
+        if (typeof ch === 'object' && Object.prototype.hasOwnProperty.call(ch, 'value')) {
+          getChar(state, eofSeqs);
+          const v = ch.value;
+          s += String(ch);
         } else {
-            break;
+          throw new Error(`[SX] parseStringOrComment: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
         }
+      }
+
+      ch = lookAhead(state, eofSeqs);
     }
-    return { strings: strings, values: values };
+
+    getChar(state, eofSeqs);
+
+    if (ch.eof === true) {
+      throw new _types__WEBPACK_IMPORTED_MODULE_0__["ScriptTerminationError"]('parseStringOrComment');
+    }
+
+    strings.push(s);
+
+    if (ch.eofSeq === valuesStartSeq) {
+      values.push(parseList(state, valuesStopChar, []));
+    } else {
+      break;
+    }
+  }
+
+  return {
+    strings,
+    values
+  };
 }
+
 function parseString(state) {
-    return parseStringOrComment(state, ['"'], null, ')').strings[0];
+  return parseStringOrComment(state, ['"'], null, ')').strings[0];
 }
+
 function parseHereDoc(state, symbol, attrs) {
-    var q = [symbol];
-    if (attrs) {
-        q.push(attrs);
+  const q = [symbol];
+
+  if (attrs) {
+    q.push(attrs);
+  }
+
+  const inner = parseStringOrComment(state, ['"""'], '%%%(', ')');
+
+  for (let i = 0; i < inner.strings.length; i++) {
+    q.push(inner.strings[i]);
+
+    if (i < inner.values.length) {
+      q.push(inner.values[i]);
     }
-    var inner = parseStringOrComment(state, ['"""'], '%%%(', ')');
-    for (var i = 0; i < inner.strings.length; i++) {
-        q.push(inner.strings[i]);
-        if (i < inner.values.length) {
-            q.push(inner.values[i]);
-        }
-    }
-    return q;
+  }
+
+  return q;
 }
+
 function parseSingleLineComment(state) {
-    return {
-        comment: parseStringOrComment(state, ['\r', '\n'], null, ')').strings[0]
-    };
+  return {
+    comment: parseStringOrComment(state, ['\r', '\n'], null, ')').strings[0]
+  };
 }
+
 function parseMultiLineComment(state) {
-    return {
-        comment: parseStringOrComment(state, ['|#'], null, ')').strings[0]
-    };
+  return {
+    comment: parseStringOrComment(state, ['|#'], null, ')').strings[0]
+  };
 }
+
 function parseOneToken(state) {
-    skipWhitespaces(state);
-    var ch = lookAhead(state);
-    while (!isEOF(ch)) {
-        switch (ch) {
-            case ')':
-                throw new Error('[SX] parseOneToken: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-            case '(':
-                getChar(state);
-                return parseList(state, ')', []);
-            case "'":
-                {
-                    getChar(state);
-                    skipWhitespaces(state);
-                    return (0, _types.quote)(state, parseOneToken(state));
-                }
-            case ".":
-                {
-                    getChar(state);
-                    var aheads = lookAheads(state, 2);
-                    if (state.config.enableSpread && aheads[0] === '.' && aheads[1] === '.') {
-                        getChar(state);
-                        getChar(state);
-                        skipWhitespaces(state);
-                        return (0, _types.spread)(state, parseOneToken(state));
-                    } else {
-                        skipWhitespaces(state);
-                        return { dotted: parseOneToken(state) };
-                    }
-                }
-            case '"':
-                {
-                    getChar(state);
-                    var _aheads = lookAheads(state, 4);
-                    if (state.config.enableHereDoc && _aheads[0] === '"' && _aheads[1] === '"') {
-                        var isHereDoc = true;
-                        if (isEOF(_aheads[2]) || isSpace(_aheads[2])) {
-                            // here doc
-                        } else if (isNumberFirstChar(_aheads[2])) {
-                            // TODO: single +/- char is a symbol.
-                            if (_aheads[2] === '+' || _aheads[2] === '-') {
-                                if (!isNumberAfterSignChar(_aheads[3])) {
-                                    isHereDoc = false;
-                                }
-                            }
-                            // here doc
-                        } else if (isSymbolFirstChar(_aheads[2])) {
-                            isHereDoc = false;
-                        } else {
-                            // here doc
-                        }
-                        getChar(state);
-                        getChar(state);
-                        var sym = null;
-                        var attrs = null;
-                        if (isHereDoc) {
-                            sym = { symbol: state.config.reservedNames.Template };
-                        } else {
-                            sym = parseSymbol(state, ['@']);
-                            if (sym === null) {
-                                throw new Error('[SX] parseOneToken: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                            }
-                            if (typeof sym === 'number') {
-                                throw new Error('[SX] parseOneToken: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                            }
-                            var ahs = lookAheads(state, 2);
-                            if (ahs[0] === '@') {
-                                if (ahs[1] !== '{') {
-                                    throw new Error('[SX] parseOneToken: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                                }
-                                getChar(state);
-                                getChar(state);
-                                var a = parseList(state, '}', [{ symbol: '@' }]);
-                                if (Array.isArray(a)) {
-                                    attrs = a;
-                                }
-                            }
-                        }
-                        return parseHereDoc(state, sym, attrs);
-                    } else {
-                        return parseString(state);
-                    }
-                }
-            case ';':
-                getChar(state);
-                return parseSingleLineComment(state);
-            case '#':
-                {
-                    var _aheads2 = lookAheads(state, 2);
-                    if (_aheads2[1] === '|') {
-                        getChar(state);
-                        getChar(state);
-                        return parseMultiLineComment(state);
-                    } else {
-                        return parseSymbol(state);
-                    }
-                }
-            default:
-                if (typeof ch !== 'string') {
-                    if ((typeof ch === 'undefined' ? 'undefined' : _typeof(ch)) === 'object' && Object.prototype.hasOwnProperty.call(ch, 'value')) {
-                        getChar(state);
-                        return state.config.wrapExternalValue ? ch : ch.value;
-                    } else {
-                        throw new Error('[SX] parseOneToken: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                    }
-                } else if (isSpace(ch)) {
-                    break;
-                } else if (isNumberFirstChar(ch)) {
-                    // TODO: single +/- char is a symbol.
-                    if (ch === '+' || ch === '-') {
-                        var _aheads3 = lookAheads(state, 2);
-                        if (!isNumberAfterSignChar(_aheads3[1])) {
-                            return parseSymbol(state);
-                        }
-                    }
-                    return parseNumber(state);
-                } else if (isSymbolFirstChar(ch)) {
-                    return parseSymbol(state);
-                } else {
-                    throw new Error('[SX] parseOneToken: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                }
+  skipWhitespaces(state);
+  let ch = lookAhead(state);
+
+  while (!isEOF(ch)) {
+    switch (ch) {
+      case ')':
+        throw new Error(`[SX] parseOneToken: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+
+      case '(':
+        getChar(state);
+        return parseList(state, ')', []);
+
+      case "'":
+        {
+          getChar(state);
+          skipWhitespaces(state);
+          return Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, parseOneToken(state));
         }
-        skipWhitespaces(state);
-        ch = lookAhead(state);
+
+      case ".":
+        {
+          getChar(state);
+          const aheads = lookAheads(state, 2);
+
+          if (state.config.enableSpread && aheads[0] === '.' && aheads[1] === '.') {
+            getChar(state);
+            getChar(state);
+            skipWhitespaces(state);
+            return Object(_types__WEBPACK_IMPORTED_MODULE_0__["spread"])(state, parseOneToken(state));
+          } else {
+            skipWhitespaces(state);
+            return {
+              dotted: parseOneToken(state)
+            };
+          }
+        }
+
+      case '"':
+        {
+          getChar(state);
+          const aheads = lookAheads(state, 4);
+
+          if (state.config.enableHereDoc && aheads[0] === '"' && aheads[1] === '"') {
+            let isHereDoc = true;
+
+            if (isEOF(aheads[2]) || isSpace(aheads[2])) {// here doc
+            } else if (isNumberFirstChar(aheads[2])) {
+              // TODO: single +/- char is a symbol.
+              if (aheads[2] === '+' || aheads[2] === '-') {
+                if (!isNumberAfterSignChar(aheads[3])) {
+                  isHereDoc = false;
+                }
+              } // here doc
+
+            } else if (isSymbolFirstChar(aheads[2])) {
+              isHereDoc = false;
+            } else {// here doc
+            }
+
+            getChar(state);
+            getChar(state);
+            let sym = null;
+            let attrs = null;
+
+            if (isHereDoc) {
+              sym = {
+                symbol: state.config.reservedNames.Template
+              };
+            } else {
+              sym = parseSymbol(state, ['@']);
+
+              if (sym === null) {
+                throw new Error(`[SX] parseOneToken: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+              }
+
+              if (typeof sym === 'number') {
+                throw new Error(`[SX] parseOneToken: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+              }
+
+              const ahs = lookAheads(state, 2);
+
+              if (ahs[0] === '@') {
+                if (ahs[1] !== '{') {
+                  throw new Error(`[SX] parseOneToken: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+                }
+
+                getChar(state);
+                getChar(state);
+                const a = parseList(state, '}', [{
+                  symbol: '@'
+                }]);
+
+                if (Array.isArray(a)) {
+                  attrs = a;
+                }
+              }
+            }
+
+            return parseHereDoc(state, sym, attrs);
+          } else {
+            return parseString(state);
+          }
+        }
+
+      case ';':
+        getChar(state);
+        return parseSingleLineComment(state);
+
+      case '#':
+        {
+          const aheads = lookAheads(state, 2);
+
+          if (aheads[1] === '|') {
+            getChar(state);
+            getChar(state);
+            return parseMultiLineComment(state);
+          } else {
+            return parseSymbol(state);
+          }
+        }
+
+      default:
+        if (typeof ch !== 'string') {
+          if (typeof ch === 'object' && Object.prototype.hasOwnProperty.call(ch, 'value')) {
+            getChar(state);
+            return state.config.wrapExternalValue ? ch : ch.value;
+          } else {
+            throw new Error(`[SX] parseOneToken: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+          }
+        } else if (isSpace(ch)) {
+          break;
+        } else if (isNumberFirstChar(ch)) {
+          // TODO: single +/- char is a symbol.
+          if (ch === '+' || ch === '-') {
+            const aheads = lookAheads(state, 2);
+
+            if (!isNumberAfterSignChar(aheads[1])) {
+              return parseSymbol(state);
+            }
+          }
+
+          return parseNumber(state);
+        } else if (isSymbolFirstChar(ch)) {
+          return parseSymbol(state);
+        } else {
+          throw new Error(`[SX] parseOneToken: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+        }
+
     }
-    throw new _types.ScriptTerminationError('parseOneToken');
+
+    skipWhitespaces(state);
+    ch = lookAhead(state);
+  }
+
+  throw new _types__WEBPACK_IMPORTED_MODULE_0__["ScriptTerminationError"]('parseOneToken');
 }
+
 function parseList(state, listStopChar, initialList) {
-    var r = initialList.slice(0);
-    var dotted = false;
-    skipWhitespaces(state);
-    var ch = lookAhead(state);
-    while (!isEOF(ch)) {
-        switch (ch) {
-            case listStopChar:
-                getChar(state);
-                if (dotted) {
-                    return r[0];
-                } else {
-                    return r;
-                }
-            default:
-                {
-                    var t = parseOneToken(state);
-                    if ((typeof t === 'undefined' ? 'undefined' : _typeof(t)) === 'object' && Object.prototype.hasOwnProperty.call(t, 'dotted')) {
-                        if (r.length !== 1) {
-                            throw new Error('[SX] parseList: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                        }
-                        dotted = true;
-                        if (Array.isArray(t)) {
-                            t.unshift(r.pop());
-                            r.push(t);
-                        } else {
-                            r.push({ car: r.pop(), cdr: t.dotted });
-                        }
-                    } else if ((typeof t === 'undefined' ? 'undefined' : _typeof(t)) === 'object' && Object.prototype.hasOwnProperty.call(t, 'comment')) {
-                        if (!state.config.stripComments) {
-                            r.push(t);
-                        }
-                    } else {
-                        if (dotted) {
-                            throw new Error('[SX] parseList: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
-                        }
-                        r.push(t);
-                    }
-                }
-                break;
+  const r = initialList.slice(0);
+  let dotted = false;
+  skipWhitespaces(state);
+  let ch = lookAhead(state);
+
+  while (!isEOF(ch)) {
+    switch (ch) {
+      case listStopChar:
+        getChar(state);
+
+        if (dotted) {
+          return r[0];
+        } else {
+          return r;
         }
-        skipWhitespaces(state);
-        ch = lookAhead(state);
+
+      default:
+        {
+          const t = parseOneToken(state);
+
+          if (typeof t === 'object' && Object.prototype.hasOwnProperty.call(t, 'dotted')) {
+            if (r.length !== 1) {
+              throw new Error(`[SX] parseList: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+            }
+
+            dotted = true;
+
+            if (Array.isArray(t)) {
+              t.unshift(r.pop());
+              r.push(t);
+            } else {
+              r.push({
+                car: r.pop(),
+                cdr: t.dotted
+              });
+            }
+          } else if (typeof t === 'object' && Object.prototype.hasOwnProperty.call(t, 'comment')) {
+            if (!state.config.stripComments) {
+              r.push(t);
+            }
+          } else {
+            if (dotted) {
+              throw new Error(`[SX] parseList: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
+            }
+
+            r.push(t);
+          }
+        }
+        break;
     }
-    throw new _types.ScriptTerminationError('parseList');
+
+    skipWhitespaces(state);
+    ch = lookAhead(state);
+  }
+
+  throw new _types__WEBPACK_IMPORTED_MODULE_0__["ScriptTerminationError"]('parseList');
 }
+
 function parse(state) {
-    var r = [];
-    skipWhitespaces(state);
-    var ch = lookAhead(state);
-    while (!isEOF(ch)) {
-        switch (ch) {
-            case '(':
-                getChar(state);
-                r.push(parseList(state, ')', []));
-                break;
-            case "'":
-                {
-                    getChar(state);
-                    skipWhitespaces(state);
-                    for (;;) {
-                        var t = parseOneToken(state);
-                        if ((typeof t === 'undefined' ? 'undefined' : _typeof(t)) === 'object' && Object.prototype.hasOwnProperty.call(t, 'comment')) {
-                            if (!state.config.stripComments) {
-                                r.push(t);
-                            }
-                        } else {
-                            r.push((0, _types.quote)(state, t));
-                            break;
-                        }
-                    }
-                    break;
-                }
-            case ';':
-                getChar(state);
-                if (state.config.stripComments) {
-                    parseSingleLineComment(state);
-                } else {
-                    r.push(parseSingleLineComment(state));
-                }
-                break;
-            case '#':
-                {
-                    var aheads = lookAheads(state, 2);
-                    if (aheads[1] === '|') {
-                        getChar(state);
-                        getChar(state);
-                        if (state.config.stripComments) {
-                            parseMultiLineComment(state);
-                        } else {
-                            r.push(parseMultiLineComment(state));
-                        }
-                    } else {
-                        getChar(state);
-                        if (state.config.stripComments) {
-                            parseSingleLineComment(state);
-                        } else {
-                            r.push(parseSingleLineComment(state));
-                        }
-                    }
-                }
-                break;
-            case '"':
-                {
-                    var _aheads4 = lookAheads(state, 3);
-                    if (_aheads4[1] === '"' && _aheads4[2] === '"') {
-                        r.push(parseOneToken(state));
-                        break;
-                    }
-                }
-            // FALL_THRU
-            default:
-                throw new Error('[SX] parseInitialState: Invalid syntax at: ' + lookCurrentLineHint(state) + '.');
+  const r = [];
+  skipWhitespaces(state);
+  let ch = lookAhead(state);
+
+  while (!isEOF(ch)) {
+    switch (ch) {
+      case '(':
+        getChar(state);
+        r.push(parseList(state, ')', []));
+        break;
+
+      case "'":
+        {
+          getChar(state);
+          skipWhitespaces(state);
+
+          for (;;) {
+            const t = parseOneToken(state);
+
+            if (typeof t === 'object' && Object.prototype.hasOwnProperty.call(t, 'comment')) {
+              if (!state.config.stripComments) {
+                r.push(t);
+              }
+            } else {
+              r.push(Object(_types__WEBPACK_IMPORTED_MODULE_0__["quote"])(state, t));
+              break;
+            }
+          }
+
+          break;
         }
-        skipWhitespaces(state);
-        ch = lookAhead(state);
+
+      case ';':
+        getChar(state);
+
+        if (state.config.stripComments) {
+          parseSingleLineComment(state);
+        } else {
+          r.push(parseSingleLineComment(state));
+        }
+
+        break;
+
+      case '#':
+        {
+          const aheads = lookAheads(state, 2);
+
+          if (aheads[1] === '|') {
+            getChar(state);
+            getChar(state);
+
+            if (state.config.stripComments) {
+              parseMultiLineComment(state);
+            } else {
+              r.push(parseMultiLineComment(state));
+            }
+          } else {
+            getChar(state);
+
+            if (state.config.stripComments) {
+              parseSingleLineComment(state);
+            } else {
+              r.push(parseSingleLineComment(state));
+            }
+          }
+        }
+        break;
+
+      case '"':
+        {
+          const aheads = lookAheads(state, 3);
+
+          if (aheads[1] === '"' && aheads[2] === '"') {
+            r.push(parseOneToken(state));
+            break;
+          }
+        }
+      // FALL_THRU
+
+      default:
+        throw new Error(`[SX] parseInitialState: Invalid syntax at: ${lookCurrentLineHint(state)}.`);
     }
-    return r;
+
+    skipWhitespaces(state);
+    ch = lookAhead(state);
+  }
+
+  return r;
 }
 
 /***/ }),
@@ -5317,445 +4873,377 @@ function parse(state) {
 /*!***********************************!*\
   !*** ./src/s-exp/s-expression.ts ***!
   \***********************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: defaultReservedNames, defaultConfig, SExpression, SExpressionAsync, S, L, LS, lisp, L_async, LS_async, lisp_async, LM, LM_async, LSX, LSX_async */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.LM_async = exports.LM = exports.lisp_async = exports.LS_async = exports.L_async = exports.lisp = exports.LS = exports.L = exports.S = exports.defaultConfig = exports.defaultReservedNames = undefined;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.SExpression = SExpression;
-exports.SExpressionAsync = SExpressionAsync;
-exports.LSX = LSX;
-exports.LSX_async = LSX_async;
-
-var _parser = __webpack_require__(/*! ./parser */ "./src/s-exp/parser.ts");
-
-var _evaluate = __webpack_require__(/*! ./evaluate */ "./src/s-exp/evaluate.ts");
-
-var _core = __webpack_require__(/*! ./operators/core */ "./src/s-exp/operators/core/index.ts");
-
-var _core2 = _interopRequireDefault(_core);
-
-var _arithmetic = __webpack_require__(/*! ./operators/arithmetic */ "./src/s-exp/operators/arithmetic/index.ts");
-
-var _arithmetic2 = _interopRequireDefault(_arithmetic);
-
-var _sequence = __webpack_require__(/*! ./operators/sequence */ "./src/s-exp/operators/sequence/index.ts");
-
-var _sequence2 = _interopRequireDefault(_sequence);
-
-var _jsx = __webpack_require__(/*! ./operators/jsx */ "./src/s-exp/operators/jsx/index.ts");
-
-var _jsx2 = _interopRequireDefault(_jsx);
-
-var _concurrent = __webpack_require__(/*! ./operators/concurrent */ "./src/s-exp/operators/concurrent/index.ts");
-
-var _concurrent2 = _interopRequireDefault(_concurrent);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultReservedNames", function() { return defaultReservedNames; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultConfig", function() { return defaultConfig; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SExpression", function() { return SExpression; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SExpressionAsync", function() { return SExpressionAsync; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "S", function() { return S; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "L", function() { return L; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LS", function() { return LS; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lisp", function() { return lisp; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "L_async", function() { return L_async; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LS_async", function() { return LS_async; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lisp_async", function() { return lisp_async; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LM", function() { return LM; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LM_async", function() { return LM_async; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LSX", function() { return LSX; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LSX_async", function() { return LSX_async; });
+/* harmony import */ var _parser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./parser */ "./src/s-exp/parser.ts");
+/* harmony import */ var _evaluate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./evaluate */ "./src/s-exp/evaluate.ts");
+/* harmony import */ var _operators_core__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./operators/core */ "./src/s-exp/operators/core/index.ts");
+/* harmony import */ var _operators_arithmetic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./operators/arithmetic */ "./src/s-exp/operators/arithmetic/index.ts");
+/* harmony import */ var _operators_sequence__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./operators/sequence */ "./src/s-exp/operators/sequence/index.ts");
+/* harmony import */ var _operators_jsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./operators/jsx */ "./src/s-exp/operators/jsx/index.ts");
+/* harmony import */ var _operators_concurrent__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./operators/concurrent */ "./src/s-exp/operators/concurrent/index.ts");
 // Copyright (c) 2018, Shellyl_N and Authors
 // license: ISC
 // https://github.com/shellyln
 var __awaiter = undefined && undefined.__awaiter || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) {
-            try {
-                step(generator.next(value));
-            } catch (e) {
-                reject(e);
-            }
-        }
-        function rejected(value) {
-            try {
-                step(generator["throw"](value));
-            } catch (e) {
-                reject(e);
-            }
-        }
-        function step(result) {
-            result.done ? resolve(result.value) : new P(function (resolve) {
-                resolve(result.value);
-            }).then(fulfilled, rejected);
-        }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+
+    function step(result) {
+      result.done ? resolve(result.value) : new P(function (resolve) {
+        resolve(result.value);
+      }).then(fulfilled, rejected);
+    }
+
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
 };
-var defaultReservedNames = exports.defaultReservedNames = {
-    eval: '$eval',
-    quote: '$quote',
-    spread: '$spread',
-    car: '$car',
-    cdr: '$cdr',
-    cons: '$cons',
-    atom: '$atom',
-    eq: '$eq',
-    list: '$list',
-    let: '$clisp-let',
-    lambda: '$lambda',
-    self: '$self',
-    defun: '$defun',
-    if: '$if',
-    cond: '$cond',
-    while: '$while',
-    doWhile: '$do-while',
-    until: '$until',
-    doUntil: '$do-until',
-    get: '$get',
-    defvar: '$clisp-defvar',
-    setq: '$clisp-setq',
-    set: '$set',
-    not: '$not',
-    and: '$and',
-    or: '$or',
-    Template: 'Template'
+
+
+
+
+
+
+
+
+const defaultReservedNames = {
+  eval: '$eval',
+  quote: '$quote',
+  spread: '$spread',
+  car: '$car',
+  cdr: '$cdr',
+  cons: '$cons',
+  atom: '$atom',
+  eq: '$eq',
+  list: '$list',
+  let: '$clisp-let',
+  lambda: '$lambda',
+  self: '$self',
+  defun: '$defun',
+  if: '$if',
+  cond: '$cond',
+  while: '$while',
+  doWhile: '$do-while',
+  until: '$until',
+  doUntil: '$do-until',
+  get: '$get',
+  defvar: '$clisp-defvar',
+  setq: '$clisp-setq',
+  set: '$set',
+  not: '$not',
+  and: '$and',
+  or: '$or',
+  Template: 'Template'
 };
-var defaultConfig = exports.defaultConfig = {
-    raiseOnUnresolvedSymbol: false,
-    enableEvaluate: true,
-    enableHereDoc: true,
-    enableSpread: true,
-    enableTailCallOptimization: true,
-    stripComments: false,
-    wrapExternalValue: true,
-    returnMultipleRoot: false,
-    maxEvalCount: 0,
-    reservedNames: defaultReservedNames,
-    symbols: [],
-    macros: [],
-    funcs: []
+const defaultConfig = {
+  raiseOnUnresolvedSymbol: false,
+  enableEvaluate: true,
+  enableHereDoc: true,
+  enableSpread: true,
+  enableTailCallOptimization: true,
+  stripComments: false,
+  wrapExternalValue: true,
+  returnMultipleRoot: false,
+  maxEvalCount: 0,
+  reservedNames: defaultReservedNames,
+  symbols: [],
+  macros: [],
+  funcs: []
 };
+
 function initState(config, globals, strings, values) {
-    return {
-        strings: typeof strings === 'string' ? [strings] : strings,
-        values: values || [],
-        index: 0,
-        pos: 0,
-        line: 0,
-        evalCount: 0,
-        scopes: [{ isBlockLocal: false, scope: globals }],
-        macroMap: new Map(config.macros.map(function (x) {
-            return [x.name, x];
-        })),
-        funcMap: new Map(config.funcs.map(function (x) {
-            return [x.name, x];
-        })),
-        symbolMap: new Map(config.symbols.map(function (x) {
-            return [x.name, x];
-        })),
-        config: config
-    };
+  return {
+    strings: typeof strings === 'string' ? [strings] : strings,
+    values: values || [],
+    index: 0,
+    pos: 0,
+    line: 0,
+    evalCount: 0,
+    scopes: [{
+      isBlockLocal: false,
+      scope: globals
+    }],
+    macroMap: new Map(config.macros.map(x => [x.name, x])),
+    funcMap: new Map(config.funcs.map(x => [x.name, x])),
+    symbolMap: new Map(config.symbols.map(x => [x.name, x])),
+    config
+  };
 }
+
 function resetState(state, strings, values) {
-    state.strings = typeof strings === 'string' ? [strings] : strings;
-    state.values = values || [];
-    state.index = 0;
-    state.pos = 0;
-    state.line = 0;
-    state.evalCount = 0;
-    return state;
+  state.strings = typeof strings === 'string' ? [strings] : strings;
+  state.values = values || [];
+  state.index = 0;
+  state.pos = 0;
+  state.line = 0;
+  state.evalCount = 0;
+  return state;
 }
-function SExpression(config) {
-    var globalScope = {};
-    var startup = [];
-    var exec = function exec(state, s) {
-        if (config.enableEvaluate) {
-            for (var i = 0; i < s.length; i++) {
-                s[i] = (0, _evaluate.evaluate)(state, s[i]);
-            }
-        }
-        if (config.returnMultipleRoot) {
-            return s.length === 1 ? s[0] : s;
-        } else {
-            return s[s.length - 1];
-        }
-    };
-    var f = function f(strings) {
-        for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-            values[_key - 1] = arguments[_key];
-        }
 
-        var state = initState(config, Object.assign({}, globalScope), strings, values);
-        return exec(state, startup.concat((0, _parser.parse)(state)));
-    };
-    f.evaluateAST = function (ast) {
-        var state = initState(config, Object.assign({}, globalScope), '');
-        return exec(state, startup.concat(ast));
-    };
-    f.repl = function () {
-        var state = initState(config, Object.assign({}, globalScope), '');
-        exec(state, startup.slice(0));
-        var fRepl = function fRepl(strings) {
-            for (var _len2 = arguments.length, values = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                values[_key2 - 1] = arguments[_key2];
-            }
+function SExpression(conf) {
+  let config = conf || Object.assign({}, defaultConfig);
+  let globalScope = {};
+  let startup = [];
 
-            resetState(state, strings, values);
-            return exec(state, (0, _parser.parse)(state));
-        };
-        return fRepl;
-    };
-    f.setGlobals = function (globals) {
-        globalScope = Object.assign({}, globals || {});
-        return f;
-    };
-    f.appendGlobals = function (globals) {
-        globalScope = Object.assign({}, globalScope, globals || {});
-        return f;
-    };
-    f.setStartup = function (strings) {
-        for (var _len3 = arguments.length, values = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-            values[_key3 - 1] = arguments[_key3];
-        }
+  const exec = (state, s) => {
+    if (config.enableEvaluate) {
+      for (let i = 0; i < s.length; i++) {
+        s[i] = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, s[i]);
+      }
+    }
 
-        var state = initState(config, Object.assign({}, globalScope), strings, values);
-        startup = (0, _parser.parse)(state);
-        return f;
-    };
-    f.setStartupAST = function (ast) {
-        startup = ast;
-        return f;
-    };
-    f.appendStartup = function (strings) {
-        for (var _len4 = arguments.length, values = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-            values[_key4 - 1] = arguments[_key4];
-        }
+    if (config.returnMultipleRoot) {
+      return s.length === 1 ? s[0] : s;
+    } else {
+      return s[s.length - 1];
+    }
+  };
 
-        var state = initState(config, Object.assign({}, globalScope), strings, values);
-        startup = startup.concat((0, _parser.parse)(state));
-        return f;
+  const f = (strings, ...values) => {
+    const state = initState(config, Object.assign({}, globalScope), strings, values);
+    return exec(state, startup.concat(Object(_parser__WEBPACK_IMPORTED_MODULE_0__["parse"])(state)));
+  };
+
+  f.evaluateAST = ast => {
+    const state = initState(config, Object.assign({}, globalScope), '');
+    return exec(state, startup.concat(ast));
+  };
+
+  f.repl = () => {
+    const state = initState(config, Object.assign({}, globalScope), '');
+    exec(state, startup.slice(0));
+
+    const fRepl = (strings, ...values) => {
+      resetState(state, strings, values);
+      return exec(state, Object(_parser__WEBPACK_IMPORTED_MODULE_0__["parse"])(state));
     };
-    f.appendStartupAST = function (ast) {
-        startup = startup.concat(ast);
-        return f;
-    };
+
+    return fRepl;
+  };
+
+  f.setGlobals = globals => {
+    globalScope = Object.assign({}, globals || {});
     return f;
-}
-function SExpressionAsync(config) {
-    var _this = this;
+  };
 
-    var globalScope = {};
-    var startup = [];
-    var exec = function exec(state, s) {
-        return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-            var i;
-            return regeneratorRuntime.wrap(function _callee$(_context) {
-                while (1) {
-                    switch (_context.prev = _context.next) {
-                        case 0:
-                            if (!config.enableEvaluate) {
-                                _context.next = 11;
-                                break;
-                            }
-
-                            i = 0;
-
-                        case 2:
-                            if (!(i < s.length)) {
-                                _context.next = 11;
-                                break;
-                            }
-
-                            s[i] = (0, _evaluate.evaluate)(state, s[i]);
-
-                            if (!(_typeof(s[i]) === 'object' && typeof s[i].then === 'function')) {
-                                _context.next = 8;
-                                break;
-                            }
-
-                            _context.next = 7;
-                            return s[i];
-
-                        case 7:
-                            s[i] = _context.sent;
-
-                        case 8:
-                            i++;
-                            _context.next = 2;
-                            break;
-
-                        case 11:
-                            if (!config.returnMultipleRoot) {
-                                _context.next = 15;
-                                break;
-                            }
-
-                            return _context.abrupt('return', s.length === 1 ? s[0] : s);
-
-                        case 15:
-                            return _context.abrupt('return', s[s.length - 1]);
-
-                        case 16:
-                        case 'end':
-                            return _context.stop();
-                    }
-                }
-            }, _callee, this);
-        }));
-    };
-    var f = function f(strings) {
-        for (var _len5 = arguments.length, values = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
-            values[_key5 - 1] = arguments[_key5];
-        }
-
-        return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-            var state;
-            return regeneratorRuntime.wrap(function _callee2$(_context2) {
-                while (1) {
-                    switch (_context2.prev = _context2.next) {
-                        case 0:
-                            state = initState(config, Object.assign({}, globalScope), strings, values);
-                            return _context2.abrupt('return', exec(state, startup.concat((0, _parser.parse)(state))));
-
-                        case 2:
-                        case 'end':
-                            return _context2.stop();
-                    }
-                }
-            }, _callee2, this);
-        }));
-    };
-    f.evaluateAST = function (ast) {
-        var state = initState(config, Object.assign({}, globalScope), '');
-        return exec(state, startup.concat(ast));
-    };
-    f.repl = function () {
-        var state = initState(config, Object.assign({}, globalScope), '');
-        exec(state, startup.slice(0));
-        var fRepl = function fRepl(strings) {
-            for (var _len6 = arguments.length, values = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-                values[_key6 - 1] = arguments[_key6];
-            }
-
-            return __awaiter(_this, void 0, void 0, /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-                return regeneratorRuntime.wrap(function _callee3$(_context3) {
-                    while (1) {
-                        switch (_context3.prev = _context3.next) {
-                            case 0:
-                                resetState(state, strings, values);
-                                return _context3.abrupt('return', exec(state, (0, _parser.parse)(state)));
-
-                            case 2:
-                            case 'end':
-                                return _context3.stop();
-                        }
-                    }
-                }, _callee3, this);
-            }));
-        };
-        return fRepl;
-    };
-    f.setGlobals = function (globals) {
-        globalScope = Object.assign({}, globals || {});
-        return f;
-    };
-    f.appendGlobals = function (globals) {
-        globalScope = Object.assign({}, globalScope, globals || {});
-        return f;
-    };
-    f.setStartup = function (strings) {
-        for (var _len7 = arguments.length, values = Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
-            values[_key7 - 1] = arguments[_key7];
-        }
-
-        var state = initState(config, Object.assign({}, globalScope), strings, values);
-        startup = (0, _parser.parse)(state);
-        return f;
-    };
-    f.setStartupAST = function (ast) {
-        startup = ast;
-        return f;
-    };
-    f.appendStartup = function (strings) {
-        for (var _len8 = arguments.length, values = Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
-            values[_key8 - 1] = arguments[_key8];
-        }
-
-        var state = initState(config, Object.assign({}, globalScope), strings, values);
-        startup = startup.concat((0, _parser.parse)(state));
-        return f;
-    };
-    f.appendStartupAST = function (ast) {
-        startup = startup.concat(ast);
-        return f;
-    };
+  f.appendGlobals = globals => {
+    globalScope = Object.assign({}, globalScope, globals || {});
     return f;
+  };
+
+  f.setStartup = (strings, ...values) => {
+    const state = initState(config, Object.assign({}, globalScope), strings, values);
+    startup = Object(_parser__WEBPACK_IMPORTED_MODULE_0__["parse"])(state);
+    return f;
+  };
+
+  f.setStartupAST = ast => {
+    startup = ast;
+    return f;
+  };
+
+  f.appendStartup = (strings, ...values) => {
+    const state = initState(config, Object.assign({}, globalScope), strings, values);
+    startup = startup.concat(Object(_parser__WEBPACK_IMPORTED_MODULE_0__["parse"])(state));
+    return f;
+  };
+
+  f.appendStartupAST = ast => {
+    startup = startup.concat(ast);
+    return f;
+  };
+
+  f.install = installer => {
+    config = installer(config);
+    return f;
+  };
+
+  return f;
 }
-var S = exports.S = function () {
-    var config = Object.assign({}, defaultConfig);
-    config.enableEvaluate = false;
-    config.returnMultipleRoot = true;
-    return SExpression(config);
-}();
-var L = exports.L = function () {
-    var config = Object.assign({}, defaultConfig);
-    config = (0, _core2.default)(config);
-    config = (0, _arithmetic2.default)(config);
-    config = (0, _sequence2.default)(config);
-    config.stripComments = true;
-    return SExpression(config);
-}();
-var LS = exports.LS = L;
-var lisp = exports.lisp = L;
-// tslint:disable-next-line:variable-name
-var L_async = exports.L_async = function () {
-    var config = Object.assign({}, defaultConfig);
-    config = (0, _core2.default)(config);
-    config = (0, _arithmetic2.default)(config);
-    config = (0, _sequence2.default)(config);
-    config = (0, _concurrent2.default)(config);
-    config.stripComments = true;
-    return SExpressionAsync(config);
-}();
-// tslint:disable-next-line:variable-name
-var LS_async = exports.LS_async = L_async;
-// tslint:disable-next-line:variable-name
-var lisp_async = exports.lisp_async = L_async;
-var LM = exports.LM = function () {
-    var config = Object.assign({}, defaultConfig);
-    config = (0, _core2.default)(config);
-    config = (0, _arithmetic2.default)(config);
-    config = (0, _sequence2.default)(config);
-    config.stripComments = true;
-    config.returnMultipleRoot = true;
-    return SExpression(config);
-}();
-// tslint:disable-next-line:variable-name
-var LM_async = exports.LM_async = function () {
-    var config = Object.assign({}, defaultConfig);
-    config = (0, _core2.default)(config);
-    config = (0, _arithmetic2.default)(config);
-    config = (0, _sequence2.default)(config);
-    config = (0, _concurrent2.default)(config);
-    config.stripComments = true;
-    config.returnMultipleRoot = true;
-    return SExpressionAsync(config);
-}();
+function SExpressionAsync(conf) {
+  let config = conf || Object.assign({}, defaultConfig);
+  let globalScope = {};
+  let startup = [];
+
+  const exec = (state, s) => __awaiter(this, void 0, void 0, function* () {
+    if (config.enableEvaluate) {
+      for (let i = 0; i < s.length; i++) {
+        s[i] = Object(_evaluate__WEBPACK_IMPORTED_MODULE_1__["evaluate"])(state, s[i]);
+
+        if (typeof s[i] === 'object' && typeof s[i].then === 'function') {
+          s[i] = yield s[i];
+        }
+      }
+    }
+
+    if (config.returnMultipleRoot) {
+      return s.length === 1 ? s[0] : s;
+    } else {
+      return s[s.length - 1];
+    }
+  });
+
+  const f = (strings, ...values) => __awaiter(this, void 0, void 0, function* () {
+    const state = initState(config, Object.assign({}, globalScope), strings, values);
+    return exec(state, startup.concat(Object(_parser__WEBPACK_IMPORTED_MODULE_0__["parse"])(state)));
+  });
+
+  f.evaluateAST = ast => {
+    const state = initState(config, Object.assign({}, globalScope), '');
+    return exec(state, startup.concat(ast));
+  };
+
+  f.repl = () => {
+    const state = initState(config, Object.assign({}, globalScope), '');
+    exec(state, startup.slice(0));
+
+    const fRepl = (strings, ...values) => __awaiter(this, void 0, void 0, function* () {
+      resetState(state, strings, values);
+      return exec(state, Object(_parser__WEBPACK_IMPORTED_MODULE_0__["parse"])(state));
+    });
+
+    return fRepl;
+  };
+
+  f.setGlobals = globals => {
+    globalScope = Object.assign({}, globals || {});
+    return f;
+  };
+
+  f.appendGlobals = globals => {
+    globalScope = Object.assign({}, globalScope, globals || {});
+    return f;
+  };
+
+  f.setStartup = (strings, ...values) => {
+    const state = initState(config, Object.assign({}, globalScope), strings, values);
+    startup = Object(_parser__WEBPACK_IMPORTED_MODULE_0__["parse"])(state);
+    return f;
+  };
+
+  f.setStartupAST = ast => {
+    startup = ast;
+    return f;
+  };
+
+  f.appendStartup = (strings, ...values) => {
+    const state = initState(config, Object.assign({}, globalScope), strings, values);
+    startup = startup.concat(Object(_parser__WEBPACK_IMPORTED_MODULE_0__["parse"])(state));
+    return f;
+  };
+
+  f.appendStartupAST = ast => {
+    startup = startup.concat(ast);
+    return f;
+  };
+
+  f.install = installer => {
+    config = installer(config);
+    return f;
+  };
+
+  return f;
+}
+const S = (() => {
+  const config = Object.assign({}, defaultConfig);
+  config.enableEvaluate = false;
+  config.returnMultipleRoot = true;
+  return SExpression(config);
+})();
+const L = (() => {
+  let config = Object.assign({}, defaultConfig);
+  config = Object(_operators_core__WEBPACK_IMPORTED_MODULE_2__["default"])(config);
+  config = Object(_operators_arithmetic__WEBPACK_IMPORTED_MODULE_3__["default"])(config);
+  config = Object(_operators_sequence__WEBPACK_IMPORTED_MODULE_4__["default"])(config);
+  config.stripComments = true;
+  return SExpression(config);
+})();
+const LS = L;
+const lisp = L; // tslint:disable-next-line:variable-name
+
+const L_async = (() => {
+  let config = Object.assign({}, defaultConfig);
+  config = Object(_operators_core__WEBPACK_IMPORTED_MODULE_2__["default"])(config);
+  config = Object(_operators_arithmetic__WEBPACK_IMPORTED_MODULE_3__["default"])(config);
+  config = Object(_operators_sequence__WEBPACK_IMPORTED_MODULE_4__["default"])(config);
+  config = Object(_operators_concurrent__WEBPACK_IMPORTED_MODULE_6__["default"])(config);
+  config.stripComments = true;
+  return SExpressionAsync(config);
+})(); // tslint:disable-next-line:variable-name
+
+const LS_async = L_async; // tslint:disable-next-line:variable-name
+
+const lisp_async = L_async;
+const LM = (() => {
+  let config = Object.assign({}, defaultConfig);
+  config = Object(_operators_core__WEBPACK_IMPORTED_MODULE_2__["default"])(config);
+  config = Object(_operators_arithmetic__WEBPACK_IMPORTED_MODULE_3__["default"])(config);
+  config = Object(_operators_sequence__WEBPACK_IMPORTED_MODULE_4__["default"])(config);
+  config.stripComments = true;
+  config.returnMultipleRoot = true;
+  return SExpression(config);
+})(); // tslint:disable-next-line:variable-name
+
+const LM_async = (() => {
+  let config = Object.assign({}, defaultConfig);
+  config = Object(_operators_core__WEBPACK_IMPORTED_MODULE_2__["default"])(config);
+  config = Object(_operators_arithmetic__WEBPACK_IMPORTED_MODULE_3__["default"])(config);
+  config = Object(_operators_sequence__WEBPACK_IMPORTED_MODULE_4__["default"])(config);
+  config = Object(_operators_concurrent__WEBPACK_IMPORTED_MODULE_6__["default"])(config);
+  config.stripComments = true;
+  config.returnMultipleRoot = true;
+  return SExpressionAsync(config);
+})();
 function LSX(lsxConf) {
-    var config = Object.assign({}, defaultConfig);
-    config = (0, _core2.default)(config);
-    config = (0, _arithmetic2.default)(config);
-    config = (0, _sequence2.default)(config);
-    config = (0, _jsx2.default)(config, lsxConf);
-    config.stripComments = true;
-    return SExpression(config);
+  let config = Object.assign({}, defaultConfig);
+  config = Object(_operators_core__WEBPACK_IMPORTED_MODULE_2__["default"])(config);
+  config = Object(_operators_arithmetic__WEBPACK_IMPORTED_MODULE_3__["default"])(config);
+  config = Object(_operators_sequence__WEBPACK_IMPORTED_MODULE_4__["default"])(config);
+  config = Object(_operators_jsx__WEBPACK_IMPORTED_MODULE_5__["default"])(config, lsxConf);
+  config.stripComments = true;
+  return SExpression(config);
 }
 function LSX_async(lsxConf) {
-    var config = Object.assign({}, defaultConfig);
-    config = (0, _core2.default)(config);
-    config = (0, _arithmetic2.default)(config);
-    config = (0, _sequence2.default)(config);
-    config = (0, _concurrent2.default)(config);
-    config = (0, _jsx2.default)(config, lsxConf);
-    config.stripComments = true;
-    return SExpressionAsync(config);
+  let config = Object.assign({}, defaultConfig);
+  config = Object(_operators_core__WEBPACK_IMPORTED_MODULE_2__["default"])(config);
+  config = Object(_operators_arithmetic__WEBPACK_IMPORTED_MODULE_3__["default"])(config);
+  config = Object(_operators_sequence__WEBPACK_IMPORTED_MODULE_4__["default"])(config);
+  config = Object(_operators_concurrent__WEBPACK_IMPORTED_MODULE_6__["default"])(config);
+  config = Object(_operators_jsx__WEBPACK_IMPORTED_MODULE_5__["default"])(config, lsxConf);
+  config.stripComments = true;
+  return SExpressionAsync(config);
 }
 
 /***/ }),
@@ -5764,90 +5252,68 @@ function LSX_async(lsxConf) {
 /*!****************************!*\
   !*** ./src/s-exp/types.ts ***!
   \****************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! exports provided: quote, isQuoted, spread, isSymbol, FatalError, MaxEvaluationCountError, ScriptTerminationError */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.quote = quote;
-exports.isQuoted = isQuoted;
-exports.spread = spread;
-exports.isSymbol = isSymbol;
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "quote", function() { return quote; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isQuoted", function() { return isQuoted; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "spread", function() { return spread; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isSymbol", function() { return isSymbol; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FatalError", function() { return FatalError; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MaxEvaluationCountError", function() { return MaxEvaluationCountError; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ScriptTerminationError", function() { return ScriptTerminationError; });
 function quote(state, x) {
-    return [{ symbol: state.config.reservedNames.quote }, x];
+  return [{
+    symbol: state.config.reservedNames.quote
+  }, x];
 }
 function isQuoted(state, x) {
-    if (Array.isArray(x) && 0 < x.length) {
-        var q = isSymbol(x);
-        if (q && q.symbol === state.config.reservedNames.quote) {
-            return true;
-        }
+  if (Array.isArray(x) && 0 < x.length) {
+    const q = isSymbol(x);
+
+    if (q && q.symbol === state.config.reservedNames.quote) {
+      return true;
     }
-    return false;
+  }
+
+  return false;
 }
 function spread(state, x) {
-    return [{ symbol: state.config.reservedNames.spread }, x];
+  return [{
+    symbol: state.config.reservedNames.spread
+  }, x];
 }
 function isSymbol(x, name) {
-    if (x && (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object' && Object.prototype.hasOwnProperty.call(x, 'symbol')) {
-        if (name !== void 0) {
-            return x.symbol === name ? x : null;
-        } else {
-            return x;
-        }
+  if (x && typeof x === 'object' && Object.prototype.hasOwnProperty.call(x, 'symbol')) {
+    if (name !== void 0) {
+      return x.symbol === name ? x : null;
+    } else {
+      return x;
     }
-    return null;
+  }
+
+  return null;
 }
+class FatalError extends Error {
+  constructor(message) {
+    super(message);
+  }
 
-var FatalError = exports.FatalError = function (_Error) {
-    _inherits(FatalError, _Error);
+}
+class MaxEvaluationCountError extends FatalError {
+  constructor() {
+    super(`[SX] evaluate: The maximum count of evaluations has been exceeded.`);
+  }
 
-    function FatalError(message) {
-        _classCallCheck(this, FatalError);
+}
+class ScriptTerminationError extends FatalError {
+  constructor(where) {
+    super(`[SX] ${where}: Unexpected termination of script.`);
+  }
 
-        return _possibleConstructorReturn(this, (FatalError.__proto__ || Object.getPrototypeOf(FatalError)).call(this, message));
-    }
-
-    return FatalError;
-}(Error);
-
-var MaxEvaluationCountError = exports.MaxEvaluationCountError = function (_FatalError) {
-    _inherits(MaxEvaluationCountError, _FatalError);
-
-    function MaxEvaluationCountError() {
-        _classCallCheck(this, MaxEvaluationCountError);
-
-        return _possibleConstructorReturn(this, (MaxEvaluationCountError.__proto__ || Object.getPrototypeOf(MaxEvaluationCountError)).call(this, '[SX] evaluate: The maximum count of evaluations has been exceeded.'));
-    }
-
-    return MaxEvaluationCountError;
-}(FatalError);
-
-var ScriptTerminationError = exports.ScriptTerminationError = function (_FatalError2) {
-    _inherits(ScriptTerminationError, _FatalError2);
-
-    function ScriptTerminationError(where) {
-        _classCallCheck(this, ScriptTerminationError);
-
-        return _possibleConstructorReturn(this, (ScriptTerminationError.__proto__ || Object.getPrototypeOf(ScriptTerminationError)).call(this, '[SX] ' + where + ': Unexpected termination of script.'));
-    }
-
-    return ScriptTerminationError;
-}(FatalError);
+}
 
 /***/ }),
 
@@ -5858,7 +5324,7 @@ var ScriptTerminationError = exports.ScriptTerminationError = function (_FatalEr
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! c:\Users\Kazuhisa\Documents\GitHub\liyad\src\index.ts */"./src/index.ts");
+module.exports = __webpack_require__("./src/index.ts");
 
 
 /***/ })
