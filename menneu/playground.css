@@ -1,0 +1,56 @@
+body {
+    font-family: 'Ubuntu Mono', monospace;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.AceEditorOuterWrap {
+    width: calc(50% - 10px);
+    min-width: 400px;
+    margin: 8px 4px 4px 4px;
+}
+.AceEditorOuterWrap.stretched {
+    width: 100%;
+}
+.AceEditorOuterWrap.collapsed {
+    display: none;
+}
+
+.OutputIframe {
+    background-color: white; 
+    width: calc(50% - 10px);
+    min-width: 400px;
+    height: calc(100vh - 64px - 220px - 4px);
+    min-height: 300px;
+    margin: 8px 4px 4px 4px;
+    overflow: auto;
+}
+.OutputIframe.stretched {
+    width: 100%;
+}
+.OutputIframe.collapsed {
+    display: none;
+}
+
+@media only screen and (max-width: 1200px) {
+    .AceEditorOuterWrap {
+        width: 100%;
+    }
+    .OutputIframe {
+        width: 100%;
+    }
+}
+
+@media print {
+    .AceEditorOuterWrap {
+        width: 100%;
+    }
+    .OutputIframe {
+        width: 100%;
+    }
+}
