@@ -216,6 +216,13 @@ function foo(x) {
 
 
 
+# Loop and logics
+
+%%%($=for $data
+    (div "hello," $data "," $index)
+)
+
+
 
 # Cheeckbox
 

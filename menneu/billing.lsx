@@ -34,7 +34,7 @@
           (meta (@ (charset "UTF-8")))
           (NormalizeCss)
           (PaperCss)
-          (Style (@ (src "./examples/billing/billing.style.css"))) )
+          (Style (@ (src "./billing.style.css"))) )
 
     (body (@ (class "A4"))
         ;; output pages.
