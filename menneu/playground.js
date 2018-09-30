@@ -4,7 +4,7 @@ const AppState = {
 };
 
 const exampleCodes = [{
-    name: 'Markdown',
+    name: 'Demo (Markdown)',
     mode: 'ace/mode/markdown',
     value: './playground-md.md',
     inputFormat: 'md',
@@ -59,7 +59,7 @@ const exampleCodes = [{
         ))))
     )`,
 }, {
-    name: 'HTML',
+    name: 'Demo (HTML)',
     mode: 'ace/mode/html',
     value: './playground-html.html',
     inputFormat: 'html',
