@@ -234,6 +234,13 @@ function foo(x) {
 
 # PlantUML
 
+> Firefox blocks the requests due to symantec untrusted certificate of https://www.plantuml.com/plantuml .  
+> Returned error is: "Reason: CORS request did not succeed".  
+>  See https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSDidNotSucceed
+
+
+%%%(Template #|  ;; Begin commenting out
+
 @startuml
 Bob -> Alice : Hello
 @enduml
@@ -282,6 +289,9 @@ usecase (Last\\nusecase) as UC4
 Alice -> Bob : Bonjour
 Alice -> UC3 : Bonjour
 """)
+
+;; Comment out ends with the next line.
+|# )
 
 
 # Charts
