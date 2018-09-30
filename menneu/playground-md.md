@@ -104,7 +104,7 @@ the hedge. In another moment, down went Alice after it!
 
 # highlighting
 
-```js
+```javascript
 function foo(x) {
     return x;
 }
