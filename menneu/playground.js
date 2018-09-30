@@ -169,7 +169,7 @@ class AceEditor extends React.Component {
                              ${this.props.collapsed ? " collapsed" : ""} )))
             (div (@ (id ${this.props.id})
                     (style (width "100%")
-                           (height "calc(100vh - 64px - 220px - 4px)")
+                           (height "calc(100vh - 64px - 220px - 16px)")
                            (minHeight "300px")
                            (fontSize "12pt") )))
         )`);
