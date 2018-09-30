@@ -5,12 +5,14 @@ const AppState = {
 
 const exampleCodes = [{
     name: 'Markdown',
+    mode: 'ace/mode/markdown',
     value: './playground-md.md',
     inputFormat: 'md',
     dataFormat: 'object',
     data: [1, 2, 3, 4, 5, 6],
 }, {
     name: 'Billing (LSX)',
+    mode: 'ace/mode/lisp',
     value: './billing.lsx',
     inputFormat: 'lsx',
     dataFormat: 'lisp',
@@ -58,6 +60,7 @@ const exampleCodes = [{
     )`,
 }, {
     name: 'HTML',
+    mode: 'ace/mode/html',
     value: './playground-html.html',
     inputFormat: 'html',
     dataFormat: 'object',
@@ -185,12 +188,13 @@ class App extends React.Component {
     loadExample(i) {
         AppState.currentIndex = i;
         const editor = AppState.AceEditor['editor'];
-        editor.setValue(document.getElementById('md').innerHTML);
         editor.clearSelection();
+        editor.session.setMode(exampleCodes[i].mode);
 
         fetch(exampleCodes[i].value).then(response => {
             response.text().then(x => {
                 editor.setValue(x);
+                editor.clearSelection();
             })
             .catch(e => console.error(e));
         })
