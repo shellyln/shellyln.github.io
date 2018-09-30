@@ -98,8 +98,8 @@ class App extends React.Component {
         editor.clearSelection();
 
         fetch('./playground-md.md')
-        .then(x => {
-            editor.setValue(x);
+        .then(response => {
+            editor.setValue(response.text());
         })
         .catch(e => console.error(e));
     }
