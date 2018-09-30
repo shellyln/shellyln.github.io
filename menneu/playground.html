@@ -587,6 +587,68 @@ Q(A | B) = (Q(B | A)Q(A)) / Q(B)
 """)
 
 </script>
+<script id="lsx" type="text/lsx">
+</script>
+<script id="htm" type="text/plain">
+</script>
+
+    <style>
+        body {
+            font-family: 'Ubuntu Mono', monospace;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1 0 auto;
+        }
+
+        .AceEditorOuterWrap {
+            width: calc(50% - 10px);
+            min-width: 400px;
+            margin: 8px 4px 4px 4px;
+        }
+        .AceEditorOuterWrap.stretched {
+            width: 100%;
+        }
+        .AceEditorOuterWrap.collapsed {
+            display: none;
+        }
+        .OutputIframe {
+            background-color: white; 
+            width: calc(50% - 10px);
+            min-width: 400px;
+            height: calc(100vh - 64px - 220px - 4px);
+            min-height: 300px;
+            margin: 8px 4px 4px 4px;
+            overflow: auto;
+        }
+        .OutputIframe.stretched {
+            width: 100%;
+        }
+        .OutputIframe.collapsed {
+            display: none;
+        }
+
+        @media only screen and (max-width: 1200px) {
+            .AceEditorOuterWrap {
+                width: 100%;
+            }
+            .OutputIframe {
+                width: 100%;
+            }
+        }
+
+        @media print {
+            .AceEditorOuterWrap {
+                width: 100%;
+            }
+            .OutputIframe {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body class="grey darken-2">
@@ -665,6 +727,7 @@ Q(A | B) = (Q(B | A)Q(A)) / Q(B)
     </footer>
 
     <script>
+const AppState = {};
 
 const escapeHtml = (s) => s
 .replace(/&/g, "&amp;")
@@ -672,7 +735,6 @@ const escapeHtml = (s) => s
 .replace(/>/g, "&gt;")
 .replace(/"/g, "&quot;")
 .replace(/'/g, "&#39;");
-
 
 const start = (async (text, cf, data) => {
     const buf = await menneu.render(text, data || {}, Object.assign({
@@ -715,9 +777,6 @@ const start = (async (text, cf, data) => {
 });
 
 
-const AppState = {};
-
-
 class AceEditor extends React.Component {
     constructor(props, context) {
         super(props, context);
@@ -739,9 +798,10 @@ class AceEditor extends React.Component {
 
     render() {
         return (lsx`
-        (div (@ (style (width "calc(50% - 10px)")
-                       (minWidth "400px")
-                       (margin "8px 4px 4px 4px") ))
+        (div (@ (className
+                    ($concat "AceEditorOuterWrap"
+                             ${this.props.stretched ? " stretched" : ""}
+                             ${this.props.collapsed ? " collapsed" : ""} )))
             (div (@ (id ${this.props.id})
                     (style (width "100%")
                            (height "calc(100vh - 64px - 220px - 4px)")
@@ -757,6 +817,7 @@ class App extends React.Component {
         super(props, context);
 
         this.state = {};
+        this.state.stretched = false;
     }
 
     loadExample(i) {
@@ -764,9 +825,13 @@ class App extends React.Component {
         editor.setValue(document.getElementById('md').innerHTML);
         editor.clearSelection();
     }
+
+    handleStretchedClick(e) {
+        this.setState({stretched: !this.state.stretched});
+    }
     
     handleClick(e) {
-        console.log(e);
+        this.setState({stretched: false});
         const editor = AppState.AceEditor['editor'];
 
         start(editor.getValue())
@@ -783,41 +848,35 @@ class App extends React.Component {
         (Template
             (div (@ (style (padding "4px")))
                 (button (@ (style (textTransform "none"))
+                           (className "waves-effect waves-light brown lighten-1 btn")
+                           (onClick ${(e) => this.handleStretchedClick(e)}) ) "⇔")
+                " "
+                (button (@ (style (textTransform "none"))
                            (className "waves-effect waves-light red lighten-1 btn")
                            (onClick ${(e) => this.handleClick(e)}) ) "Show") )
             (div (@ (style (display "flex")
                            (flexWrap "wrap") ))
                 (AceEditor (@ (id "editor")
+                              (stretched ${this.state.stretched ? true: false})
                               (loadExample ${(i) => this.loadExample(i)}) ))
                 (iframe (@ (id "root")
-                           (className "")
-                           (style (backgroundColor "white") 
-                                  (width "calc(50% - 10px)")
-                                  (minWidth "400px")
-                                  (height "calc(100vh - 64px - 220px - 4px)")
-                                  (minHeight "300px")
-                                  (margin "8px 4px 4px 4px")
-                                  (overflow "auto") )))
+                           (className ($concat "OutputIframe"
+                                      ${this.state.stretched ? " collapsed" : ""}) )))
             )
         )`);
     }
 }
 
 
-const components = {
-    AceEditor,
-    App,
-};
-
-
 window.lsx = liyad.LSX({
     jsx: React.createElement,
     jsxFlagment: React.Fragment,
-    components,
+    components: {
+        AceEditor,
+        App,
+    },
 });
 
-
 ReactDOM.render(lsx`(App)`, document.getElementById('app'));
-
     </script>
 </body>
