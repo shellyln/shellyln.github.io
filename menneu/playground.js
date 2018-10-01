@@ -168,10 +168,7 @@ class AceEditor extends React.Component {
                              ${this.props.stretched ? " stretched" : ""}
                              ${this.props.collapsed ? " collapsed" : ""} )))
             (div (@ (id ${this.props.id})
-                    (style (width "100%")
-                           (height "calc(100vh - 64px - 220px - 16px)")
-                           (minHeight "300px")
-                           (fontSize "12pt") )))
+                    (className "AceEditorDiv") ))
         )`);
     }
 }
@@ -226,7 +223,7 @@ class App extends React.Component {
         return (lsx`
         (Template
             (div (@ (style (padding "4px")))
-                (ExampleLoader  (@ (loadExample ${(i) => this.loadExample(i)}) ))
+                (ExampleLoader (@ (loadExample ${(i) => this.loadExample(i)}) ))
                 " "
                 (button (@ (style (textTransform "none"))
                            (className "waves-effect waves-light brown lighten-1 btn")

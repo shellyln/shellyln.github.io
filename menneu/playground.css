@@ -20,6 +20,12 @@ main {
 .AceEditorOuterWrap.collapsed {
     display: none;
 }
+.AceEditorDiv {
+    width: 100%;
+    height: calc(100vh - 64px - 220px - 16px);
+    min-height: 300px;
+    font-size: 12pt;
+}
 
 .OutputIframe {
     background-color: white; 
@@ -41,8 +47,12 @@ main {
     .AceEditorOuterWrap {
         width: 100%;
     }
+    .AceEditorDiv {
+        height: calc(100vh - 130px);
+    }
     .OutputIframe {
         width: 100%;
+        height: calc(100vh - 20px);
     }
 }
 
