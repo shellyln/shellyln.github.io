@@ -1,6 +1,9 @@
 
 const AppState = {
+    AceEditor: null,
     currentIndex: 0,
+    currentData: {},
+    currentDataFormat: 'object',
 };
 
 const exampleCodes = [{
@@ -179,8 +182,9 @@ class DataDialog extends React.Component {
         super(props, context);
     }
 
-    componentDidMount() {
-        // this.refs.dialog.showModal();
+    showModal(text) {
+        this.refs.text.value = text;
+        this.refs.dialog.showModal();
     }
 
     handleCancelClick(e) {
@@ -188,25 +192,46 @@ class DataDialog extends React.Component {
     }
 
     handleOkClick(e) {
-        this.refs.dialog.close("result");
+        const text = this.refs.text.value;
+        let value = '';
+        try {
+            switch (AppState.currentDataFormat) {
+            case 'lisp':
+                liyad.lisp(text);
+                value = text;
+                break;
+            case 'json':
+                JSON.parse(text);
+                value = text;
+                break;
+            case 'object':
+                value = JSON.parse(text);
+                break;
+            }
+            AppState.currentData = value;
+            this.refs.dialog.close(value);
+        } catch (e) {
+            alert('Invalid data: ' + e)
+        }
     }
 
     render() {
         return (lsx`
-        (dialog (@ (ref "dialog") )
-            (p "Edit data")
-            (div
-                (textarea)
-            )
-            (div
+        (dialog (@ (ref "dialog") (style (backgroundColor "#333") (color "white") ) )
+            (h5 "Edit data")
+            (div (textarea (@ (ref "text")
+                              (style (width "90vw")
+                                     (height "70vh") ))))
+            (div (@ (style (display "flex")
+                           (justifyContent "center") ))
                 (button (@ (style (textTransform "none")
                                   (margin "0 3px 0 3px"))
-                        (className "waves-effect waves-light brown lighten-1 btn")
-                        (onClick ${(e) => this.handleCancelClick(e)}) ) "❌Cancel")
+                           (className "waves-effect waves-light brown darken-3 btn")
+                           (onClick ${(e) => this.handleCancelClick(e)}) ) "❌Cancel")
                 (button (@ (style (textTransform "none")
                                   (margin "0 3px 0 3px"))
-                        (className "waves-effect waves-light brown lighten-1 btn")
-                        (onClick ${(e) => this.handleOkClick(e)}) ) "✔️OK")
+                           (className "waves-effect waves-light brown darken-3 btn")
+                           (onClick ${(e) => this.handleOkClick(e)}) ) "✔️OK")
             )
         )`);
     }
@@ -223,6 +248,9 @@ class App extends React.Component {
 
     loadExample(i) {
         AppState.currentIndex = i;
+        AppState.currentData = exampleCodes[i].data;
+        AppState.currentDataFormat = exampleCodes[i].dataFormat;
+
         const editor = AppState.AceEditor['editor'];
         editor.clearSelection();
         editor.session.setMode(exampleCodes[i].mode);
@@ -238,6 +266,15 @@ class App extends React.Component {
     }
 
     handleEditDataClick(e) {
+        this.refs.dialog.showModal(
+            typeof AppState.currentData === 'string' ?
+                AppState.currentData :
+                JSON.stringify(AppState.currentData)
+        );
+    }
+
+    handleEditDataDialogClose(v) {
+        console.log(v);
     }
 
     handleStretchedClick(e) {
@@ -251,8 +288,8 @@ class App extends React.Component {
         const d = exampleCodes[AppState.currentIndex];
         start(editor.getValue(), {
             inputFormat: d.inputFormat,
-            dataFormat: d.dataFormat,
-        }, d.data)
+            dataFormat: AppState.currentDataFormat,
+        }, AppState.currentData)
         .then(html => {
             const doc = this.refs.root.contentWindow.document;
             doc.write(html);
@@ -264,12 +301,14 @@ class App extends React.Component {
     render() {
         return (lsx`
         (Template
-            (div (@ (style (padding "4px") (display "flex") (alignItems "center") ))
+            (div (@ (style (padding "4px")
+                           (display "flex")
+                           (alignItems "center") ))
                 (ExampleLoader (@ (loadExample ${(i) => this.loadExample(i)}) ))
-                ;(button (@ (style (textTransform "none")
-                ;                  (margin "0 3px 0 6px"))
-                ;           (className "waves-effect waves-light brown lighten-1 btn")
-                ;           (onClick $ {(e) => this.handleEditDataClick(e)}) ) "✏️Data")
+                (button (@ (style (textTransform "none")
+                                  (margin "0 3px 0 6px"))
+                           (className "waves-effect waves-light brown lighten-1 btn")
+                           (onClick ${(e) => this.handleEditDataClick(e)}) ) "✏️Data")
                 (button (@ (style (textTransform "none")
                                   (margin "0 3px"))
                            (className "waves-effect waves-light red lighten-1 btn")
@@ -288,7 +327,7 @@ class App extends React.Component {
                            (className ($concat "OutputIframe"
                                       ${this.state.stretched ? " collapsed" : ""}) )))
             )
-            (DataDialog)
+            (DataDialog (@ (ref "dialog")))
         )`);
     }
 }
