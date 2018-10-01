@@ -34,7 +34,17 @@
           (meta (@ (charset "UTF-8")))
           (NormalizeCss)
           (PaperCss)
-          (Style (@ (src "./billing.style.css"))) )
+          (Style (@ (src "./billing.style.css")))
+    
+        (style (@ (dangerouslySetInnerHTML """$concat
+
+            /*
+            body {
+                background-color: blue;
+            }
+            */
+
+        """) )) )
 
     (body (@ (class "A4"))
         ;; output pages.
