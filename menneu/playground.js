@@ -131,7 +131,7 @@ class ExampleLoader extends React.Component {
         return (lsx`
         (Template
             (select (@ (style (display "inline-block")
-                              (width "300px") )
+                              (width "200px") )
                        (onChange ${(e) => this.handleExampleSelected(e.target.value)}) )
                 ($=for ${exampleCodes}
                     (option (@ (value $index)) ($get $data "name") )
@@ -174,6 +174,45 @@ class AceEditor extends React.Component {
 }
 
 
+class DataDialog extends React.Component {
+    constructor(props, context) {
+        super(props, context);
+    }
+
+    componentDidMount() {
+        // this.refs.dialog.showModal();
+    }
+
+    handleCancelClick(e) {
+        this.refs.dialog.close();
+    }
+
+    handleOkClick(e) {
+        this.refs.dialog.close("result");
+    }
+
+    render() {
+        return (lsx`
+        (dialog (@ (ref "dialog") )
+            (p "Edit data")
+            (div
+                (textarea)
+            )
+            (div
+                (button (@ (style (textTransform "none")
+                                  (margin "0 3px 0 3px"))
+                        (className "waves-effect waves-light brown lighten-1 btn")
+                        (onClick ${(e) => this.handleCancelClick(e)}) ) "❌Cancel")
+                (button (@ (style (textTransform "none")
+                                  (margin "0 3px 0 3px"))
+                        (className "waves-effect waves-light brown lighten-1 btn")
+                        (onClick ${(e) => this.handleOkClick(e)}) ) "✔️OK")
+            )
+        )`);
+    }
+}
+
+
 class App extends React.Component {
     constructor(props, context) {
         super(props, context);
@@ -198,11 +237,14 @@ class App extends React.Component {
         .catch(e => console.error(e));
     }
 
+    handleEditDataClick(e) {
+    }
+
     handleStretchedClick(e) {
         this.setState({stretched: !this.state.stretched});
     }
     
-    handleClick(e) {
+    handleShowClick(e) {
         this.setState({stretched: false});
         const editor = AppState.AceEditor['editor'];
 
@@ -212,7 +254,7 @@ class App extends React.Component {
             dataFormat: d.dataFormat,
         }, d.data)
         .then(html => {
-            const doc = document.getElementById('root').contentWindow.document;
+            const doc = this.refs.root.contentWindow.document;
             doc.write(html);
             doc.close();
         })
@@ -222,25 +264,31 @@ class App extends React.Component {
     render() {
         return (lsx`
         (Template
-            (div (@ (style (padding "4px")))
+            (div (@ (style (padding "4px") (display "flex") (alignItems "center") ))
                 (ExampleLoader (@ (loadExample ${(i) => this.loadExample(i)}) ))
-                " "
-                (button (@ (style (textTransform "none"))
+                (button (@ (style (textTransform "none")
+                                  (margin "0 3px 0 6px"))
                            (className "waves-effect waves-light brown lighten-1 btn")
-                           (onClick ${(e) => this.handleStretchedClick(e)}) ) "⇔")
-                " "
-                (button (@ (style (textTransform "none"))
+                           (onClick ${(e) => this.handleEditDataClick(e)}) ) "✏️Data")
+                (button (@ (style (textTransform "none")
+                                  (margin "0 3px"))
                            (className "waves-effect waves-light red lighten-1 btn")
-                           (onClick ${(e) => this.handleClick(e)}) ) "Show") )
+                           (onClick ${(e) => this.handleShowClick(e)}) ) "👀View")
+                (span (@ (style (flexGrow "2"))) " ")
+                (button (@ (style (textTransform "none")
+                                  (margin "0 3px"))
+                           (className "waves-effect waves-light brown lighten-1 btn")
+                           (onClick ${(e) => this.handleStretchedClick(e)}) ) "⇔")   )
             (div (@ (style (display "flex")
                            (flexWrap "wrap") ))
                 (AceEditor (@ (id "editor")
                               (stretched ${this.state.stretched ? true: false})
                               (loadExample ${(i) => this.loadExample(i)}) ))
-                (iframe (@ (id "root")
+                (iframe (@ (ref "root")
                            (className ($concat "OutputIframe"
                                       ${this.state.stretched ? " collapsed" : ""}) )))
             )
+            (DataDialog)
         )`);
     }
 }
@@ -252,6 +300,7 @@ window.lsx = liyad.LSX({
     components: {
         ExampleLoader,
         AceEditor,
+        DataDialog,
         App,
     },
 });
