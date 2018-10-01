@@ -38,6 +38,7 @@
     
         (style (@ (dangerouslySetInnerHTML """$concat
 
+            /* You can write additional styles here. */
             /*
             body {
                 background-color: blue;
