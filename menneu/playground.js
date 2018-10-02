@@ -225,7 +225,7 @@ class DataDialog extends React.Component {
         (dialog (@ (ref "dialog") (style (backgroundColor "#333") (color "white") ) )
             (h5 "Edit data")
             (div (textarea (@ (ref "text")
-                              (spellcheck "false")
+                              (spellCheck "false")
                               (style (width "90vw")
                                      (height "70vh") ))))
             (div (@ (style (display "flex")
