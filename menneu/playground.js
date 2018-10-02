@@ -183,6 +183,10 @@ class DataDialog extends React.Component {
         super(props, context);
     }
 
+    componentDidMount() {
+        dialogPolyfill.registerDialog(this.refs.dialog);
+    }
+
     showModal(text) {
         this.refs.text.value = text;
         this.refs.dialog.showModal();
