@@ -1,4 +1,8 @@
 
+<style>
+    h4 { color: blue; }
+</style>
+
 %%%(style (@ (dangerouslySetInnerHTML ".content { font-style: italic; color: red; }")))
 %%%($now)
 %%%(Greeting (@ (to "Ménneu")) "Good morning!")
