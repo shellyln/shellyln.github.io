@@ -212,6 +212,13 @@ it and was just in time to see it pop down a large rabbit-hole, under
 the hedge. In another moment, down went Alice after it!
 :::
 
+---
+
+::: content
+**Carroll, L. (1865) *Alice's adventures in wonderland*, London: Macmillan & Co.**
+:::
+
+---
 
 
 # [Syntax highlighting](https://highlightjs.org/)
