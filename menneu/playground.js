@@ -14,6 +14,13 @@ const exampleCodes = [{
     dataFormat: 'object',
     data: [1, 2, 3, 4, 5, 6],
 }, {
+    name: 'Table and chart (Markdown)',
+    mode: 'ace/mode/markdown',
+    value: './table-and-chart.md',
+    inputFormat: 'md',
+    dataFormat: 'object',
+    data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+}, {
     name: 'Billing (LSX)',
     mode: 'ace/mode/lisp',
     value: './billing.lsx',
