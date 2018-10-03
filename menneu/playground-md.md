@@ -30,12 +30,12 @@ Alt-h2
 
 # Escape (Character entity references)
 
-&amp;&lt;&quot;&apos;
+&amp;&lt;&gt;&quot;&apos;
 
-`&amp;&lt;&quot;&apos;`
+`&amp;&lt;&gt;&quot;&apos;`
 
 ```
-&amp;&lt;&quot;&apos;
+&amp;&lt;&gt;&quot;&apos;
 ```
 
 &<>"'
