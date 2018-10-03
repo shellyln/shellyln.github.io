@@ -214,9 +214,7 @@ the hedge. In another moment, down went Alice after it!
 
 ---
 
-::: content
 **Carroll, L. (1865) *Alice's adventures in wonderland*, London: Macmillan & Co.**
-:::
 
 ---
 
