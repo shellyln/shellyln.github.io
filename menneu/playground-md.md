@@ -1,7 +1,7 @@
 # Markdown demo
 
 <style>
-    h4 { color: blue; }
+    h4 { background-color: cyan; }
 </style>
 
 %%%(style (@ (dangerouslySetInnerHTML ".content { font-style: italic; color: red; }")))
