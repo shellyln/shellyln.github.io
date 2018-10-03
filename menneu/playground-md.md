@@ -63,7 +63,7 @@ Alt-h2
 %%%(Image (@ (src "https://shellyln.github.io/assets/image/redagate-logo.svg")
              (width 300) (height 100) (unit "px") (alt "Logo2") ))
 
-# Custom container
+# [Custom container](https://github.com/markdown-it/markdown-it-container)
 
 ::: spoiler Click me!
 Alice was beginning to get very tired of sitting by her sister on the
@@ -107,7 +107,7 @@ the hedge. In another moment, down went Alice after it!
 
 
 
-# highlighting
+# [Syntax highlighting](https://highlightjs.org/)
 
 ```javascript
 function foo(x) {
@@ -134,7 +134,7 @@ function foo(x) {
 
 
 
-# Barcodes and SVG
+# [Barcodes and SVG](https://github.com/shellyln/red-agate)
 
 %%%(Svg (@ (width 100)
            (height 100)
@@ -221,7 +221,7 @@ function foo(x) {
 
 
 
-# Loop and logics
+# [Loop and logics](https://github.com/shellyln/liyad)
 
 %%%($=for $data
     (div "hello," $data "," $index)
@@ -229,7 +229,7 @@ function foo(x) {
 
 
 
-# Cheeckbox
+# [Cheeckbox](https://github.com/mcecot/markdown-it-checkbox)
 
 [ ] foo
 [X] bar
@@ -237,7 +237,7 @@ function foo(x) {
 
 
 
-# PlantUML
+# [PlantUML](https://github.com/gmunguia/markdown-it-plantuml)
 
 > Firefox blocks the requests due to symantec untrusted certificate of https://www.plantuml.com/plantuml .  
 > Returned error is: "Reason: CORS request did not succeed".  
@@ -299,7 +299,7 @@ Alice -> UC3 : Bonjour
 |# )
 
 
-# Charts
+# [Charts](https://github.com/chartjs/Chart.js)
 
 
 %%%(Chart (@ (width 800)
@@ -522,7 +522,7 @@ Alice -> UC3 : Bonjour
 ))))
 
 
-# Superscript / Subscript
+# [Superscript](https://github.com/markdown-it/markdown-it-sup) / [Subscript](https://github.com/markdown-it/markdown-it-sub)
 
 * H~2~0
 * 29^th^
@@ -539,12 +539,12 @@ see [how to change output](https://github.com/markdown-it/markdown-it-emoji#chan
 
 
 
-# Math (supported browsers: Firefix, Safari)
+# [Math](https://github.com/runarberg/markdown-it-math) (supported browsers: Firefix, Safari)
 
 Pythagoran theorem is $$a^2 + b^2 = c^2$$.
- 
+
 Bayes theorem:
- 
+
 $$$
 P(A | B) = (P(B | A)P(A)) / P(B)
 P(A | B) = (P(B | A)P(A)) / P(B)
