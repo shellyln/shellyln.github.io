@@ -9,6 +9,11 @@
 %%%(Greeting (@ (to "Ménneu")) "Good morning!")
 
 
+The original text of this markdown example
+is [https://markdown-it.github.io/](https://markdown-it.github.io/).
+
+
+
 # Heading
 
 # h1
@@ -23,10 +28,13 @@ Alt-h1
 Alt-h2
 ------
 
+
+
 # Fonts
 * こんにちは
 * 你們好
 * 你们好
+
 
 
 # Escape (Character entity references)
@@ -48,10 +56,22 @@ Alt-h2
 ```
 
 
+
+# Horizontal Rules
+
+___
+
+---
+
+***
+
+
+
 # Links
 [I'm an inline-style link](https://shellyln.github.io)
 
 [I'm an inline-style link with title](https://shellyln.github.io "shellyln")
+
 
 
 # Images
@@ -62,6 +82,93 @@ Alt-h2
              (width 300) (height 100) (unit "px") (alt "Logo2") ))
 %%%(Image (@ (src "https://shellyln.github.io/assets/image/redagate-logo.svg")
              (width 300) (height 100) (unit "px") (alt "Logo2") ))
+
+
+
+# Emphasis
+
+**This is bold text**
+
+__This is bold text__
+
+*This is italic text*
+
+_This is italic text_
+
+~~Strikethrough~~
+
+
+
+# Blockquotes
+
+> Blockquotes can also be nested...
+>> ...by using additional greater-than signs right next to each other...
+> > > ...or with spaces between arrows.
+
+
+
+# Lists
+
+1. First ordered list item
+2. Another item
+    * Unordered sub-list. 
+1. Actual numbers don't matter, just that it's a number
+    1. Ordered sub-list
+4. And another item.
+
+    You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we'll use three here to also align the raw Markdown).
+
+    To have a line break without a paragraph, you will need to use two trailing spaces.  
+    Note that this line is separate, but within the same paragraph.  
+    (This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)
+
+* Unordered list can use asterisks
+- Or minuses
++ Or pluses
+
+
+
+# Tables
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
+----
+
+
 
 # [Custom container](https://github.com/markdown-it/markdown-it-container)
 
@@ -158,69 +265,6 @@ function foo(x) {
 
 
 
-# Lists
-
-1. First ordered list item
-2. Another item
-    * Unordered sub-list. 
-1. Actual numbers don't matter, just that it's a number
-    1. Ordered sub-list
-4. And another item.
-
-    You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we'll use three here to also align the raw Markdown).
-
-    To have a line break without a paragraph, you will need to use two trailing spaces.  
-    Note that this line is separate, but within the same paragraph.  
-    (This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)
-
-* Unordered list can use asterisks
-- Or minuses
-+ Or pluses
-
-
-
-# Tables
-
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-
-----
-
-
-
 # [Loop and logics](https://github.com/shellyln/liyad)
 
 %%%($=for $data
@@ -297,6 +341,7 @@ Alice -> UC3 : Bonjour
 
 ;; Comment out ends with the next line.
 |# )
+
 
 
 # [Charts](https://github.com/chartjs/Chart.js)
@@ -520,6 +565,7 @@ Alice -> UC3 : Bonjour
         ))
     ))
 ))))
+
 
 
 # [Superscript](https://github.com/markdown-it/markdown-it-sup) / [Subscript](https://github.com/markdown-it/markdown-it-sub)
