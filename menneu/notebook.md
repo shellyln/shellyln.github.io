@@ -4,6 +4,7 @@
 
 ## Writing the JavaScript blocks.
 
+### #1
 
 %%%(NoteBook """Js@{(module "foo")}
 const x = 12345;
@@ -27,12 +28,16 @@ return x;
 
 
 
+### #2
+
 %%%(NoteBook """Js@{(module "bar")}
 var x = new Date();
 return x;
 """)
 
 
+
+### #3
 
 %%%(NoteBook """Js@{(module "baz")}
 const foo = require('foo');
@@ -44,6 +49,8 @@ return foo();
 
 
 ## Writing the Lisp blocks.
+
+### #4
 
 %%%(NoteBook """Lisp@{(module "boo")}
 ($concat "abc" "def")
@@ -61,6 +68,8 @@ return foo();
 
 
 
+### #5
+
 %%%(NoteBook """Lisp@{(module "foobar")}
 ($let foo ($require "foo"))
 (foo)
@@ -68,6 +77,9 @@ return foo();
 
 * You can import something exported in the other JavaScript/Lisp blocks.
 
+
+
+### #6
 
 %%%(NoteBook """Lisp@{(module "fac")}
 ($set ($module exports) (-> (n)
@@ -88,6 +100,8 @@ return foo();
 
 
 
+### #7
+
 %%%(NoteBook """Js@{(module "foobaz")}
 const foo = require('fac');
 return foo(3);
@@ -96,6 +110,8 @@ return foo(3);
 
 
 ## Errors
+
+### #8
 
 %%%(NoteBook """Js@{(module "boobar")}
 constttt x = 12345;
@@ -108,6 +124,8 @@ return x;
 """)
 
 
+
+### #9
 
 %%%(NoteBook """Lisp@{(module "boobaz")}
 ($lett x 1)
