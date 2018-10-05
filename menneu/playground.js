@@ -87,18 +87,32 @@ const exampleCodes = [{
 
 
 const escapeHtml = (s) => s
-.replace(/&/g, "&amp;")
-.replace(/</g, "&lt;")
-.replace(/>/g, "&gt;")
-.replace(/"/g, "&quot;")
-.replace(/'/g, "&#39;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
+
+let lisp = null;
 
 const start = (async (text, cf, data) => {
     const env = menneu.getAppEnv();
     const dom = env.RedAgate.createElement;
     const jsModuleDict = {};
     const jsRequire = (name) => jsModuleDict[name].exports;
+    if (!lisp) {
+        // TODO: bug?: When calling following code twice or more,
+        //             cause the error "TypeError: Cannot read property 'map' of undefined" on liyad/s-expression.ts of
+        //             "macroMap: new Map<string, SxMacroInfo>(config.macros.map(x => [x.name, x] as [string, SxMacroInfo]))".
+        lisp = (() => {
+            let config = null;
+            env.Liyad.lisp.install((cf) => {
+                config = Object.assign({}, cf);
+            });
+            return env.Liyad.SExpression(config);
+        })();
+    }
 
     const buf = await menneu.render(text, data || {}, Object.assign({
         inputFormat: 'md',
@@ -153,14 +167,6 @@ const start = (async (text, cf, data) => {
             },
 
             Lisp: (props) => {
-                const lisp = (() => {
-                    let config = null;
-                    env.Liyad.lisp.install((cf) => {
-                        config = Object.assign({}, cf);
-                    });
-                    return env.Liyad.SExpression(config);
-                })();
-
                 const c = env.RedAgate.renderAsHtml_noDefer(
                     dom(env.components.RawHtml, {}, props.children)).trim();
 
