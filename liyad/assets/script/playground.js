@@ -72,15 +72,9 @@ class AceEditor extends React.Component {
 
     render() {
         return (lsx`
-        (div (@ (style (width "calc(50% - 10px)")
-                       (minWidth "400px")
-                       (margin "8px 4px 4px 4px") ))
+        (div (@ (className "AceEditorOuterWrap"))
             (div (@ (id ${this.props.id})
-                    (style (width "100%")
-                           (height "calc(100vh - 64px - 220px - 55px - 15px)")
-                           (minHeight "300px")
-                           (fontSize "12pt") )))
-        )`);
+                    (className "AceEditorDiv") )))`);
     }
 }
 
@@ -250,13 +244,7 @@ class App extends React.Component {
                 (AceEditor (@ (id "editor")
                               (loadExample ${(i) => this.loadExample(i)}) ))
                 (div (@ (id "root")
-                        (className "grey")
-                        (style (width "calc(50% - 10px)")
-                               (minWidth "400px")
-                               (height "calc(100vh - 64px - 220px - 55px - 15px)")
-                               (minHeight "300px")
-                               (margin "8px 4px 4px 4px")
-                               (overflow "auto") )))
+                        (className "grey OutletDiv") ))
             )
         )`);
     }
