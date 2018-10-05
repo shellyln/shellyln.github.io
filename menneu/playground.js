@@ -99,13 +99,6 @@ const start = (async (text, cf, data) => {
     const dom = env.RedAgate.createElement;
     const jsModuleDict = {};
     const jsRequire = (name) => jsModuleDict[name].exports;
-    const lisp = (() => {
-        let config = null;
-        env.Liyad.lisp.install((cf) => {
-            config = Object.assign({}, cf);
-        });
-        return env.Liyad.SExpression(config);
-    })();
 
     const buf = await menneu.render(text, data || {}, Object.assign({
         inputFormat: 'md',
@@ -160,6 +153,14 @@ const start = (async (text, cf, data) => {
             },
 
             Lisp: (props) => {
+                const lisp = (() => {
+                    let config = null;
+                    env.Liyad.lisp.install((cf) => {
+                        config = Object.assign({}, cf);
+                    });
+                    return env.Liyad.SExpression(config);
+                })();
+
                 const c = env.RedAgate.renderAsHtml_noDefer(
                     dom(env.components.RawHtml, {}, props.children)).trim();
 
