@@ -5,7 +5,7 @@ const start = (async (cf) => {
         outputFormat: 'html',
         title: 'Markdown',
         markdownBodyStyle: 'font-family: "Yu Gothic Medium", YuGothic, meiryo, "Microsoft JhengHei", "Microsoft YaHei", "SimHei", helvetica, arial, sans-serif;',
-    }, cf || {}));
+    }, (typeof cf === 'function' ? cf(menneu.getAppEnv()) : cf) || {}));
     document.write(buf.toString());
     document.close();
 });

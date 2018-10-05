@@ -21,6 +21,13 @@ const exampleCodes = [{
     dataFormat: 'object',
     data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 }, {
+    name: 'JS Notebook (Markdown)',
+    mode: 'ace/mode/markdown',
+    value: './notebook.md',
+    inputFormat: 'md',
+    dataFormat: 'object',
+    data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+}, {
     name: 'Billing (LSX)',
     mode: 'ace/mode/lisp',
     value: './billing.lsx',
@@ -86,7 +93,20 @@ const escapeHtml = (s) => s
 .replace(/"/g, "&quot;")
 .replace(/'/g, "&#39;");
 
+
 const start = (async (text, cf, data) => {
+    const env = menneu.getAppEnv();
+    const dom = env.RedAgate.createElement;
+    const jsModuleDict = {};
+    const jsRequire = (name) => jsModuleDict[name].exports;
+    const lisp = (() => {
+        let config = null;
+        env.Liyad.lisp.install((cf) => {
+            config = Object.assign({}, cf);
+        });
+        return env.Liyad.SExpression(config);
+    })();
+
     const buf = await menneu.render(text, data || {}, Object.assign({
         inputFormat: 'md',
         dataFormat: 'object',
@@ -94,15 +114,85 @@ const start = (async (text, cf, data) => {
 
         title: 'Markdown example',
         markdownBodyStyle: 'font-family: "Yu Gothic Medium", YuGothic, meiryo, "Microsoft JhengHei", "Microsoft YaHei", "SimHei", helvetica, arial, sans-serif;',
+
         globals: {
-            "$now": () => (new Date).toLocaleDateString('en-US'),
-            "$to-locale-string": (...args) => args.slice(-1)[0].toLocaleString(...(args.slice(0, -1))),
-            "$dir": (...args) => console.dir(...args),
-            "qwerty": "asdfgh",
+            '$now': () => (new Date).toLocaleDateString('en-US'),
+            '$to-locale-string': (...args) => args.slice(-1)[0].toLocaleString(...(args.slice(0, -1))),
+            '$dir': (...args) => console.dir(...args),
+            'qwerty': 'asdfgh',
         },
+
         components: {
             Greeting: (props) => `Hello, ${props.to}! ${props.children}`,
+
+            NoteBook: env.components.Facet,
+
+            Js: (props) => {
+                const c = env.RedAgate.renderAsHtml_noDefer(
+                    dom(env.components.RawHtml, {}, props.children)).trim();
+                const s = `(function(exports, require, module, __filename, __dirname) {${c}});`;
+
+                const jsModule = { exports: {} };
+                let f = null,
+                    r = null;
+
+                try {
+                    f = eval(s);
+                    r = f(jsModule.exports, jsRequire, jsModule, '', '');
+                } catch (e) {
+                    r = String(e);
+                }
+                if (props.module && !jsModuleDict[props.module]) {
+                    jsModuleDict[props.module] = jsModule;
+                }
+
+                return dom('p', null,
+                    dom('p', null,
+                        props.module ? [
+                            dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
+                            dom('code', null, props.module), dom('br')
+                        ] : null,
+                        dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
+                        dom('code', null, typeof r === 'object' ? JSON.stringify(r) : String(r)),
+                    ),
+                    dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```javascript\n' + c + '\n```\n\n' } }),
+                );
+            },
+
+            Lisp: (props) => {
+                const c = env.RedAgate.renderAsHtml_noDefer(
+                    dom(env.components.RawHtml, {}, props.children)).trim();
+
+                const jsModule = { exports: {} };
+                let r = null;
+
+                try {
+                    r = lisp.setGlobals({
+                        '$require': jsRequire,
+                        '$module': jsModule,
+                        '$exports': jsModule.exports,
+                    })(c);
+                } catch (e) {
+                    r = String(e);
+                }
+                if (props.module && !jsModuleDict[props.module]) {
+                    jsModuleDict[props.module] = jsModule;
+                }
+
+                return dom('p', null,
+                    dom('p', null,
+                        props.module ? [
+                            dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
+                            dom('code', null, props.module), dom('br')
+                        ] : null,
+                        dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
+                        dom('code', null, typeof r === 'object' ? JSON.stringify(r) : String(r)),
+                    ),
+                    dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```lisp\n' + c + '\n```\n\n' } }),
+                );
+            },
         },
+
         markdownCustomContainers: [{
             name: 'content',
         }, {
