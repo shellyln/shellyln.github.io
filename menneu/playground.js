@@ -20,6 +20,7 @@ const exampleCodes = [{
     inputFormat: 'md',
     dataFormat: 'object',
     data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+/*
 }, {
     name: 'JS Notebook (Markdown)',
     mode: 'ace/mode/markdown',
@@ -27,6 +28,7 @@ const exampleCodes = [{
     inputFormat: 'md',
     dataFormat: 'object',
     data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+*/
 }, {
     name: 'Billing (LSX)',
     mode: 'ace/mode/lisp',
@@ -97,6 +99,7 @@ const escapeHtml = (s) => s
 let lisp = null;
 
 const start = (async (text, cf, data) => {
+/*
     const env = menneu.getAppEnv();
     const dom = env.RedAgate.createElement;
     const jsModuleDict = {};
@@ -113,6 +116,7 @@ const start = (async (text, cf, data) => {
             return env.Liyad.SExpression(config);
         })();
     }
+*/
 
     const buf = await menneu.render(text, data || {}, Object.assign({
         inputFormat: 'md',
@@ -131,7 +135,7 @@ const start = (async (text, cf, data) => {
 
         components: {
             Greeting: (props) => `Hello, ${props.to}! ${props.children}`,
-
+/*
             NoteBook: env.components.Facet,
 
             Js: (props) => {
@@ -198,6 +202,7 @@ const start = (async (text, cf, data) => {
                     dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```lisp\n' + c + '\n```\n\n' } }),
                 );
             },
+*/
         },
 
         markdownCustomContainers: [{
