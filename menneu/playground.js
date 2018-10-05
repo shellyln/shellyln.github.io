@@ -438,7 +438,7 @@ class App extends React.Component {
                 (AceEditor (@ (id "editor")
                               (stretched ${this.state.stretched ? true: false})
                               (loadExample ${(i) => this.loadExample(i)}) ))
-                (iframe (@ (ref "root") (sandbox)
+                (iframe (@ (ref "root") (sandbox "")
                            (className ($concat "OutputIframe"
                                       ${this.state.stretched ? " collapsed" : ""}) )))
             )
