@@ -1,5 +1,5 @@
-const start = (async (cf) => {
-    const buf = await menneu.render(Array.from(document.querySelectorAll('script[type="text/markdown"]'), x => x.innerHTML).join(' '), {}, Object.assign({
+const start = (async (cf, data) => {
+    const buf = await menneu.render(Array.from(document.querySelectorAll('script[type="text/markdown"]'), x => x.innerHTML).join(' '), data || {}, Object.assign({
         rawInput: false,
         inputFormat: 'md',
         outputFormat: 'html',
