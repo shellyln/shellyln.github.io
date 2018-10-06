@@ -149,6 +149,13 @@ return foo(3);
 
 ### #8
 
+#### Factorial
+
+%%%(Math """
+n! = prod_(k=1)^n k = n xx (n - 1) xx ... xx 3 xx 2 xx 1
+""")
+
+
 %%%(Notebook """Lisp@{(module "data1")}
 ```lisp
 ($let fac ($require "fac"))
@@ -245,4 +252,14 @@ return x;
 ($lett x 1)
 ```
 """)
+
+
+
+
+
+### To view math formula in all browsers, load [MathJax](https://www.mathjax.org/) script file.
+
+> Note: Execution of the user JavaScript contents are cancelled for security reason on this site.
+
+%%%(script (@ (src "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML") (crossorigin "anonymous") (async)))
 
