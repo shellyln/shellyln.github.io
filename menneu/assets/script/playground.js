@@ -12,28 +12,28 @@ const AppState = {
 const exampleCodes = [{
     name: 'Demo (Markdown)',
     mode: 'ace/mode/markdown',
-    value: './playground-md.md',
+    value: './examples/playground-md.md',
     inputFormat: 'md',
     dataFormat: 'object',
     data: [1, 2, 3, 4, 5, 6],
 }, {
     name: 'Table and chart (Markdown)',
     mode: 'ace/mode/markdown',
-    value: './table-and-chart.md',
+    value: './examples/table-and-chart.md',
     inputFormat: 'md',
     dataFormat: 'object',
     data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 }, {
     name: 'JS Notebook (Markdown)',
     mode: 'ace/mode/markdown',
-    value: './notebook.md',
+    value: './examples/notebook.md',
     inputFormat: 'md',
     dataFormat: 'object',
     data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 }, {
     name: 'Billing (LSX)',
     mode: 'ace/mode/lisp',
-    value: './billing.lsx',
+    value: './examples/billing.lsx',
     inputFormat: 'lsx',
     dataFormat: 'lisp',
     data:

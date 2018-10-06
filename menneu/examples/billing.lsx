@@ -34,7 +34,7 @@
           (meta (@ (charset "UTF-8")))
           (NormalizeCss)
           (PaperCss)
-          (Style (@ (src "./billing.style.css")))
+          (Style (@ (src "./examples/billing.style.css")))
     
         (style (@ (dangerouslySetInnerHTML """$concat
 
