@@ -148,78 +148,96 @@ const start = (async (text, cf, data) => {
 
             Notebook: env.components.Facet,
 
-            Js: (props) => {
-                let c = env.RedAgate.renderAsHtml_noDefer(
-                    dom(env.components.RawHtml, {}, props.children)).trim();
-                let m = c.match(/^```(?:javascript|js)\s+([^]*)\s+```$/i);
-                if (m) {
-                    c = m[1];
-                }
-                const s = `(function(exports, require, module, __filename, __dirname) {${c}});`;
+            Js: class NotebookJsComponent extends env.RedAgate.RedAgateComponent {
+                earlyConstruct() {}
+                constructor(props) {
+                    super(props);
 
-                const jsModule = { exports: {} };
-                let f = null,
-                    r = null;
+                    let c = env.RedAgate.renderAsHtml_noDefer(
+                        dom(env.components.RawHtml, {}, props.children)).trim();
+                    let m = c.match(/^```(?:javascript|js)\s+([^]*)\s+```$/i);
+                    if (m) {
+                        c = m[1];
+                    }
+                    const s = `(function(exports, require, module, __filename, __dirname) {${c}});`;
+    
+                    const jsModule = { exports: {} };
+                    let f = null,
+                        r = null;
+    
+                    try {
+                        throw new Error('Execution of the content is cancelled for security reason.');
+                        // f = eval(s);
+                        // r = f(jsModule.exports, jsRequire, jsModule, '', '');
+                    } catch (e) {
+                        r = String(e);
+                    }
+                    if (props.module && !jsModuleDict[props.module]) {
+                        jsModuleDict[props.module] = jsModule;
+                    }
 
-                try {
-                    throw new Error('Execution of the content is cancelled for security reason.');
-                    // f = eval(s);
-                    // r = f(jsModule.exports, jsRequire, jsModule, '', '');
-                } catch (e) {
-                    r = String(e);
+                    this.code = c;
+                    this.result = r;
                 }
-                if (props.module && !jsModuleDict[props.module]) {
-                    jsModuleDict[props.module] = jsModule;
+                transform() {
+                    return dom('p', null,
+                        dom('p', null,
+                            this.props.module ? [
+                                dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
+                                dom('code', null, this.props.module), dom('br')
+                            ] : null,
+                            dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
+                            dom('code', null, typeof this.result === 'object' ? JSON.stringify(this.result) : String(this.result)),
+                        ),
+                        dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```javascript\n' + this.code + '\n```\n\n' } }),
+                    );
                 }
-
-                return dom('p', null,
-                    dom('p', null,
-                        props.module ? [
-                            dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
-                            dom('code', null, props.module), dom('br')
-                        ] : null,
-                        dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
-                        dom('code', null, typeof r === 'object' ? JSON.stringify(r) : String(r)),
-                    ),
-                    dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```javascript\n' + c + '\n```\n\n' } }),
-                );
             },
 
-            Lisp: (props) => {
-                let c = env.RedAgate.renderAsHtml_noDefer(
-                    dom(env.components.RawHtml, {}, props.children)).trim();
-                let m = c.match(/^```(?:lisp)\s+([^]*)\s+```$/i);
-                if (m) {
-                    c = m[1];
-                }
+            Lisp: class NotebookLispComponent extends env.RedAgate.RedAgateComponent {
+                earlyConstruct() {}
+                constructor(props) {
+                    super(props);
 
-                const jsModule = { exports: {} };
-                let r = null;
+                    let c = env.RedAgate.renderAsHtml_noDefer(
+                        dom(env.components.RawHtml, {}, props.children)).trim();
+                    let m = c.match(/^```(?:lisp)\s+([^]*)\s+```$/i);
+                    if (m) {
+                        c = m[1];
+                    }
+    
+                    const jsModule = { exports: {} };
+                    let r = null;
+    
+                    try {
+                        r = lisp.setGlobals({
+                            '$require': jsRequire,
+                            '$module': jsModule,
+                            '$exports': jsModule.exports,
+                        })(c);
+                    } catch (e) {
+                        r = String(e);
+                    }
+                    if (props.module && !jsModuleDict[props.module]) {
+                        jsModuleDict[props.module] = jsModule;
+                    }
 
-                try {
-                    r = lisp.setGlobals({
-                        '$require': jsRequire,
-                        '$module': jsModule,
-                        '$exports': jsModule.exports,
-                    })(c);
-                } catch (e) {
-                    r = String(e);
+                    this.code = c;
+                    this.result = r;
                 }
-                if (props.module && !jsModuleDict[props.module]) {
-                    jsModuleDict[props.module] = jsModule;
+                transform() {
+                    return dom('p', null,
+                        dom('p', null,
+                            this.props.module ? [
+                                dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
+                                dom('code', null, this.props.module), dom('br')
+                            ] : null,
+                            dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
+                            dom('code', null, typeof this.result === 'object' ? JSON.stringify(this.result) : String(this.result)),
+                        ),
+                        dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```lisp\n' + this.code + '\n```\n\n' } }),
+                    );
                 }
-
-                return dom('p', null,
-                    dom('p', null,
-                        props.module ? [
-                            dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
-                            dom('code', null, props.module), dom('br')
-                        ] : null,
-                        dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
-                        dom('code', null, typeof r === 'object' ? JSON.stringify(r) : String(r)),
-                    ),
-                    dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```lisp\n' + c + '\n```\n\n' } }),
-                );
             },
         },
 
