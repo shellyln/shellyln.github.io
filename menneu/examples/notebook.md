@@ -172,8 +172,8 @@ return foo(3);
     nil)
 
 
-%%%(local ((x ($get ($require "data1") "x")
-           (y ($get ($require "data1") "y") )))
+%%%(local ((x ($get ($require "data1") "x"))
+           (y ($get ($require "data1") "y")) )
 (Chart (@ (width 800)
              (height 400)
              (unit "px")
