@@ -103,6 +103,8 @@ const start = (async (text, cf, data) => {
 
     const env = menneu.getAppEnv();
     const dom = env.RedAgate.createElement;
+
+    // for Notebook
     const jsModuleDict = {};
     const jsRequire = (name) => jsModuleDict[name].exports;
     if (!lisp) {
@@ -127,8 +129,16 @@ const start = (async (text, cf, data) => {
         markdownBodyStyle: 'font-family: "Yu Gothic Medium", YuGothic, meiryo, "Microsoft JhengHei", "Microsoft YaHei", "SimHei", helvetica, arial, sans-serif;',
 
         globals: {
+            // for Demo
             '$now': () => (new Date).toLocaleDateString('en-US'),
+
+            // for Notebook
+            '$require': jsRequire,
+
+            // for Billing
             '$to-locale-string': (...args) => args.slice(-1)[0].toLocaleString(...(args.slice(0, -1))),
+
+            // for debug
             '$dir': (...args) => console.dir(...args),
             'qwerty': 'asdfgh',
         },
@@ -136,7 +146,6 @@ const start = (async (text, cf, data) => {
         components: {
             Greeting: (props) => `Hello, ${props.to}! ${props.children}`,
 
-            NoteBook: env.components.Facet,
             Notebook: env.components.Facet,
 
             Js: (props) => {
