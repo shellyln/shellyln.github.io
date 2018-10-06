@@ -152,12 +152,21 @@ return foo(3);
 %%%(Notebook """Lisp@{(module "data1")}
 ```lisp
 ($let fac ($require "fac"))
-($let x ($range 0 9))
-($set ($exports x) x)
-($set ($exports y) ($map x (-> (v) (fac v))))
+
+($let x  ($range 0 9))
+($let xy ($map x  (-> (v) ($list v (fac v)))))
+($let y  ($map xy (-> (v) ($get  v 1))))
+
+($set ($exports x)  x)
+($set ($exports xy) xy)
+($set ($exports y)  y)
 ```
 """)
 
+
+| x                 | y                 |
+|------------------:|------------------:| %%%($=for ($get ($require "data1") "xy") """
+| %%%($get $data 0) | %%%($get $data 1) | """)
 
 
 %%%($last ($defun get-color (i op)
@@ -172,8 +181,8 @@ return foo(3);
     nil)
 
 
-%%%(local ((x ($get ($require "data1") "x"))
-           (y ($get ($require "data1") "y")) )
+%%%($local ((x ($get ($require "data1") "x"))
+            (y ($get ($require "data1") "y")) )
 (Chart (@ (width 800)
              (height 400)
              (unit "px")
@@ -204,7 +213,7 @@ return foo(3);
             (formatter (-> (v) ($round v)))
         ))))
     ))
-)))))
+))) ) )
 
 
 
