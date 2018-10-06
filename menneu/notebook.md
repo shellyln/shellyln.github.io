@@ -1,6 +1,6 @@
 # JS Notebook
 
-
+> Note: Execution of the JavaScript contents are cancelled for security reason.
 
 ## Writing the JavaScript blocks.
 
