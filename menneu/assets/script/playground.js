@@ -82,7 +82,7 @@ const exampleCodes = [{
 }, {
     name: 'Demo (HTML)',
     mode: 'ace/mode/html',
-    value: './playground-html.html',
+    value: './examples/playground-html.html',
     inputFormat: 'html',
     dataFormat: 'object',
     data: [3, 5, 7, 11, 13],
