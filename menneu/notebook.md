@@ -2,6 +2,10 @@
 
 > Note: Execution of the JavaScript contents are cancelled for security reason on this site.
 
+
+
+
+
 ## Writing the JavaScript blocks.
 
 ### #1
@@ -30,6 +34,8 @@ return x;
 
 
 
+
+
 ### #2
 
 %%%(Notebook """Js@{(module "bar")}
@@ -38,6 +44,8 @@ var x = new Date();
 return x;
 ```
 """)
+
+
 
 
 
@@ -51,6 +59,8 @@ return foo();
 """)
 
 * You can import something exported in the other JavaScript/Lisp blocks.
+
+
 
 
 
@@ -76,6 +86,8 @@ return foo();
 
 
 
+
+
 ### #5
 
 %%%(Notebook """Lisp@{(module "foobar")}
@@ -86,6 +98,8 @@ return foo();
 """)
 
 * You can import something exported in the other JavaScript/Lisp blocks.
+
+
 
 
 
@@ -112,6 +126,8 @@ return foo();
 
 
 
+
+
 ### #7
 
 %%%(Notebook """Js@{(module "foobaz")}
@@ -120,6 +136,8 @@ const foo = require('fac');
 return foo(3);
 ```
 """)
+
+
 
 
 
@@ -138,6 +156,8 @@ module.exports = function() {
 return x;
 ```
 """)
+
+
 
 
 
