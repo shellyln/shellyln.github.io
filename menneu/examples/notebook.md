@@ -2,6 +2,9 @@
 
 > Note: Execution of the JavaScript contents are cancelled for security reason on this site.
 
+* Custom components `Js`, `Lisp` and `Notebook` are defined in https://shellyln.github.io/menneu/assets/script/playground.js .
+* Enclosing the code blocks by `\%\%\%(Notebook \"\"\"Js ... \"\"\")` or `\%\%\%(Notebook \"\"\"Lisp ... \"\"\")` to evaluate code and show result.
+
 
 
 
