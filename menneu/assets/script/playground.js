@@ -171,6 +171,7 @@ const start = (async (text, cf, data) => {
                         // r = f(jsModule.exports, jsRequire, jsModule, '', '');
                     } catch (e) {
                         r = String(e);
+                        this.error = true;
                     }
                     if (props.module && !jsModuleDict[props.module]) {
                         jsModuleDict[props.module] = jsModule;
@@ -187,7 +188,7 @@ const start = (async (text, cf, data) => {
                                 dom('code', null, this.props.module), dom('br')
                             ] : null,
                             dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
-                            dom('code', null, typeof this.result === 'object' ? JSON.stringify(this.result) : String(this.result)),
+                            dom('code', this.error ? { style: { backgroundColor: '#FF9999' } } : null, typeof this.result === 'object' ? JSON.stringify(this.result) : String(this.result)),
                         ),
                         dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```javascript\n' + this.code + '\n```\n\n' } }),
                     );
@@ -217,6 +218,7 @@ const start = (async (text, cf, data) => {
                         })(c);
                     } catch (e) {
                         r = String(e);
+                        this.error = true;
                     }
                     if (props.module && !jsModuleDict[props.module]) {
                         jsModuleDict[props.module] = jsModule;
@@ -233,7 +235,7 @@ const start = (async (text, cf, data) => {
                                 dom('code', null, this.props.module), dom('br')
                             ] : null,
                             dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
-                            dom('code', null, typeof this.result === 'object' ? JSON.stringify(this.result) : String(this.result)),
+                            dom('code', this.error ? { style: { backgroundColor: '#FF9999' } } : null, typeof this.result === 'object' ? JSON.stringify(this.result) : String(this.result)),
                         ),
                         dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```lisp\n' + this.code + '\n```\n\n' } }),
                     );
