@@ -213,12 +213,6 @@ n! = prod_(k=1)^n k = n xx (n - 1) xx ... xx 3 xx 2 xx 1
                 (beginAtZero true)
             )))))
         ))
-        (plugins (# (datalabels (#
-            (color "black")
-            (font (# (weight "bold")))
-            (display (-> (ctx) (> ($get ctx dataset data ($get ctx dataIndex)) 5)))
-            (formatter (-> (v) ($round v)))
-        ))))
     ))
 ))) ) )
 
