@@ -1,6 +1,6 @@
 # JS Notebook
 
-> Note: Execution of the JavaScript contents are cancelled for security reason on this site.
+> Note: Execution of the user JavaScript contents are cancelled for security reason on this site.
 
 * Custom components `Js`, `Lisp` and `Notebook` are defined in
   [https://shellyln.github.io/menneu/assets/script/playground.js](https://shellyln.github.io/menneu/assets/script/playground.js) .
