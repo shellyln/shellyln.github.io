@@ -68,6 +68,8 @@ return foo();
 
 
 
+<p style="page-break-after: always;"></p>
+
 ## Writing the Lisp blocks.
 
 ### #4
@@ -145,6 +147,8 @@ return foo(3);
 
 
 
+<p style="page-break-after: always;"></p>
+
 ## Visualization
 
 ### #8
@@ -218,6 +222,9 @@ n! = prod_(k=1)^n k = n xx (n - 1) xx ... xx 3 xx 2 xx 1
 
 
 
+
+
+<p style="page-break-after: always;"></p>
 
 ## Errors
 
