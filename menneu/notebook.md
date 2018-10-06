@@ -6,7 +6,8 @@
 
 ### #1
 
-%%%(NoteBook """Js@{(module "foo")}
+%%%(Notebook """Js@{(module "foo")}
+```javascript
 const x = 12345;
 
 module.exports = function() {
@@ -14,6 +15,7 @@ module.exports = function() {
 }
 
 return x;
+```
 """)
 
 * You can export symbols to other blocks via `module.exports` or `exports`.
@@ -30,18 +32,22 @@ return x;
 
 ### #2
 
-%%%(NoteBook """Js@{(module "bar")}
+%%%(Notebook """Js@{(module "bar")}
+```javascript
 var x = new Date();
 return x;
+```
 """)
 
 
 
 ### #3
 
-%%%(NoteBook """Js@{(module "baz")}
+%%%(Notebook """Js@{(module "baz")}
+```javascript
 const foo = require('foo');
 return foo();
+```
 """)
 
 * You can import something exported in the other JavaScript/Lisp blocks.
@@ -52,7 +58,8 @@ return foo();
 
 ### #4
 
-%%%(NoteBook """Lisp@{(module "boo")}
+%%%(Notebook """Lisp@{(module "boo")}
+```lisp
 ($concat "abc" "def")
 
 ($defun fac (n)
@@ -64,15 +71,18 @@ return foo();
     (* x y) )
 
 (multipy 4 (fac 3))
+```
 """)
 
 
 
 ### #5
 
-%%%(NoteBook """Lisp@{(module "foobar")}
+%%%(Notebook """Lisp@{(module "foobar")}
+```lisp
 ($let foo ($require "foo"))
 (foo)
+```
 """)
 
 * You can import something exported in the other JavaScript/Lisp blocks.
@@ -81,11 +91,13 @@ return foo();
 
 ### #6
 
-%%%(NoteBook """Lisp@{(module "fac")}
+%%%(Notebook """Lisp@{(module "fac")}
+```lisp
 ($set ($module exports) (-> (n)
     ($if (== n 0)
         1
         (* n ($self (- n 1))) )))
+```
 """)
 
 * You can export symbols to other blocks via `$module exports` or `$exports`.
@@ -102,9 +114,11 @@ return foo();
 
 ### #7
 
-%%%(NoteBook """Js@{(module "foobaz")}
+%%%(Notebook """Js@{(module "foobaz")}
+```javascript
 const foo = require('fac');
 return foo(3);
+```
 """)
 
 
@@ -113,7 +127,8 @@ return foo(3);
 
 ### #8
 
-%%%(NoteBook """Js@{(module "boobar")}
+%%%(Notebook """Js@{(module "boobar")}
+```javascript
 constttt x = 12345;
 
 module.exports = function() {
@@ -121,13 +136,16 @@ module.exports = function() {
 }
 
 return x;
+```
 """)
 
 
 
 ### #9
 
-%%%(NoteBook """Lisp@{(module "boobaz")}
+%%%(Notebook """Lisp@{(module "boobaz")}
+```lisp
 ($lett x 1)
+```
 """)
 

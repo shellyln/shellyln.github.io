@@ -137,10 +137,15 @@ const start = (async (text, cf, data) => {
             Greeting: (props) => `Hello, ${props.to}! ${props.children}`,
 
             NoteBook: env.components.Facet,
+            Notebook: env.components.Facet,
 
             Js: (props) => {
-                const c = env.RedAgate.renderAsHtml_noDefer(
+                let c = env.RedAgate.renderAsHtml_noDefer(
                     dom(env.components.RawHtml, {}, props.children)).trim();
+                let m = c.match(/^```(?:javascript|js)\s+([^]*)\s+```$/i);
+                if (m) {
+                    c = m[1];
+                }
                 const s = `(function(exports, require, module, __filename, __dirname) {${c}});`;
 
                 const jsModule = { exports: {} };
@@ -172,8 +177,12 @@ const start = (async (text, cf, data) => {
             },
 
             Lisp: (props) => {
-                const c = env.RedAgate.renderAsHtml_noDefer(
+                let c = env.RedAgate.renderAsHtml_noDefer(
                     dom(env.components.RawHtml, {}, props.children)).trim();
+                let m = c.match(/^```(?:lisp)\s+([^]*)\s+```$/i);
+                if (m) {
+                    c = m[1];
+                }
 
                 const jsModule = { exports: {} };
                 let r = null;
