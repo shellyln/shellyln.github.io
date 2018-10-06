@@ -145,9 +145,73 @@ return foo(3);
 
 
 
-## Errors
+## Visualization
 
 ### #8
+
+%%%(Notebook """Lisp@{(module "data1")}
+```lisp
+($let fac ($require "fac"))
+($let x ($range 0 9))
+($set ($exports x) x)
+($set ($exports y) ($map x (-> (v) (fac v))))
+```
+""")
+
+
+
+%%%($last ($defun get-color (i op)
+    ($let p ($to-string op))
+    ($let c ($list ($concat "rgba(255,  99, 132, " p ")")
+                   ($concat "rgba( 54, 162, 235, " p ")")
+                   ($concat "rgba(255, 206,  86, " p ")")
+                   ($concat "rgba( 75, 192, 192, " p ")")
+                   ($concat "rgba(153, 102, 255, " p ")")
+                   ($concat "rgba(255, 159,  64, " p ")") ))
+    ($get c ($mod i ($length c))) )
+    nil)
+
+
+%%%(local ((x ($get ($require "data1") "x"))
+           (y ($get ($require "data1") "y")) )
+(Chart (@ (width 800)
+             (height 400)
+             (unit "px")
+             (asImgTag)
+             (displayDataLabel)
+             (settings (#
+    (type "bar")
+    (data (#
+        (labels x)
+        (datasets ($list (#
+            (label "factorial")
+            (data y)
+            (backgroundColor ($map ($range 0 (- ($length y) 1)) (-> (i) (get-color i 0.2)) ))
+            (borderColor     ($map ($range 0 (- ($length y) 1)) (-> (i) (get-color i 1.0)) ))
+            (borderWidth 1)
+        )))
+    ))
+    (options (#
+        (scales (#
+            (yAxes ($list (# (ticks (#
+                (beginAtZero true)
+            )))))
+        ))
+        (plugins (# (datalabels (#
+            (color "black")
+            (font (# (weight "bold")))
+            (display (-> (ctx) (> ($get ctx dataset data ($get ctx dataIndex)) 5)))
+            (formatter (-> (v) ($round v)))
+        ))))
+    ))
+)))))
+
+
+
+
+## Errors
+
+### #9
 
 %%%(Notebook """Js@{(module "boobar")}
 ```javascript
@@ -165,7 +229,7 @@ return x;
 
 
 
-### #9
+### #10
 
 %%%(Notebook """Lisp@{(module "boobaz")}
 ```lisp
