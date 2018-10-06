@@ -1,6 +1,6 @@
 # JS Notebook
 
-> Note: Execution of the JavaScript contents are cancelled for security reason.
+> Note: Execution of the JavaScript contents are cancelled for security reason on this site.
 
 ## Writing the JavaScript blocks.
 
