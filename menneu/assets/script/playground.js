@@ -152,7 +152,7 @@ const start = (async (text, cf, data) => {
                         this.asyncResult = v;
                         resolve();
                     }).catch(e => {
-                        this.asyncResult = e;
+                        this.asyncResult = String(e);
                         this.asyncError = true;
                         resolve();
                     });
@@ -162,14 +162,20 @@ const start = (async (text, cf, data) => {
             }
         }
         render(ctx, children) {
+            const isAsync = this.result instanceof Promise;
+            let vz = '';
+            if (!(isAsync ? this.asyncError : this.error ) && this.props.visualizer && typeof this.props.visualizer === 'function') {
+                const q = this.props.visualizer(isAsync ? this.asyncResult : this.result);
+                vz = env.RedAgate.renderAsHtml_noDefer(q);
+            }
             if (this.result instanceof Promise) {
                 return `${children
                     }<p>Async result: <code${
                     this.asyncError ? ' style="background-color:#FF9999;"' : ''}>${
                     env.RedAgateUtil.Escape.html(typeof this.asyncResult === 'object' ?
-                        JSON.stringify(this.asyncResult) : String(this.asyncResult))}</code></p>`;
+                        JSON.stringify(this.asyncResult) : String(this.asyncResult))}</code></p>${vz}`;
             } else {
-                return children;
+                return `${children}${vz}`;
             }
         }
     }
