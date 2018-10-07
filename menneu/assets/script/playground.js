@@ -120,6 +120,52 @@ const start = (async (text, cf, data) => {
         })();
     }
 
+    class NotebookCodeComponent extends env.RedAgate.RedAgateComponent {
+        earlyConstruct() {}
+        transform() {
+            return dom('p', null,
+                dom('p', null,
+                    this.props.module ? [
+                        dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
+                        dom('code', null, this.props.module), dom('br')
+                    ] : null,
+                    dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
+                    dom('code', this.error ? { style: { backgroundColor: '#FF9999' } } : null,
+                        typeof this.result === 'object' ?
+                            (this.result instanceof Promise ? '(Promise)' : JSON.stringify(this.result)) :
+                            String(this.result)),
+                ),
+                dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```' + (this.language || '') + '\n' + this.code + '\n```\n\n' } }),
+            );
+        }
+        defer() {
+            if (this.result instanceof Promise) {
+                return new Promise(resolve => {
+                    this.result.then(v => {
+                        this.asyncResult = v;
+                        resolve();
+                    }).catch(e => {
+                        this.asyncResult = e;
+                        this.asyncError = true;
+                        resolve();
+                    });
+                });
+            } else {
+                return Promise.resolve();
+            }
+        }
+        render(ctx, children) {
+            if (this.result instanceof Promise) {
+                return `${children
+                    }<p>Async result: <code${
+                    this.asyncError ? ' style="background-color:#FF9999;"' : ''}>${
+                    env.RedAgateUtil.Escape.html(this.asyncResult)}</code></p>`;
+            } else {
+                return children;
+            }
+        }
+    }
+
     const buf = await menneu.render(text, data || {}, Object.assign({
         inputFormat: 'md',
         dataFormat: 'object',
@@ -148,16 +194,17 @@ const start = (async (text, cf, data) => {
 
             Notebook: env.components.Facet,
 
-            Js: class NotebookJsComponent extends env.RedAgate.RedAgateComponent {
-                earlyConstruct() {}
+            Js: class NotebookJsComponent extends NotebookCodeComponent {
                 constructor(props) {
                     super(props);
+
+                    this.language = 'javascript';
 
                     let c = env.RedAgate.renderAsHtml_noDefer(
                         dom(env.components.RawHtml, {}, props.children)).trim();
                     let m = c.match(/^```(?:javascript|js)\s+([^]*)\s+```$/i);
                     if (m) {
-                        c = m[1];
+                        c = m[1].trim();
                     }
                     const s = `(function(exports, require, module, __filename, __dirname) {${c}});`;
     
@@ -166,9 +213,9 @@ const start = (async (text, cf, data) => {
                         r = null;
     
                     try {
-                        throw new Error('Execution of the content is cancelled for security reason.');
-                        // f = eval(s);
-                        // r = f(jsModule.exports, jsRequire, jsModule, '', '');
+                        // throw new Error('Execution of the content is cancelled for security reason.');
+                        f = eval(s);
+                        r = f(jsModule.exports, jsRequire, jsModule, '', '');
                     } catch (e) {
                         r = String(e);
                         this.error = true;
@@ -180,31 +227,20 @@ const start = (async (text, cf, data) => {
                     this.code = c;
                     this.result = r;
                 }
-                transform() {
-                    return dom('p', null,
-                        dom('p', null,
-                            this.props.module ? [
-                                dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
-                                dom('code', null, this.props.module), dom('br')
-                            ] : null,
-                            dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
-                            dom('code', this.error ? { style: { backgroundColor: '#FF9999' } } : null, typeof this.result === 'object' ? JSON.stringify(this.result) : String(this.result)),
-                        ),
-                        dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```javascript\n' + this.code + '\n```\n\n' } }),
-                    );
-                }
             },
 
-            Lisp: class NotebookLispComponent extends env.RedAgate.RedAgateComponent {
-                earlyConstruct() {}
+            Lisp: class NotebookLispComponent extends NotebookCodeComponent {
                 constructor(props) {
                     super(props);
 
+                    this.language = 'lisp';
+
                     let c = env.RedAgate.renderAsHtml_noDefer(
                         dom(env.components.RawHtml, {}, props.children)).trim();
-                    let m = c.match(/^```(?:lisp)\s+([^]*)\s+```$/i);
+                    // TODO: Many markdown editors cannot hiliting 'lisp' syntax. You can type 'js' to hilight the lisp block.
+                    let m = c.match(/^```(?:lisp|javascript|js)\s+([^]*)\s+```$/i);
                     if (m) {
-                        c = m[1];
+                        c = m[1].trim();
                     }
     
                     const jsModule = { exports: {} };
@@ -226,19 +262,6 @@ const start = (async (text, cf, data) => {
 
                     this.code = c;
                     this.result = r;
-                }
-                transform() {
-                    return dom('p', null,
-                        dom('p', null,
-                            this.props.module ? [
-                                dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Module: '),
-                                dom('code', null, this.props.module), dom('br')
-                            ] : null,
-                            dom('span', { style: { display: 'inline-block', width: '4em' } }, 'Result: '),
-                            dom('code', this.error ? { style: { backgroundColor: '#FF9999' } } : null, typeof this.result === 'object' ? JSON.stringify(this.result) : String(this.result)),
-                        ),
-                        dom(env.components.Facet, { dangerouslySetInnerHTML: { __html: '\n\n```lisp\n' + this.code + '\n```\n\n' } }),
-                    );
                 }
             },
         },
