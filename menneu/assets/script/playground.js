@@ -213,9 +213,9 @@ const start = (async (text, cf, data) => {
                         r = null;
     
                     try {
-                        // throw new Error('Execution of the content is cancelled for security reason.');
-                        f = eval(s);
-                        r = f(jsModule.exports, jsRequire, jsModule, '', '');
+                        throw new Error('Execution of the content is cancelled for security reason.');
+                        // f = eval(s);
+                        // r = f(jsModule.exports, jsRequire, jsModule, '', '');
                     } catch (e) {
                         r = String(e);
                         this.error = true;
