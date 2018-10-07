@@ -59,7 +59,6 @@ return model.fit(xs, ys, {epochs: 30}).then(() => {
 
 
 
-----
 
 
 ### To view math formula in all browsers, load [MathJax](https://www.mathjax.org/) script file.
@@ -67,7 +66,6 @@ return model.fit(xs, ys, {epochs: 30}).then(() => {
 %%%(script (@ (src "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML") (crossorigin "anonymous") (async)))
 
 
-----
 
 
 ### To execute the above code, you need to load the following js file.
