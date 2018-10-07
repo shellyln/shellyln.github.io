@@ -1,5 +1,7 @@
 # JS Notebook
 
+* By downloading the zipped repository from https://github.com/shellyln/menneu-md-notebook , you can try it locally.
+
 > Note: Execution of the user JavaScript contents are cancelled for security reason on this site.
 
 * Custom components `Js`, `Lisp` and `Notebook` are defined in
