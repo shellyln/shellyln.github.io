@@ -159,7 +159,8 @@ const start = (async (text, cf, data) => {
                 return `${children
                     }<p>Async result: <code${
                     this.asyncError ? ' style="background-color:#FF9999;"' : ''}>${
-                    env.RedAgateUtil.Escape.html(this.asyncResult)}</code></p>`;
+                    env.RedAgateUtil.Escape.html(typeof this.asyncResult === 'object' ?
+                        JSON.stringify(this.asyncResult) : String(this.asyncResult))}</code></p>`;
             } else {
                 return children;
             }
