@@ -40,6 +40,18 @@ const exampleCodes = [
         (name ($concat "Jane Doe " $data)) ))
 )`},
 
+//// [2] ////
+{name: "Example3: tarai",
+ code:
+`($defun tarai(x y z)
+($if (<= x y)
+    y
+    (tarai (tarai (- x 1) y z)
+           (tarai (- y 1) z x)
+           (tarai (- z 1) x y))))
+           
+(tarai 12 6 0)`},
+
 ];
 
 
