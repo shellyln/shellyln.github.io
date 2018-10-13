@@ -476,6 +476,11 @@ class App extends React.Component {
         const editor = AppState.AceEditor['editor'];
 
         const d = exampleCodes[AppState.currentIndex];
+
+        if (! window['menneu']) {
+            doc.write('Ménneu is not loaded yet. Please retry again.');
+        }
+
         start(editor.getValue(), {
             inputFormat: d.inputFormat,
             dataFormat: AppState.currentDataFormat,
