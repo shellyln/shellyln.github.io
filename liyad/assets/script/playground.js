@@ -53,6 +53,22 @@ const exampleCodes = [
 ; (tarai 12 6 0)
 (tarai 6 6 0)`},
 
+//// [3] ////
+{name: "Example4: Fibonacci number",
+ code:
+`($local ()
+($let fib-sub (-> (n a b)
+    ($if (< n 3)
+        ($cond (=== n 2) (+ a b)
+               (=== n 1) a
+               true      0)
+        ($self (- n 1) (+ a b) a) ) ))
+($capture (fib-sub)
+    ($defun fib (n) (fib-sub n 1 0)) ) )
+
+
+($map ($range 0 20) (<- fib))`},
+
 ];
 
 
