@@ -41,7 +41,19 @@ const exampleCodes = [
 )`},
 
 //// [2] ////
-{name: "Example3: tarai",
+{name: "Example3: tarai (compile)",
+ code:
+`($$defun tarai(x y z)
+($if (<= x y)
+    y
+    ($self ($self (- x 1) y z)
+           ($self (- y 1) z x)
+           ($self (- z 1) x y))))
+           
+(tarai 13 6 0)`},
+
+//// [3] ////
+{name: "Example4: tarai",
  code:
 `($defun tarai(x y z)
 ($if (<= x y)
@@ -53,8 +65,23 @@ const exampleCodes = [
 ; (tarai 12 6 0)
 (tarai 6 6 0)`},
 
-//// [3] ////
-{name: "Example4: Fibonacci number",
+//// [4] ////
+{name: "Example5: Fibonacci number (compile)",
+ code:
+`($local ()
+    ($let fib-sub (=> (n a b)
+        ($if (< n 3)
+            ($cond (=== n 2) (+ a b)
+                   (=== n 1) a
+                   true      0)
+            ($self (- n 1) (+ a b) a) ) ))
+    ($capture (fib-sub)
+        ($$defun fib (n) (fib-sub n 1 0)) ) )
+
+($map ($range 0 1000) (<- fib))`},
+
+//// [5] ////
+{name: "Example6: Fibonacci number",
  code:
 `($local ()
     ($let fib-sub (-> (n a b)
