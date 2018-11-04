@@ -44,11 +44,11 @@ const exampleCodes = [
 {name: "Example3: tarai (compile)",
  code:
 `($$defun tarai(x y z)
-($if (<= x y)
-    y
-    ($self ($self (- x 1) y z)
-           ($self (- y 1) z x)
-           ($self (- z 1) x y))))
+    ($if (<= x y)
+        y
+        ($self ($self (- x 1) y z)
+               ($self (- y 1) z x)
+               ($self (- z 1) x y))))
            
 (tarai 13 6 0)`},
 
@@ -56,11 +56,11 @@ const exampleCodes = [
 {name: "Example4: tarai (interpret)",
  code:
 `($defun tarai(x y z)
-($if (<= x y)
-    y
-    (tarai (tarai (- x 1) y z)
-           (tarai (- y 1) z x)
-           (tarai (- z 1) x y))))
+    ($if (<= x y)
+        y
+        (tarai (tarai (- x 1) y z)
+               (tarai (- y 1) z x)
+               (tarai (- z 1) x y))))
            
 ; (tarai 12 6 0)
 (tarai 9 6 0)`},
