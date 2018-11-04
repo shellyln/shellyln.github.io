@@ -53,7 +53,7 @@ const exampleCodes = [
 (tarai 13 6 0)`},
 
 //// [3] ////
-{name: "Example4: tarai",
+{name: "Example4: tarai (interpret)",
  code:
 `($defun tarai(x y z)
 ($if (<= x y)
@@ -63,7 +63,7 @@ const exampleCodes = [
            (tarai (- z 1) x y))))
            
 ; (tarai 12 6 0)
-(tarai 6 6 0)`},
+(tarai 9 6 0)`},
 
 //// [4] ////
 {name: "Example5: Fibonacci number (compile)",
@@ -78,10 +78,10 @@ const exampleCodes = [
     ($capture (fib-sub)
         ($$defun fib (n) (fib-sub n 1 0)) ) )
 
-($map ($range 0 1000) (<- fib))`},
+($map ($range 0 10000) (<- fib))`},
 
 //// [5] ////
-{name: "Example6: Fibonacci number",
+{name: "Example6: Fibonacci number (interpret)",
  code:
 `($local ()
     ($let fib-sub (-> (n a b)
