@@ -95,6 +95,36 @@ const exampleCodes = [
 
 ($map ($range 0 20) (<- fib))`},
 
+//// [6] ////
+{name: "Example7: Factorial (compile)",
+ code:
+`($local ()
+    ($let fac-sub (=> (n a)
+        ($if (< n 2)
+            ($cond (=== n 1) a
+                   (=== n 0) 1
+                   true      0)
+            ($self (- n 1) (* n a)) )) )
+    ($capture (fac-sub)
+        ($$defun fac (n) (fac-sub n 1)) ))
+
+($map ($range 0 10000) (<- fac))`},
+
+//// [7] ////
+{name: "Example8: Factorial (interpret)",
+ code:
+`($local ()
+    ($let fac-sub (-> (n a)
+        ($if (< n 2)
+            ($cond (=== n 1) a
+                   (=== n 0) 1
+                   true      0)
+            ($self (- n 1) (* n a)) )) )
+    ($capture (fac-sub)
+        ($defun fac (n) (fac-sub n 1)) ))
+
+($map ($range 0 20) (<- fac))`},
+
 ];
 
 
