@@ -69,14 +69,14 @@ const exampleCodes = [
 {name: "Example5: tarai (count)",
  code:
 `($local (c) ($capture (c)
-($$defun tarai(x y z)
-    ($set c (+ c 1))
-    ($if (<= x y)
-        y
-        ($self ($self (- x 1) y z)
-               ($self (- y 1) z x)
-               ($self (- z 1) x y))))
-($list (tarai 13 6 0) c) ))`},
+    ($$defun tarai(x y z)
+        ($set c (+ c 1))
+        ($if (<= x y)
+            y
+            ($self ($self (- x 1) y z)
+                   ($self (- y 1) z x)
+                   ($self (- z 1) x y))))
+    ($list (tarai 13 6 0) c) ))`},
 
 //// [5] ////
 {name: "Example6: Fibonacci number (compile)",
