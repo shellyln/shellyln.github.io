@@ -141,7 +141,7 @@ const exampleCodes = [
 //// [9] ////
 {name: "Example10: Macro",
  code:
-`($defmacro FOR (!i <FROM> s <TO> e ...body)
+`($defmacro FOR (!i <[> <FROM> s <TO> e <]> ...body)
     \`($last
         ($local ((,i ,s))
             ($while (<= ,i ,e)
@@ -151,7 +151,7 @@ const exampleCodes = [
 
 ($let c1   0)
 ($let c2 100)
-(FOR p FROM (+ 1) TO (+ 6 -3)
+(FOR p [ FROM (+ 1) TO (+ 6 -3) ]
     ($set c1 (+ c1 p))
     ($set c2 (+ c2 p)) )
 
