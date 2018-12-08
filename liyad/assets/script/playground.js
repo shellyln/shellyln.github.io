@@ -152,8 +152,8 @@ const exampleCodes = [
 ($let c1   0)
 ($let c2 100)
 (FOR p FROM (+ 1) TO (+ 6 -3)
-($set c1 (+ c1 p))
-($set c2 (+ c2 p)) )
+    ($set c1 (+ c1 p))
+    ($set c2 (+ c2 p)) )
 
 ($list c1 c2 p i s e)`}
 
