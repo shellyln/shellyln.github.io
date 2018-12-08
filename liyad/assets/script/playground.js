@@ -142,11 +142,11 @@ const exampleCodes = [
 {name: "Example10: Macro",
  code:
 `($defmacro FOR (!i <FROM> s <TO> e ...body)
-\`($last
-    ($local ((,i ,s))
-        ($while (<= ,i ,e)
-            ,@body
-            ($set ,i (+ ,i 1)) ))))
+    \`($last
+        ($local ((,i ,s))
+            ($while (<= ,i ,e)
+                ,@body
+                ($set ,i (+ ,i 1)) ))))
 
 
 ($let c1   0)
