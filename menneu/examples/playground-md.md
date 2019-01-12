@@ -274,7 +274,7 @@ function foo(x) {
                 (textHeight 7)
                 (font "7px 'OCRB'")
                 (data "Hello") ))
-    (Ean13  (@  (x  5)
+    (Gtin13 (@  (x 10)
                 (y 37)
                 (elementWidth 0.66)
                 (height 15)
