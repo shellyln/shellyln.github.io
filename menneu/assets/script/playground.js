@@ -190,7 +190,7 @@ const start = (async (text, cf, data) => {
 
         globals: {
             // for Demo
-            '$now': () => (new Date).toLocaleDateString('en-US'),
+            '$now-fmt': () => (new Date).toLocaleDateString('en-US'),
 
             // for Notebook
             '$require': jsRequire,
