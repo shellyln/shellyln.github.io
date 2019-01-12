@@ -303,9 +303,54 @@ function foo(x) {
 
 # [PlantUML](https://github.com/gmunguia/markdown-it-plantuml)
 
-> Firefox blocks the requests due to symantec untrusted certificate of https://www.plantuml.com/plantuml .  
-> Returned error is: "Reason: CORS request did not succeed".  
->  See https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSDidNotSucceed
+@startuml
+Bob -> Alice : Hello
+@enduml
+
+
+%%%(PlantUml """
+Alice -> Bob : Bonjour
+""")
+
+
+@startuml
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
+
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: another authentication Response
+@enduml
+
+
+%%%(PlantUml """
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
+
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: another authentication Response
+""")
+
+
+@startuml
+(First usecase)
+(Another usecase) as (UC2)  
+usecase UC3
+usecase (Last\\nusecase) as UC4
+
+Alice -> Bob : Bonjour
+Alice -> UC3 : Bonjour
+@enduml
+
+
+%%%(PlantUml """
+(First usecase)
+(Another usecase) as (UC2)  
+usecase UC3
+usecase (Last\\nusecase) as UC4
+
+Alice -> Bob : Bonjour
+Alice -> UC3 : Bonjour
+""")
 
 
 %%%(Template #|  ;; Begin commenting out
