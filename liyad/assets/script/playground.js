@@ -76,7 +76,9 @@ const exampleCodes = [
             ($self ($self (- x 1) y z)
                    ($self (- y 1) z x)
                    ($self (- z 1) x y))))
-    ($list ($console-time) (tarai 13 6 0) c ($console-time-end)) ))`},
+    ($list ($console-time)
+           (tarai 13 6 0) c
+           ($console-time-end) )))`},
 
 //// [5] ////
 {name: "Example6: Fibonacci number (compile)",
