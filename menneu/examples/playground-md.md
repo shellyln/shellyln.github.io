@@ -1,4 +1,4 @@
-# Markdown demo
+<div style="font-size: 2em; font-weight: bold;">Markdown demo</div>
 
 <style>
     h4 { background-color: cyan; }
@@ -12,6 +12,16 @@
 The original text of this markdown example
 is [https://markdown-it.github.io/](https://markdown-it.github.io/).
 
+
+(page break)
+<div style="page-break-before:always"></div>
+
+
+<div style="font-size: 2em; font-weight: bold;">Table of Contents</div>
+
+[[TOC]]
+
+<div style="page-break-before:always"></div>
 
 
 # Heading
