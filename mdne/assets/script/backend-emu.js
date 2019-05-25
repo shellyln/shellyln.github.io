@@ -12,10 +12,19 @@
 
     // eslint-disable-next-line no-unused-vars
     window.renderByMenneu = async (source, data, options, srcPath, ...exportPath) => {
+        const opts = Object.assign({}, options, {});
+        if (!opts.outputFormat || opts.outputFormat.toLowerCase() !== 'html') {
+            const errText = `output format ${opts.outputFormat} is not available.`;
+            throw new Error(errText);
+        }
         // eslint-disable-next-line no-undef
-        const buf = await menneu.render(source, {}, Object.assign({}, options, {}));
+        const buf = await menneu.render(source, {}, opts);
         // eslint-disable-next-line no-undef
-        return 'data:text/html;base64,' + menneu.getAppEnv().RedAgateUtil.Base64.encode(buf);
+        const resultUrl = 'data:text/html;base64,' + menneu.getAppEnv().RedAgateUtil.Base64.encode(buf);
+        if (exportPath.length > 0) {
+            saveFile(buf.toString(), ...exportPath);
+        }
+        return resultUrl;
     };
 
     // eslint-disable-next-line no-unused-vars

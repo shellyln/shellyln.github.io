@@ -88,6 +88,13 @@ export default class App extends React.Component {
                 ),
             });
         }
+        // eslint-disable-next-line no-undef
+        if (window.dialogPolyfill) {
+            // emulation
+            const dialog = document.querySelector('dialog');
+            // eslint-disable-next-line no-undef
+            dialogPolyfill.registerDialog(dialog);
+        }
 
         document.onkeyup = (ev) => {
             if (ev.ctrlKey && ev.shiftKey && ev.keyCode === 79) {
@@ -396,8 +403,10 @@ export default class App extends React.Component {
                     }, null, AppState.filePath)
                     .then(outputUrl => {
                         if (outputUrl.startsWith('data:')) {
+                            // emulation
                             this.refs.root.contentWindow.location.replace(outputUrl);
                         } else {
+                            // carlo
                             this.refs.root.contentWindow.location.reload(true);
                         }
                         this.scheduleRerenderPreview = false;
@@ -413,13 +422,17 @@ export default class App extends React.Component {
 
     handleAceEditorOnChangeScrollTop(y, totalHeight) {
         if (!this.state.stretched && !this.state.isPdf) {
-            const w = y / totalHeight;
-            const scrollY = this.refs.root.contentWindow.document.documentElement.scrollHeight * w;
-            this.refs.root.contentWindow.scrollTo(
-                this.refs.root.contentWindow.scrollX,
-                scrollY,
-            );
-            this.savedPreviewScrollY = scrollY;
+            try {
+                const w = y / totalHeight;
+                const scrollY = this.refs.root.contentWindow.document.documentElement.scrollHeight * w;
+                this.refs.root.contentWindow.scrollTo(
+                    this.refs.root.contentWindow.scrollX,
+                    scrollY,
+                );
+                this.savedPreviewScrollY = scrollY;
+            } catch (e) {
+                // emulation
+            }
         }
     }
 
