@@ -91,9 +91,12 @@ export default class App extends React.Component {
         // eslint-disable-next-line no-undef
         if (window.dialogPolyfill) {
             // emulation
-            const dialog = document.querySelector('dialog');
-            // eslint-disable-next-line no-undef
-            dialogPolyfill.registerDialog(dialog);
+            const dialogs = document.querySelectorAll('dialog');
+            for (let i = 0; i < dialogs.length; i++) {
+                const dialog = dialogs[i];
+                // eslint-disable-next-line no-undef
+                dialogPolyfill.registerDialog(dialog);
+            }
         }
 
         document.onkeyup = (ev) => {
@@ -185,8 +188,12 @@ export default class App extends React.Component {
             ), 30);
         } else {
             // stretched
-            this.savedEditorStyleWidth = this.refs.editor.refs.outerWrap.style.width;
-            this.savedPreviewScrollY = this.refs.root.contentWindow.scrollY;
+            try {
+                this.savedEditorStyleWidth = this.refs.editor.refs.outerWrap.style.width;
+                this.savedPreviewScrollY = this.refs.root.contentWindow.scrollY;
+            } catch (e) {
+                // emulation
+            }
             this.refs.editor.refs.outerWrap.style.width = null;
             this.refs.editorPlaceholder.style.width = null;
         }
