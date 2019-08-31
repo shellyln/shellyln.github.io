@@ -3,10 +3,6 @@
 // https://github.com/shellyln
 
 
-import AppState           from '../libs/appstate.js';
-import { getInputFormat } from '../libs/modes.js';
-
-
 
 export default class FileOpenDialog extends React.Component {
     constructor(props, context) {
@@ -34,34 +30,52 @@ export default class FileOpenDialog extends React.Component {
         this.setState({currentDir: ''});
         this.setState({currentDirFiles: []});
         this.setState({inputFileName: ''});
-
-        this.refs.dialog.showModal();
-        document.activeElement.blur();
         this.options = options;
         this.handler = handler;
 
-        listDirectory(options.currentFilePath)
-        .then(info => {
-            this.setState({currentDir: info.directory});
-            this.setState({currentDirFiles: info.files});
-        })
-        .catch(e => {
-            listDesktopDirectory()
+        if (window.nativeFileOpenDialog) {
+            (async () => {
+                const filePaths = await nativeFileOpenDialog(
+                    options.title,
+                    options.currentFilePath,
+                    options.fileTypes.map(x => ({
+                        name: x.text,
+                        extensions: x.exts && x.exts.length > 0 ? x.exts.map(t => t.slice(1)) : ['*'],
+                    })));
+                if (filePaths) {
+                    this.handler(await getDirName(filePaths[0]), await getBaseName(filePaths[0]));
+                }
+            })();
+        } else {
+            this.refs.dialog.showModal();
+            document.activeElement.blur();
+
+            listDirectory(options.currentFilePath)
             .then(info => {
                 this.setState({currentDir: info.directory});
                 this.setState({currentDirFiles: info.files});
             })
-            .catch(e2 => {
-                listHomeDirectory()
+            // eslint-disable-next-line no-unused-vars
+            .catch(e => {
+                listDesktopDirectory()
                 .then(info => {
                     this.setState({currentDir: info.directory});
                     this.setState({currentDirFiles: info.files});
                 })
-                .catch(e3 => {
-                    alert(e3);
+                // eslint-disable-next-line no-unused-vars
+                .catch(e2 => {
+                    listHomeDirectory()
+                    .then(info => {
+                        this.setState({currentDir: info.directory});
+                        this.setState({currentDirFiles: info.files});
+                    })
+                    .catch(e3 => {
+                        // TODO: await it.
+                        alertWrap(e3);
+                    });
                 });
             });
-        });
+        }
     }
 
     handleFileListItemClick(ev, name, isDir) {
@@ -75,7 +89,8 @@ export default class FileOpenDialog extends React.Component {
                 this.setState({currentDirFiles: info.files});
             })
             .catch(e => {
-                alert(e);
+                // TODO: await it.
+                alertWrap(e);
             });
         } else {
             this.refs.fileName.focus();
@@ -83,6 +98,7 @@ export default class FileOpenDialog extends React.Component {
         }
     }
 
+    // eslint-disable-next-line no-unused-vars
     async handleOkClick(ev) {
         try {
             if (this.state.inputFileName.trim() === '') {
@@ -92,7 +108,7 @@ export default class FileOpenDialog extends React.Component {
             let fileName = this.state.inputFileName;
 
             if (! (await fileExists(this.state.currentDir, fileName))) {
-                alert('File does not exist.');
+                await alertWrap('File does not exist.');
                 return;
             }
 
@@ -101,7 +117,7 @@ export default class FileOpenDialog extends React.Component {
             document.activeElement.blur();
             this.refs.dialog.close();
         } catch (e) {
-            alert(e);
+            await alertWrap(e);
         }
     }
 
@@ -121,6 +137,7 @@ export default class FileOpenDialog extends React.Component {
         });
     }
 
+    // eslint-disable-next-line no-unused-vars
     handleCancelClick(ev) {
         document.activeElement.blur();
         this.refs.dialog.close();
@@ -165,12 +182,12 @@ export default class FileOpenDialog extends React.Component {
                                   (type "text")
                                   (spellcheck "false")
                                   (readonly "readonly")
-                                  (onChange ${(ev) => this.setState({inputFileName: this.refs.fileName.value})})
+                                  (onChange ${() => this.setState({inputFileName: this.refs.fileName.value})})
                                   (value ${this.state.inputFileName}) )))
                     (div (@ (className "input-field col s2"))
                         (select (@ (ref "fileType")
                                    (className "browser-default")
-                                   (onChange ${(ev) => this.setState({selectedFileType: this.refs.fileType.value})}) )
+                                   (onChange ${() => this.setState({selectedFileType: this.refs.fileType.value})}) )
                             ($=for ${this.state.fileTypes}
                                 (option (@ (key   ::$data:value)
                                            (value ::$data:value)

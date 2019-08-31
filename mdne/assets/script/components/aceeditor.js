@@ -28,10 +28,10 @@ export default class AceEditor extends React.Component {
                     try {
                         await saveFile(editor.getValue(), AppState.filePath);
                         editor.session.getUndoManager().markClean();
-                        AppState.fileChanged = false;
+                        notifyEditorDirty(false);
                         document.title = `${AppState.AppName} - ${AppState.filePath}`;
                     } catch (e) {
-                        alert(e);
+                        await alertWrap(e);
                     }
                 } else {
                     this.props.onSaveAs({});

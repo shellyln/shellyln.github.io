@@ -24,7 +24,7 @@ export default class FileDropDialog extends React.Component {
     openFile(path, text) {
         AppState.filePath = path;
         AppState.inputFormat = getInputFormat(AppState.filePath);
-        AppState.fileChanged = false;
+        notifyEditorDirty(false);
 
         document.title = `${AppState.AppName} - ${AppState.filePath}`;
 
@@ -66,7 +66,7 @@ export default class FileDropDialog extends React.Component {
 
             this.openFileAndClose(paths[0].path, texts[0]);
         } catch (e) {
-            alert(e);
+            await alertWrap(e);
             AppState.filePath = null;
             document.title = `${AppState.AppName} - ${'(New file)'}`;
         }
@@ -99,12 +99,14 @@ export default class FileDropDialog extends React.Component {
                 this.openFileAndClose(path, text);
             });
         } catch (e) {
-            alert(e);
+            await alertWrap(e);
+            // eslint-disable-next-line require-atomic-updates
             AppState.filePath = null;
             document.title = `${AppState.AppName} - ${'(New file)'}`;
         }
     }
 
+    // eslint-disable-next-line no-unused-vars
     handleCancelClick(ev) {
         document.activeElement.blur();
         this.refs.dialog.close();
@@ -122,7 +124,7 @@ export default class FileDropDialog extends React.Component {
                            (textAlign "center")
                            (verticalAlign "middle") )
                     (onDragOver ${(ev) => {this.handleOnDragOver(ev)}})
-                    (onDragLeave ${(ev) => {  }})
+                    (onDragLeave ${() => {  }})
                     (onDrop ${async (ev) => {await this.handleOnDrop(ev)}}) )
                 (i (@ (className "material-icons large")) "insert_drive_file")(br)
                 "Drop file here." (br)(br)(br)
