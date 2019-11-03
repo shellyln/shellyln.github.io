@@ -6,7 +6,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/data/welcome.md"
   },
   {
-    "revision": "f1ac181d0c33c606fd7d93bc4649705d9906ea432c57a02540f2fe0cf3d6130d",
+    "revision": "48adac2fc878a58de08e9480dd195d7289bdc6c17ae55f86d213da10902bce14",
     "url": "./assets/script/backend-emu.js"
   },
   {
@@ -14,7 +14,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/script/components/aceeditor.js"
   },
   {
-    "revision": "64904f7228be2b1a3ec9f6fe497af4073c9b43672bb4aff8d6d01476cfc9d129",
+    "revision": "94ebc975e76803cbec0f3cea884badef89542ebfe79266929d40d3430ef585ab",
     "url": "./assets/script/components/app.js"
   },
   {
@@ -30,7 +30,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/script/components/filesavedialog.js"
   },
   {
-    "revision": "ef858b64a9331fc8b0ef081f47de60ef0d38a3842242366e45819fcbad85670c",
+    "revision": "efb0b9803529733cc7c3ff505b63382c130dfff354baf030d9f8f8f150b5c2a5",
     "url": "./assets/script/components/settingsdialog.js"
   },
   {
