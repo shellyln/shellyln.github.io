@@ -218,6 +218,14 @@ class App extends React.Component {
         super(props, context);
 
         this.state = {};
+
+        fetch('https://cdn.jsdelivr.net/npm/ajv@6.11.0/lib/refs/json-schema-draft-06.json')
+        .then(async (resp) => {
+            if (resp.ok) {
+                this.jsonSchema = await resp.text();
+            }
+        })
+        .catch(e => console.error(e.message));
     }
 
     loadExample(i) {
@@ -232,8 +240,18 @@ class App extends React.Component {
         try {
             const schema = tynder.compile(code);
             r = tynder.generateJsonSchema(schema);
+
+            // check syntax
+            if (this.jsonSchema) {
+                const ajv = new Ajv();
+                ajv.addMetaSchema(JSON.parse(this.jsonSchema));
+                const validate = ajv.compile(JSON.parse(r));
+                validate({});
+            } else {
+                r = `${'Failed to download the JSON Schema meta schema file (refs/json-schema-draft-06.json).'}\n\n${r}`;
+            }
         } catch (e) {
-            r = e.toString();
+            r = `${e.toString()}\n\n${r}`;
         }
 
         let x = document.createElement('pre');
