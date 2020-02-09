@@ -44,6 +44,72 @@ interface Folder extends EntryBase {
 type Entry = File | Folder;`},
 
 
+//// [1] ////
+{name: "Example2: Primitives",
+ code:
+`type NumberType = number;
+type IntegerType = integer;
+type BigIntType = bigint;
+type StringType = string;
+type BooleanType = boolean;
+type NullType = null;
+type UndefinedType = undefined;
+type AnyType = any;
+type UnknownType = unknown;
+type NeverType = never;
+type NumberValueType = 3;
+type IntegerValueType = integer;
+type BigIntValueType = 7n;
+type StringValueType = 'XB';
+type BooleanValueType = true;`},
+
+
+//// [2] ////
+{name: "Example2: Fields",
+ code:
+ `type NumberType = number;
+
+interface A {
+    numberTypeField: NumberType;
+    integerTypeField: integer;
+    bigIntTypeField: bigint;
+    stringTypeField: string;
+    booleanTypeField: boolean;
+    nullTypeField: null;
+    undefinedTypeField: undefined;
+    anyTypeField: any;
+    unknownTypeField: unknown;
+    neverTypeField: never;
+    numberValueTypeField: 3;
+    integerValueTypeField: integer;
+    bigIntValueTypeField: 7n;
+    stringValueTypeField: 'XB';
+    booleanValueTypeField: true;
+}
+
+interface B {
+    numberTypeField?: NumberType;
+    integerTypeField?: integer;
+    bigIntTypeField?: bigint;
+    stringTypeField?: string;
+    booleanTypeField?: boolean;
+    nullTypeField?: null;
+    undefinedTypeField?: undefined;
+    anyTypeField?: any;
+    unknownTypeField?: unknown;
+    neverTypeField?: never;
+    numberValueTypeField?: 3;
+    integerValueTypeField?: integer;
+    bigIntValueTypeField?: 7n;
+    stringValueTypeField?: 'XB';
+    booleanValueTypeField?: true;
+}
+
+interface C extends A {}
+
+type D = Partial<A>;`},
+
+
 ];
 
 
