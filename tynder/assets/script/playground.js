@@ -186,6 +186,12 @@ class EvaluateButtons extends React.Component {
             document.getElementById(this.props.outputId));
     };
 
+    handleCompileToCSharpClick(evt) {
+        const editor = AppState.AceEditor[this.props.editorId];
+        this.props.compileToCSharp(editor.getValue(),
+            document.getElementById(this.props.outputId));
+    };
+
     handleCompileToGraphQlClick(evt) {
         const editor = AppState.AceEditor[this.props.editorId];
         this.props.compileToGraphQl(editor.getValue(),
@@ -208,11 +214,15 @@ class EvaluateButtons extends React.Component {
             " "
             (button (@ (style (textTransform "none"))
                        (className "waves-effect waves-light red lighten-1 btn")
-                       (onClick ${(e) => this.handleCompileToGraphQlClick(e)}) ) "Compile to GraphQL (experimental)")
+                       (onClick ${(e) => this.handleCompileToCSharpClick(e)}) ) "C# (experimental)")
             " "
             (button (@ (style (textTransform "none"))
                        (className "waves-effect waves-light red lighten-1 btn")
-                       (onClick ${(e) => this.handleCompileToProtobufClick(e)}) ) "Compile to Protobuf3 (experimental)")
+                       (onClick ${(e) => this.handleCompileToGraphQlClick(e)}) ) "GraphQL (experimental)")
+            " "
+            (button (@ (style (textTransform "none"))
+                       (className "waves-effect waves-light red lighten-1 btn")
+                       (onClick ${(e) => this.handleCompileToProtobufClick(e)}) ) "Protobuf3 (experimental)")
         )`);
     }
 }
@@ -257,6 +267,29 @@ class App extends React.Component {
             }
         } catch (e) {
             r = `${e.toString()}\n\n${r}`;
+        }
+
+        let x = document.createElement('pre');
+        x.style.margin = '0';
+        x.spellcheck = false;
+        x.contentEditable = true;
+        x.innerText = r;
+
+        ReactDOM.unmountComponentAtNode(outputElement);
+        while (outputElement.firstChild) {
+            outputElement.removeChild(outputElement.firstChild);
+        }
+        outputElement.appendChild(x);
+    }
+
+    compileToCSharp(code, outputElement) {
+        let r = '';
+
+        try {
+            const schema = tynder.compile(code);
+            r = tynder.generateCSharpCode(schema);
+        } catch (e) {
+            r = e.toString();
         }
 
         let x = document.createElement('pre');
