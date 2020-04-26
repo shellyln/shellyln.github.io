@@ -362,6 +362,8 @@ class App extends React.Component {
                                    (outputId "root")
                                    (compileToJsonSchema ${(code, outputElement) =>
                                        this.compileToJsonSchema(code, outputElement)})
+                                   (compileToCSharp ${(code, outputElement) =>
+                                       this.compileToCSharp(code, outputElement)})
                                    (compileToGraphQl ${(code, outputElement) =>
                                        this.compileToGraphQl(code, outputElement)})
                                    (compileToProtobuf ${(code, lsxRootElement, outputElement) =>
