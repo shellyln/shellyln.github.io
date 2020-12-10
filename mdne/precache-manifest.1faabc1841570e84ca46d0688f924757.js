@@ -6,11 +6,11 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/data/welcome.md"
   },
   {
-    "revision": "d4d190dfd3a69d42d5630039ac1a0adbcbdfad1bbf7d5d7a8435b624af877a36",
+    "revision": "47d635d798946b377e8d3c645cfc42772f26114b77411b3a057f0f029532b6cb",
     "url": "./assets/script/index.js"
   },
   {
-    "revision": "28469136b81e4075f26a3a5f4402d00ae07c3edfe77589b5d769c0339a5b962f",
+    "revision": "d2eb02f64fec926db39650b0592b6ca77f3bbed6f4eaace4dac8d2cd95555cb0",
     "url": "./assets/script/index.js.map"
   },
   {
