@@ -6,11 +6,11 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/data/welcome.md"
   },
   {
-    "revision": "47d635d798946b377e8d3c645cfc42772f26114b77411b3a057f0f029532b6cb",
+    "revision": "173112848f3deca6e456d9921cc0834574f52071cab02bb8c41f2eb7f6dc1369",
     "url": "./assets/script/index.js"
   },
   {
-    "revision": "d2eb02f64fec926db39650b0592b6ca77f3bbed6f4eaace4dac8d2cd95555cb0",
+    "revision": "17796f57dd8b7fa40679f99e5979af816989358c07bc5be91e223d63b43c0f84",
     "url": "./assets/script/index.js.map"
   },
   {
@@ -98,6 +98,14 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/vendor/ace-1.4.12/mode-html.js"
   },
   {
+    "revision": "a1f0a1d7fddb758db2cc18b2c5bc1a110f2f11ed885d750c95e42e0502fc2919",
+    "url": "./assets/vendor/ace-1.4.12/mode-ini.js"
+  },
+  {
+    "revision": "0f1b185d94280e703afcce8b43c5309ab9d1f642fded8b8b77d5e51032c89eb8",
+    "url": "./assets/vendor/ace-1.4.12/mode-java.js"
+  },
+  {
     "revision": "316bf97f601b31d43c004a1849b413c1cee5789bb944c2a6a24540a9b2b281b3",
     "url": "./assets/vendor/ace-1.4.12/mode-javascript.js"
   },
@@ -112,6 +120,10 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
     "revision": "5143b3d15187f65ea5cf3b3ab2abf9672f538ac9429ce9d8e309f42e45a34fcc",
     "url": "./assets/vendor/ace-1.4.12/mode-jsx.js"
+  },
+  {
+    "revision": "974e42c41c9c007df9a64e159bca3b19a33ca17c273dd582abf4978a59767abd",
+    "url": "./assets/vendor/ace-1.4.12/mode-kotlin.js"
   },
   {
     "revision": "732140b63eb02b1a7597bc8422f9fc6b69b114a14272c125a22af2be68f34b63",
@@ -182,6 +194,10 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/vendor/ace-1.4.12/mode-text.js"
   },
   {
+    "revision": "ed5009b479e8a9ff438d89fb790925f1bda9b36400cd7380b7bc4281da7b99fa",
+    "url": "./assets/vendor/ace-1.4.12/mode-toml.js"
+  },
+  {
     "revision": "395c15409cac388dd36f8ad78560792c703560f67872e2bd9c6ca685d2b57d06",
     "url": "./assets/vendor/ace-1.4.12/mode-tsx.js"
   },
@@ -222,6 +238,14 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/vendor/ace-1.4.12/snippets/html.js"
   },
   {
+    "revision": "38db67b92bdc11915bc18fbf99b1ef97b881a4438c1a26dd9c3bafbdc7c89bce",
+    "url": "./assets/vendor/ace-1.4.12/snippets/ini.js"
+  },
+  {
+    "revision": "e15f4832c941f0bfd703e7067db677a6aabb1411e5817be91ac29428ba5f0ead",
+    "url": "./assets/vendor/ace-1.4.12/snippets/java.js"
+  },
+  {
     "revision": "11fcb04eee22d56dee1a7dc00d85337d019446ac62999242fbbe05f3632a5d59",
     "url": "./assets/vendor/ace-1.4.12/snippets/javascript.js"
   },
@@ -236,6 +260,10 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
     "revision": "5b3b11e43b574b5a046e80932a7bb2ac99a508c4b58444579835ea01a70f7e65",
     "url": "./assets/vendor/ace-1.4.12/snippets/jsx.js"
+  },
+  {
+    "revision": "44fbaddee7fe97c6260f2f0a550846e3f89cbc0329d76dcbbb4418aa70911e9b",
+    "url": "./assets/vendor/ace-1.4.12/snippets/kotlin.js"
   },
   {
     "revision": "6bc5a1a98c5aecbf7b07cbeb6a43d063bd73c8fa07ab087eb07ca044b97985a4",
@@ -306,6 +334,10 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/vendor/ace-1.4.12/snippets/text.js"
   },
   {
+    "revision": "30f4553f47998c662b817711fcbe936c962264eb1410bcd70465c1deb29b566a",
+    "url": "./assets/vendor/ace-1.4.12/snippets/toml.js"
+  },
+  {
     "revision": "7a8b66cc5bebc6cdfabe437cee5acde6a03392a96639b5c610458c37327f7067",
     "url": "./assets/vendor/ace-1.4.12/snippets/tsx.js"
   },
@@ -330,6 +362,10 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/vendor/ace-1.4.12/theme-cobalt.js"
   },
   {
+    "revision": "b6b6c4b27fcb1c4d33e344982fa99a3f68032197622ca0da38bed4ef5229a105",
+    "url": "./assets/vendor/ace-1.4.12/theme-kuroir.js"
+  },
+  {
     "revision": "2d5ea48c526b4e6b0e1f6451a0dbd746ead348904cf1a8bbb04e0a4d548e0615",
     "url": "./assets/vendor/ace-1.4.12/theme-monokai.js"
   },
@@ -340,6 +376,14 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
     "revision": "819dac42be0802bc9afe33ce99e7c17b335c9ae2cbee56be8be1ac43d5f3221c",
     "url": "./assets/vendor/ace-1.4.12/theme-textmate.js"
+  },
+  {
+    "revision": "31d630e9f8dc563d39644e34a55bae2de165c295684c4cc7c7100db55dd19075",
+    "url": "./assets/vendor/ace-1.4.12/theme-tomorrow_night_bright.js"
+  },
+  {
+    "revision": "9cae81bb42b60e9b396cef1bc90eed636fa3ec9ced03ff65b3dd3e4e59e439b3",
+    "url": "./assets/vendor/ace-1.4.12/worker-base.js"
   },
   {
     "revision": "9cf73b1a2d78444f4a30d01961e9a1ad5fbc0ff15fbe8128d5ec510851fab823",
