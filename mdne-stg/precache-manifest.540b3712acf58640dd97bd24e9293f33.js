@@ -6,11 +6,11 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/data/welcome.md"
   },
   {
-    "revision": "e04f2a26d644b8b317437c8a4d355eb46bb1ab0578966a2dde989f1ee91e119d",
+    "revision": "e1d28fc55d0e648a333fc113cc064ee13fd7d79a75f82933effb85ba77c6e5d6",
     "url": "./assets/script/index.js"
   },
   {
-    "revision": "12b168dd10265d0d7d1b2b9a09a00a56d5bfe45f25b0724a1c23e8d810022a3c",
+    "revision": "434301f81282db4ef3f1ba23fd35ccbfae375c84982f282b590811c9cd88d3cc",
     "url": "./assets/script/index.js.map"
   },
   {
@@ -24,6 +24,10 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
     "revision": "ab682615da353efabdf9e2b5e70815eddb8b92b0fe1144757879aa2558664a52",
     "url": "./assets/vendor/ace-1.4.12/ext-error_marker.js"
+  },
+  {
+    "revision": "16aa654a8c6d40a5afd6b3e4742648831c2f09d4f534437df5c3e384b019f519",
+    "url": "./assets/vendor/ace-1.4.12/ext-language_tools.js"
   },
   {
     "revision": "50250c075391fc7304e051d3b2bfae5e16e3f6fe3fe920efc8c4d5fff5e70e29",
@@ -406,16 +410,20 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/vendor/ace-1.4.12/worker-xml.js"
   },
   {
+    "revision": "2c584ad4283c998eb9dbdddef25afaed448d251e5438a4de9f30aeb8a41014da",
+    "url": "./assets/vendor/ace-patch/lisp_highlight_rules.js"
+  },
+  {
+    "revision": "aa5d1ea873d85a4d0e9be2a4e86614a1b5aaf6a1f26372a656df33c4ee5afc2c",
+    "url": "./assets/vendor/ace-patch/mode-markdown.js"
+  },
+  {
     "revision": "853d044f8b5f9beeccca37817a9060576379b4e9ac01529c4d6847f368efa1a0",
     "url": "./assets/vendor/dialog-polyfill/dialog-polyfill.css"
   },
   {
     "revision": "977bf744968e40b3807ccf697323003fafafe2a3ba29dfe9f0a977673084814f",
     "url": "./assets/vendor/dialog-polyfill/dialog-polyfill.js"
-  },
-  {
-    "revision": "2c584ad4283c998eb9dbdddef25afaed448d251e5438a4de9f30aeb8a41014da",
-    "url": "./assets/vendor/liyad-0.6.0/lisp_highlight_rules.js"
   },
   {
     "revision": "12bde55dbf6276dbc290e6f72112ff183b786a671a838175143a4e340261a783",
@@ -482,7 +490,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./error.html"
   },
   {
-    "revision": "a53a8dabedc4f3a34093ed20e8df546be1cd192cbab9e2ddb8bf70aeb0fc9d91",
+    "revision": "d755b0f8cfa803d54a78e12b828080524fda4a32fff5bec6a795cfe7e64ee942",
     "url": "./index.html"
   },
   {
