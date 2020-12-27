@@ -6,11 +6,11 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./assets/data/welcome.md"
   },
   {
-    "revision": "3dadf0b11f27e66962a08f0b794e1dab96757c797c58fa27a2a6d18ce6f47ead",
+    "revision": "c5a464fea62d96ceaa14bba3d9bf93c804ae7d734169fb5ec94c35224f09e29a",
     "url": "./assets/script/index.js"
   },
   {
-    "revision": "6021b5e323e74aeec0336b683178c3f240e5f3b99da74bd062e48b6d7deca0a0",
+    "revision": "4b57856121f75115a8a2d011b5d6007daa672ce1a437afa94bff104b2f71de65",
     "url": "./assets/script/index.js.map"
   },
   {
@@ -490,7 +490,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "./error.html"
   },
   {
-    "revision": "d755b0f8cfa803d54a78e12b828080524fda4a32fff5bec6a795cfe7e64ee942",
+    "revision": "966a45d78942cd23fef90ef2599006c4e0efa1abd68c6ee709812bff79773a4e",
     "url": "./index.html"
   },
   {
