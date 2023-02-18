@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Loose JSON | TOML normalizer</title>
+    <link rel="icon"
+        href="https://shellyln.github.io/assets/image/logo-go-jsonlp.svg"
+        type="image/svg+xml">
+
+    <script src="wasm_exec.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.11/codemirror.min.css"
+        integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.11/theme/dracula.min.css"
+        integrity="sha512-gFMl3u9d0xt3WR8ZeW05MWm3yZ+ZfgsBVXLSOiFz2xeVrZ8Neg0+V1kkRIo9LikyA/T9HuS91kDfc2XWse0K0A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.11/codemirror.min.js"
+        integrity="sha512-rdFIN28+neM8H8zNsjRClhJb1fIYby2YCNmoqwnqBDEvZgpcp7MJiX8Wd+Oi6KcJOMOuvGztjrsI59rly9BsVQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.11/mode/javascript/javascript.min.js"
+        integrity="sha512-Cbz+kvn+l5pi5HfXsEB/FYgZVKjGIhOgYNBwj4W2IHP2y8r3AdyDCQRnEUqIQ+6aJjygKPTyaNT2eIihaykJlw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.11/mode/toml/toml.min.js"
+        integrity="sha512-O6QYGRZVa6FLNVTWPdLXXiVC4pNCVA6NNVW29i7qHFprs/Wat4QrjSKjINcoCT+2IySTFmfIoIp2yZmWoafQsg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="./index.css" />
+
+    <script>
+        {
+            const go = new Go();
+
+            // https://github.com/tinygo-org/tinygo/issues1140#issuecomment-671261465
+            //go.importObject.env["syscall/js.finalizeRef"] = ()=> {};
+
+            WebAssembly.instantiateStreaming(fetch("go.wasm"), go.importObject).then((result) => {
+                const mod = result.module;
+                go.run(result.instance);
+                globalThis.goWasmExports = result.instance.exports;
+
+                globalThis.rebootGoApplication = async () => {
+                    const inst = await WebAssembly.instantiate(mod, go.importObject);
+                    go.run(inst);
+                }
+
+                const ver = getVersion()
+                document.querySelector('#version').innerHTML = getVersion();
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="top-nav">
+        <h4 class="title"><img
+            class="logo" alt="logo"
+            src="https://shellyln.github.io/assets/image/logo-go-jsonlp.svg"
+            >Loose JSON | TOML normalizer <span id="version"></span></h4>
+        <div class="sub">Powered by <a
+            href="https://github.com/shellyln/go-loose-json-parser"
+            target="_blank">go-loose-json-parser</a></div>
+    </div>
+    <div>
+        <div class="input-area">
+            <textarea id="loosejson" name="loosejson" rows="35" cols="120"
+>[
+    // comment
+    1, 2, 3, 4,
+]
+</textarea>
+        </div>
+        <div class="commands-area">
+            <form name="form1">
+                <div class="commands-area-inner">
+                    <div class="left">
+                        <button onclick="execNormalize(event)">Normalize loose JSON|TOML to strict JSON</button>
+                        <span class="indent">Indent:</span>
+                        <select name="indent">
+                            <option value="0" selected>0</option>
+                            <option value="2">2</option>
+                            <option value="4">4</option>
+                            <option value="8">8</option>
+                        </select>
+                        <span class="input">Input:</span>
+                        <input type="radio" id="lang-json" name="lang" value="json" checked
+                            onchange="changeLang(event)">
+                        <label for="lang-json">JSON</label>
+                        <input type="radio" id="lang-toml" name="lang" value="toml"
+                            onchange="changeLang(event)">
+                        <label for="lang-toml">TOML</label>
+                    </div>
+                    <div>
+                        <div id="copied">✓ Copied</div>
+                        <button onclick="copyToClipboard(event)">📋Copy</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div>
+        <div class="output-area">
+            <textarea id="result-area"></textarea>
+        </div>
+    </div>
+    <script src="./index.js"></script>
+</body>
+</html>
