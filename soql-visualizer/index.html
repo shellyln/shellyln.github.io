@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <title>Go WebAssembly Open SOQL query parser</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go wasm Open SOQL query visualizer</title>
     <link rel="icon"
         href="https://shellyln.github.io/assets/image/open-soql-logo.svg"
         type="image/svg+xml">
@@ -22,6 +23,9 @@
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.11/mode/sql/sql.min.js"
         integrity="sha512-fb0A/RjJvLbWBSNDDNRUER4LHrkVQjlEs3a2myQH047y9+I6wZAZOboHn+EA7ZcEcVwSiH3okO/+XzMlGPqcow=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.4.3/mermaid.min.js"
+        integrity="sha512-lr1gBg9uLeq7cCfTulxEDXATlfDzLRLMMY0T0GxHv27+XsKytKuJwIQvSZRNw2C4fZWSMf9C+SPnT10ArLI8Cw=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="./index.css" />
 
@@ -44,6 +48,8 @@
 
                 const ver = getVersion()
                 document.querySelector('#version').innerHTML = getVersion();
+
+                execVisualize();
             });
         }
     </script>
@@ -54,51 +60,57 @@
             class="logo" alt="logo"
             src="https://shellyln.github.io/assets/image/open-soql-logo.svg"
             title="Open SOQL logo"
-            >Go WebAssembly Open SOQL query parser <span id="version"></span></h4>
+            >Go wasm Open SOQL query visualizer <span id="version"></span></h4>
         <div class="sub">Powered by <a
             href="https://github.com/shellyln/go-open-soql-parser"
             target="_blank">go-open-soql-parser</a></div>
     </div>
-    <div>
+    <div class="inout-area">
         <div class="input-area">
-            <textarea id="soql" name="soql" rows="35" cols="120"
->SELECT
-    Id
-  , Name
-  , Contact.Id
-  , Contact.Name
-FROM
-    Account
-WHERE
-    Contact.Name like 'Jane %'
-    or
-    Contact.Name like 'John %'
-ORDER BY
-    Name desc nulls last
+            <textarea id="soql" name="soql" rows="35" cols="120">SELECT
+    Account.Id
+  , Account.Name
+  , Account.Owner.Name
   , Id
-OFFSET 1000 LIMIT 100
-FOR update viewstat, tracking
+  , Name
+  , (SELECT Id, Name
+     FROM Account.Cases
+     WHERE Id in (SELECT CaseId FROM LiveChatTranscript WHERE StartTime = TODAY))
+FROM
+    Contact
+WHERE
+    Account.Name like 'foo%'
+    or
+    Account.Name like 'bar%'
 </textarea>
         </div>
+        <div id="erDiagramContainer"></div>
+    </div>
+    <div>
         <div class="commands-area">
             <form name="form1">
                 <div class="commands-area-inner">
                     <div class="left">
-                        <button onclick="execParse(event)">Parse SOQL</button>
+                        <button onclick="execVisualize(event)">Visualize SOQL</button>
                     </div>
                     <div>
                         <div id="copied">✓ Copied</div>
-                        <button onclick="copyToClipboard(event)">📋Copy</button>
+                        <button onclick="copyDiagramDefToClipboard(event)">📋Copy Diagram Def</button>
+                        <button onclick="copySvgToClipboard(event)">📋Copy SVG</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
-    <div>
-        <div class="output-area">
-            <textarea id="result-area"></textarea>
-        </div>
-    </div>
     <script src="./index.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default'
+            });
+        });
+    </script>
 </body>
 </html>
