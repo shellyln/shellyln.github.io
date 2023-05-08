@@ -20,7 +20,7 @@
             padding: 0;
             margin: 0;
             background-attachment: fixed;
-            background-color: aliceblue;
+            background-color: #4ad5ff;
             background: url(assets/image/blurry-gradient-haikei.svg) no-repeat fixed 0 0 / cover;
             font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;
         }
@@ -87,6 +87,20 @@
         div.main div.repos div.item {
             position: relative;
             width: 600px;
+            min-height: 350px;
+            border: white solid 1px;
+            border-radius: 20px;
+            margin: 2px;
+            padding-top: 25px;
+            padding-bottom: 16px;
+            box-shadow: 0 3px 7px 0 rgba(0,0,0,.5);
+        }
+        div.main div.repos div.item-dummy {
+            position: relative;
+            width: 600px;
+            height: 0;
+            margin: 0 2px;
+            border: rgba(0,0,0,0) solid 1px;
         }
         div.main div.repos .title {
             padding: 0;
@@ -176,6 +190,47 @@
             font-size: 8pt;
             font-weight: normal;
         }
+        div.pillwrap {
+            position: absolute;
+            bottom: 10px;
+            height: 20px;
+            padding-left: 20px;
+        }
+        span.pill {
+            border-radius: 7px;
+            padding: 0 10px;
+            box-shadow: inset 0 -2px 2px 0 rgba(0, 0, 0, .3);
+        }
+        span.pill.star {
+            /* background-color: orangered; */
+            color: rgba(255, 0, 0, 0.9);
+            text-shadow: 0px 0px 20px white;
+        }
+        span.pill.application {
+            /* background-color: orangered; */
+            color: rgba(22, 22, 22, 0.9);
+            text-shadow: 0px 0px 20px white;
+        }
+        span.pill.library {
+            /* background-color: slateblue; color: whitesmoke; */
+            color: rgba(22, 22, 22, 0.9);
+            text-shadow: 0px 0px 20px white;
+        }
+        span.pill.golang {
+            /* background-color: aqua; */
+            color: rgba(22, 22, 22, 0.9);
+            text-shadow: 0px 0px 20px white;
+        }
+        span.pill.typescript {
+            /* background-color: blue; color: whitesmoke; */
+            color: rgba(22, 22, 22, 0.9);
+            text-shadow: 0px 0px 20px white;
+        }
+        span.pill.javascript {
+            /* background-color: gold; */
+            color: rgba(22, 22, 22, 0.9);
+            text-shadow: 0px 0px 20px white;
+        }
     </style>
 </head>
 <body>
@@ -203,6 +258,11 @@
                         A framework for making easy use of parser combinators and production rules.
                     </p>
                 </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 6</span>
+                    <span class="pill golang">Go</span>
+                    <span class="pill library">library</span>
+                </div>
             </div>
             <div class="item">
                 <div class="title">
@@ -216,6 +276,12 @@
                             target="_blank" style="font-size: smaller; text-decoration: underline;">Playground (Schema validator)</a>
                     </p>
                 </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 107</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill library">Library</span>
+                </div>
             </div>
             <div class="item">
                 <div class="title">
@@ -226,6 +292,12 @@
                         <a href="https://shellyln.github.io/knbn/#/"
                            target="_blank" style="font-size: smaller; text-decoration: underline;">https://shellyln.github.io/knbn/#/</a>
                     </p>
+                </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 118</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill application">App</span>
                 </div>
             </div>
             <div class="item">
@@ -239,6 +311,13 @@
                         Let's make your yet another DSL with Lisp S-expression!
                     </p>
                 </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 31</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill application">App</span>
+                    <span class="pill library">Library</span>
+                </div>
             </div>
             <div class="item">
                 <div class="title">
@@ -247,6 +326,11 @@
                     <p class="description">
                         A datatable that represents object graphs for Go.
                     </p>
+                </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 1</span>
+                    <span class="pill golang">Go</span>
+                    <span class="pill library">Library</span>
                 </div>
             </div>
             <div class="item">
@@ -258,6 +342,11 @@
                         <a href="https://shellyln.github.io/jsonlp/"
                            target="_blank" style="font-size: smaller; text-decoration: underline;">https://shellyln.github.io/jsonlp/</a>
                     </p>
+                </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 1</span>
+                    <span class="pill golang">Go</span>
+                    <span class="pill library">Library</span>
                 </div>
             </div>
             <div class="item">
@@ -272,6 +361,11 @@
                         <a href="https://shellyln.github.io/soql-visualizer/"
                             target="_blank" style="font-size: smaller; text-decoration: underline;">SOQL query visualizer</a>
                     </p>
+                </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 1</span>
+                    <span class="pill golang">Go</span>
+                    <span class="pill library">Library</span>
                 </div>
             </div>
             <div class="item">
@@ -288,6 +382,12 @@
                         <a class="bold" href="https://github.com/shellyln/open-soql">Open SOQL</a> is an object-oriented query language that allows you to query related data based on an object graph.
                     </p>
                 </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 16</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill library">Library</span>
+                </div>
             </div>
             <div class="item">
                 <div class="title">
@@ -296,6 +396,13 @@
                     <p class="description">
                         ✒️Render the { markdown | lsx | html } document templates into a ✨beautiful✨ { pdf | html | image }📄 formats.
                     </p>
+                </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 7</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill application">App</span>
+                    <span class="pill library">Library</span>
                 </div>
             </div>
             <div class="item">
@@ -306,6 +413,12 @@
                         <a class="bold" href="./red-agate/">RedAgate</a> is static HTML | XML | SVG renderer.<br class="br-sp">
                         You can start easily because we are using JSX<br class="br-sp">and semantics similar to React.
                     </p>
+                </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 16</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill library">Library</span>
                 </div>
             </div>
             <div class="item">
@@ -318,6 +431,12 @@
                            target="_blank" style="font-size: smaller; text-decoration: underline;">https://shellyln.github.io/mdne/#filename=Untitled.md</a>
                     </p>
                 </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 5</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill application">App</span>
+                </div>
             </div>
             <div class="item">
                 <div class="title">
@@ -326,6 +445,12 @@
                     <p class="description">
                         A well typed and <i>sugared</i> parser combinator framework for TypeScript/JavaScript.
                     </p>
+                </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 5</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill library">Library</span>
                 </div>
             </div>
             <div class="item">
@@ -337,6 +462,12 @@
                         HTML5 Canvas API implementation that rendering as SVG, w/o dependencies of browser DOM.
                     </p>
                 </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 16</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill library">Library</span>
+                </div>
             </div>
             <div class="item">
                 <div class="title">
@@ -346,6 +477,12 @@
                     <p class="description">
                         Toy scripting language with a syntax similar to Rust written in Go.
                     </p>
+                </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 3</span>
+                    <span class="pill golang">Go</span>
+                    <span class="pill application">App</span>
+                    <span class="pill library">Library</span>
                 </div>
             </div>
             <div class="item">
@@ -357,7 +494,19 @@
                         Enjoy type-safe and repository-centric development!
                     </p>
                 </div>
+                <div class="pillwrap">
+                    <span class="pill star">❤ 6</span>
+                    <span class="pill typescript">TypeScript</span>
+                    <span class="pill javascript">JavaScript</span>
+                    <span class="pill application">App</span>
+                </div>
             </div>
+            <div class="item-dummy"></div>
+            <div class="item-dummy"></div>
+            <div class="item-dummy"></div>
+            <div class="item-dummy"></div>
+            <div class="item-dummy"></div>
+            <div class="item-dummy"></div>
         </div>
     </div>
     <div class="footer">
