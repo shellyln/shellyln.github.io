@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>qrtools WASM demo</title>
+<!-- このHTMLは build-wasm が出力する bin/wasm/ から、同階層の
+     wasm_exec.js / qrtools.wasm / sample-logo.png とともに HTTP サーバ経由で開いてください。
+     例: cd bin/wasm && python -m http.server -->
+<style>
+  :root {
+    --accent: #1a3a8a;
+    --accent-600: #15306f;
+    --accent-soft: #e8edf9;
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1c2230;
+    --muted: #6b7280;
+    --border: #d8dce3;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 6px 20px rgba(16, 24, 40, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #6f8fe0; --accent-600: #87a2e8; --accent-soft: #1e2740;
+      --bg: #0f1115; --card: #171a21; --text: #e6e8ee; --muted: #9aa3b2; --border: #2b303b;
+      --shadow: 0 1px 3px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; padding: 0 1rem 3rem;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    color: var(--text); background: var(--bg); line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  header.app {
+    text-align: center; padding: 2rem 0 1rem;
+  }
+  header.app h1 {
+    margin: 0; font-size: 1.6rem; letter-spacing: .02em;
+    background: linear-gradient(90deg, var(--accent), #5b7be0);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header.app .sub { color: var(--muted); font-size: .9rem; margin-top: .25rem; }
+  .status { font-size: .8rem; color: var(--muted); }
+  .status.ok { color: #16a34a; }
+
+  /* タブ */
+  .tabs {
+    display: flex; gap: .25rem; margin: 1rem auto 1.25rem; max-width: 360px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 999px;
+    padding: .25rem; box-shadow: var(--shadow);
+  }
+  .tab {
+    flex: 1; border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-weight: 600; padding: .5rem 1rem; border-radius: 999px;
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  .tab.active { background: var(--accent); color: #fff; }
+  .tab:not(.active):hover { color: var(--text); }
+
+  /* パネル */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade .2s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow);
+    margin-bottom: 1.25rem;
+  }
+  .card h2 { margin: 0 0 1rem; font-size: 1.1rem; }
+  .card h3 { margin: 1.25rem 0 .5rem; font-size: .95rem; color: var(--muted); }
+
+  /* フォーム行 */
+  .field { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem .75rem; margin-bottom: .85rem; }
+  .field > label { flex: 0 0 7rem; font-weight: 600; font-size: .9rem; }
+  .field .control { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; flex: 1 1 auto; }
+  .hint { color: var(--muted); font-size: .8rem; }
+
+  input[type="text"], input[type="number"], textarea, select {
+    font: inherit; color: var(--text); background: var(--card);
+    border: 1px solid var(--border); border-radius: 8px; padding: .45rem .6rem;
+  }
+  input[type="number"] { width: 5rem; }
+  textarea { width: 100%; resize: vertical; min-height: 4.5rem; }
+  select { cursor: pointer; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, .tab:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+  input[type="color"] {
+    width: 44px; height: 34px; padding: 2px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--card); cursor: pointer;
+  }
+  input[type="range"] { accent-color: var(--accent); vertical-align: middle; }
+  input[type="file"] { font: inherit; max-width: 100%; }
+  output { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 2.2rem; }
+
+  /* ボタン */
+  .btn {
+    font: inherit; font-weight: 600; cursor: pointer; border: 1px solid transparent;
+    border-radius: 9px; padding: .55rem 1.1rem; transition: background .15s, border-color .15s, opacity .15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-600); }
+  .btn-ghost { background: transparent; border-color: var(--border); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* トグルスイッチ(CSSのみ) */
+  .toggle-row { gap: .55rem; }
+  .toggle-label { font-size: .9rem; color: var(--muted); }
+  .switch { position: relative; display: inline-block; width: 46px; height: 26px; flex: none; }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; inset: 0; background: var(--border); border-radius: 999px;
+    cursor: pointer; transition: background .2s;
+  }
+  .switch .slider::before {
+    content: ""; position: absolute; height: 20px; width: 20px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.35); transition: transform .2s;
+  }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider::before { transform: translateX(20px); }
+  .switch input:focus-visible + .slider { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ロゴプレビュー(透明はチェッカーボードで表示) */
+  .logo-preview {
+    width: 72px; height: 72px; object-fit: contain; border: 1px solid var(--border);
+    border-radius: 8px; background-color: #fff;
+    background-image:
+      linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd),
+      linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd);
+    background-size: 16px 16px; background-position: 0 0, 8px 8px;
+  }
+
+  /* QR 出力: PCは原寸(必要ならスクロール)、モバイルは画面幅に合わせる */
+  .qr-output { margin-top: 1rem; overflow-x: auto; }
+  .qr-output:empty { display: none; }
+  /* 表示幅は JS が端末ピクセル1:1(自然幅/DPR)に設定する。これでブラウザのDPR拡大による
+     再サンプリング(滲み・非整数倍率のがたつき)を防ぐ。image-rendering は指定しない。 */
+  .qr-output img, .qr-output svg {
+    display: block; border: 1px solid var(--border); border-radius: 10px; background: #fff;
+  }
+  .qr-output a.download {
+    display: inline-block; margin-top: .75rem; font-weight: 600; color: var(--accent);
+    text-decoration: none; border: 1px solid var(--border); border-radius: 9px; padding: .45rem .9rem;
+  }
+  .qr-output a.download:hover { border-color: var(--accent); }
+  .qr-output .err { color: #dc2626; }
+
+  /* 読み取り品質バナー */
+  .quality {
+    margin-top: .85rem; padding: .6rem .8rem; border-radius: 9px;
+    font-weight: 600; font-size: .9rem; border: 1px solid;
+  }
+  .quality-ok   { color: #15803d; background: rgba(22,163,74,.12);  border-color: rgba(22,163,74,.4); }
+  .quality-warn { color: #b45309; background: rgba(217,119,6,.12);  border-color: rgba(217,119,6,.4); }
+  .quality-bad  { color: #b91c1c; background: rgba(220,38,38,.12);  border-color: rgba(220,38,38,.4); }
+  .quality-checking { color: var(--muted); background: var(--bg); border-color: var(--border); }
+  @media (prefers-color-scheme: dark) {
+    .quality-ok   { color: #6ee7a0; }
+    .quality-warn { color: #fbbf24; }
+    .quality-bad  { color: #fca5a5; }
+  }
+
+  video.cam { width: 100%; max-width: 360px; border: 1px solid var(--border); border-radius: 10px; margin-top: .5rem; }
+  pre.out {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: .85rem; overflow: auto; font-size: .82rem; margin-top: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    header.app { padding: 1.25rem 0 .5rem; }
+    .card { padding: 1rem; }
+    .field > label { flex-basis: 100%; margin-bottom: -.2rem; }
+    /* モバイルは端末1:1ではなく画面の横幅に合わせる(JSが付けた inline width を上書き)。
+       SVGはベクタなので拡大しても鮮明、PNGは多少甘くなるが画面幅に追従する。 */
+    .qr-output img, .qr-output svg { width: 100% !important; height: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <h1>qrtools</h1>
+    <div class="sub">WebAssembly デモ — QR エンコード / デコード</div>
+    <div class="status" id="status">読み込み中…</div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="encode" type="button">エンコード</button>
+    <button class="tab" data-tab="decode" type="button">デコード</button>
+  </nav>
+
+  <!-- ============ エンコーダー ============ -->
+  <section id="tab-encode" class="panel active">
+    <div class="card">
+      <h2>QR を生成</h2>
+
+      <div class="field">
+        <label for="enc-text">テキスト</label>
+        <div class="control"><textarea id="enc-text">HELLO WASM 12345</textarea></div>
+      </div>
+
+      <div class="field">
+        <label for="enc-ec">EC レベル</label>
+        <div class="control">
+          <select id="enc-ec">
+            <option value="0">M</option><option value="1">L</option>
+            <option value="2">H</option><option value="3">Q</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="enc-ver">バージョン</label>
+        <div class="control">
+          <input id="enc-ver" type="number" value="0" min="0" max="40">
+          <span class="hint">0=自動</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="enc-cell">セルサイズ</label>
+        <div class="control">
+          <input id="enc-cell" type="number" value="0" min="0" max="64">
+          <span class="hint">px/セル, 0=既定(PNG=8)</span>
+        </div>
+      </div>
+
+      <h3>外観</h3>
+
+      <div class="field">
+        <label for="enc-fg">前景色</label>
+        <div class="control">
+          <input id="enc-fg" type="color" value="#000000">
+          <span class="hint">α</span>
+          <input id="enc-fg-a" type="range" min="0" max="255" value="255">
+          <output id="enc-fg-a-out">255</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="enc-bg">背景色</label>
+        <div class="control">
+          <input id="enc-bg" type="color" value="#ffffff">
+          <span class="hint">α</span>
+          <input id="enc-bg-a" type="range" min="0" max="255" value="255">
+          <output id="enc-bg-a-out">255</output>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>形式</label>
+        <div class="control toggle-row">
+          <span class="toggle-label">PNG</span>
+          <label class="switch"><input type="checkbox" id="enc-format"><span class="slider"></span></label>
+          <span class="toggle-label">SVG</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>スタイル</label>
+        <div class="control toggle-row">
+          <span class="toggle-label">四角</span>
+          <label class="switch"><input type="checkbox" id="enc-style"><span class="slider"></span></label>
+          <span class="toggle-label">ドット(Instagram風)</span>
+        </div>
+      </div>
+
+      <h3>中心ロゴ</h3>
+
+      <div class="field">
+        <label>中心ロゴ</label>
+        <div class="control toggle-row">
+          <label class="switch"><input type="checkbox" id="enc-logo-enabled"><span class="slider"></span></label>
+          <span class="toggle-label">使用する</span>
+        </div>
+      </div>
+
+      <div id="enc-logo-controls" style="display:none">
+        <div class="field">
+          <label for="enc-logo">ロゴ画像</label>
+          <div class="control">
+            <input id="enc-logo" type="file" accept="image/png,image/jpeg">
+            <button id="enc-logo-clear" class="btn btn-ghost" type="button">クリア</button>
+            <span class="hint">未選択時はサンプルロゴ</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>プレビュー</label>
+          <div class="control">
+            <img id="enc-logo-preview" class="logo-preview" alt="ロゴプレビュー">
+          </div>
+        </div>
+        <div class="field">
+          <label for="enc-logo-size">ロゴサイズ</label>
+          <div class="control">
+            <input id="enc-logo-size" type="number" value="20" min="0" max="40">
+            <span class="hint">% 推奨≤30(大きい場合はEC=H)</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="enc-logo-pad">クリアリング</label>
+          <div class="control">
+            <input id="enc-logo-pad" type="number" value="0" min="0" max="50">
+            <span class="hint">% ロゴ周囲の余白。0で無効</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem">
+        <button id="enc-btn" class="btn btn-primary" type="button">エンコード</button>
+      </div>
+      <div id="enc-out" class="qr-output"></div>
+    </div>
+  </section>
+
+  <!-- ============ デコーダー ============ -->
+  <section id="tab-decode" class="panel">
+    <div class="card">
+      <h2>QR を読み取る</h2>
+      <p class="hint">画像ファイル・写真・ライブカメラのいずれかで入力できます。メトリクスは常に出力されます。</p>
+
+      <div class="field">
+        <label for="dec-file">ファイル/写真</label>
+        <!-- accept="image/*" でモバイルは写真ライブラリ/カメラ撮影が選べる。 -->
+        <div class="control"><input id="dec-file" type="file" accept="image/*"></div>
+      </div>
+
+      <div class="field">
+        <label>ライブカメラ</label>
+        <div class="control">
+          <button id="cam-start" class="btn btn-ghost" type="button">スキャン開始</button>
+          <button id="cam-stop" class="btn btn-ghost" type="button" disabled>停止</button>
+          <span id="cam-status" class="hint"></span>
+        </div>
+      </div>
+      <!-- getUserMedia は localhost か https の安全なコンテキストでのみ動作します。 -->
+      <video id="cam-video" class="cam" playsinline muted style="display:none"></video>
+
+      <pre id="dec-out" class="out">ここに結果が表示されます</pre>
+    </div>
+  </section>
+</div>
+
+<script src="./wasm_exec.js"></script>
+<script>
+(async () => {
+  // --- タブ切り替え(WASM読込前から動作) ---
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach((tab) => tab.addEventListener('click', () => {
+    tabs.forEach((t) => t.classList.toggle('active', t === tab));
+    panels.forEach((p) => p.classList.toggle('active', p.id === 'tab-' + tab.dataset.tab));
+  }));
+
+  const go = new Go();
+  const result = await WebAssembly.instantiateStreaming(fetch('./qrtools.wasm'), go.importObject);
+  go.run(result.instance);
+  const status = document.getElementById('status');
+  status.textContent = '準備完了';
+  status.classList.add('ok');
+
+  // --- 中心ロゴ(既定オフ。トグルONで関連UIを表示) ---
+  const SAMPLE_LOGO_URL = './sample-logo.png';
+  const logoPreview = document.getElementById('enc-logo-preview');
+  const logoEnabled = document.getElementById('enc-logo-enabled');
+  const logoControls = document.getElementById('enc-logo-controls');
+  let logoDataUrl = null;   // encode に渡す data URL(現在のロゴ)
+  let sampleDataUrl = null; // サンプルロゴの data URL(フォールバック)
+  let sampleLoaded = false;
+
+  const urlToDataUrl = (url) => fetch(url).then((r) => r.blob()).then((b) =>
+    new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => res(fr.result);
+      fr.onerror = rej;
+      fr.readAsDataURL(b);
+    }));
+
+  logoEnabled.addEventListener('change', async () => {
+    logoControls.style.display = logoEnabled.checked ? '' : 'none';
+    if (logoEnabled.checked && !sampleLoaded) {
+      sampleLoaded = true;
+      try {
+        sampleDataUrl = await urlToDataUrl(SAMPLE_LOGO_URL);
+        if (!logoDataUrl) { logoDataUrl = sampleDataUrl; logoPreview.src = sampleDataUrl; }
+      } catch {
+        logoPreview.alt = 'サンプルロゴを読み込めませんでした';
+      }
+    }
+  });
+
+  document.getElementById('enc-logo').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) { logoDataUrl = sampleDataUrl; logoPreview.src = sampleDataUrl || ''; return; }
+    const reader = new FileReader();
+    reader.onload = () => { logoDataUrl = reader.result; logoPreview.src = reader.result; };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('enc-logo-clear').addEventListener('click', () => {
+    logoDataUrl = sampleDataUrl;
+    logoPreview.src = sampleDataUrl || '';
+    document.getElementById('enc-logo').value = '';
+  });
+
+  // --- エンコード ---
+  document.getElementById('enc-btn').addEventListener('click', () => {
+    const cell = Number(document.getElementById('enc-cell').value);
+    const format = document.getElementById('enc-format').checked ? 'svg' : 'png';
+    const input = {
+      text: document.getElementById('enc-text').value,
+      ec_level: Number(document.getElementById('enc-ec').value),
+      version: Number(document.getElementById('enc-ver').value),
+      scale: cell,
+      fg: colorWithAlpha('enc-fg', 'enc-fg-a'),
+      bg: colorWithAlpha('enc-bg', 'enc-bg-a'),
+      style: document.getElementById('enc-style').checked ? 'dots' : 'square',
+      format,
+    };
+    if (logoEnabled.checked && logoDataUrl) {
+      input.logo = logoDataUrl;
+      input.logo_size = Number(document.getElementById('enc-logo-size').value) / 100;
+      input.logo_padding = Number(document.getElementById('enc-logo-pad').value) / 100;
+    }
+    const res = qrtools.encode(input);
+    const out = document.getElementById('enc-out');
+    out.innerHTML = '';
+    if (!res.success) { out.innerHTML = '<span class="err">エラー: ' + res.error + '</span>'; return; }
+
+    const blob = format === 'svg'
+      ? new Blob([res.output], { type: 'image/svg+xml' })
+      : new Blob([res.output], { type: 'image/png' });
+    const filename = 'qr.' + format;
+
+    if (format === 'svg') {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = res.output;
+      const svg = wrap.firstElementChild;
+      fitDevicePixels(svg, parseFloat(svg.getAttribute('width')));
+      out.appendChild(svg);
+    } else {
+      // 読み込み前に表示サイズを確定させ、一瞬だけ自然サイズ(hiDPIでは大きい)で
+      // 表示されてチラつくのを防ぐ。PNGの余白は片側4セル、既定セルは8px、QRは正方形。
+      const pngScale = cell > 0 ? cell : 8;
+      const estW = (res.frame.dimension + 8) * pngScale / (window.devicePixelRatio || 1);
+      const img = new Image();
+      img.style.width = estW + 'px';
+      img.style.height = estW + 'px';
+      img.onload = () => fitDevicePixels(img, img.naturalWidth); // 実寸で正確化(height:auto)
+      img.src = URL.createObjectURL(blob);
+      out.appendChild(img);
+    }
+    addDownloadLink(out, blob, filename);
+
+    // ロゴ使用時のみ: 生成画像を自分でデコードして読み取り品質を自己診断する。
+    if (logoEnabled.checked) {
+      const q = document.createElement('div');
+      q.className = 'quality quality-checking';
+      q.textContent = '読み取り品質を確認中…';
+      out.appendChild(q);
+      checkReadability(blob, input.text).then((v) => {
+        q.className = 'quality ' + v.cls;
+        q.textContent = v.msg;
+      }).catch(() => {
+        q.className = 'quality quality-warn';
+        q.textContent = '⚠ 読み取り品質を確認できませんでした';
+      });
+    }
+  });
+
+  // checkReadability は生成画像を白背景でラスタライズして visionDecode に通し、
+  // 読み取り可否と誤り訂正の余裕から品質を判定します。
+  async function checkReadability(blob, expectedText) {
+    const bytes = await rasterizeOnWhite(blob);
+    const dec = qrtools.visionDecode(bytes);
+    if (!dec || !dec.success) {
+      return { cls: 'quality-bad', msg: '⚠ 生成画像を読み取れませんでした。ロゴを小さく/クリアリングを縮小、または EC レベルを上げてください' };
+    }
+    if ((dec.text || '') !== expectedText) {
+      return { cls: 'quality-bad', msg: '⚠ 読み取り結果が元テキストと一致しません。ロゴが大きすぎる可能性があります' };
+    }
+    // worst_block_budget: 最も訂正を要したRSブロックの使用率(0..1)。低いほど余裕がある。
+    const wb = (dec.metrics && typeof dec.metrics.worst_block_budget === 'number')
+      ? dec.metrics.worst_block_budget : 0;
+    const pct = Math.round(wb * 100);
+    if (wb <= 0.5) {
+      return { cls: 'quality-ok', msg: `✓ 読み取り品質に問題ありません（誤り訂正の余裕: ${100 - pct}%）` };
+    }
+    if (wb <= 0.85) {
+      return { cls: 'quality-warn', msg: `⚠ 読み取りの余裕が少なめです（使用済み ${pct}%）。ロゴ縮小や EC=H を推奨します` };
+    }
+    return { cls: 'quality-bad', msg: `⚠ 読み取りが不安定です（誤り訂正を ${pct}% 使用）。ロゴ/クリアリングの縮小・EC=H を推奨します` };
+  }
+
+  // rasterizeOnWhite は Blob(PNG/SVG)を白背景の上にラスタライズし PNG バイト列を返します。
+  // 透過は白で合成するため、印刷・掲示時(白地)の読み取りやすさを評価できます。
+  function rasterizeOnWhite(blob) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const w = img.naturalWidth || 256;
+        const h = img.naturalHeight || 256;
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => b.arrayBuffer().then((ab) => resolve(new Uint8Array(ab))), 'image/png');
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('rasterize failed')); };
+      img.src = url;
+    });
+  }
+
+  // 生成画像を端末ピクセル1:1で表示する。CSS幅を「自然幅 / devicePixelRatio」にすると
+  // 1ラスタ画素=1端末画素となり、ブラウザのDPR拡大による再サンプリング(滲み)を防げる。
+  // PC(DPR=1)では従来どおり原寸。モバイルは CSS の max-width:100% で画面幅に収まる。
+  function fitDevicePixels(el, naturalWidth) {
+    if (!el || !(naturalWidth > 0)) return;
+    const dpr = window.devicePixelRatio || 1;
+    el.style.width = (naturalWidth / dpr) + 'px';
+    el.style.height = 'auto';
+  }
+
+  // Blob を指す download リンクを追加(クリック後にURL解放)。
+  function addDownloadLink(container, blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.className = 'download';
+    a.textContent = '⬇ ' + filename + ' をダウンロード';
+    a.addEventListener('click', () => { setTimeout(() => URL.revokeObjectURL(url), 1000); });
+    container.appendChild(document.createElement('br'));
+    container.appendChild(a);
+  }
+
+  // color ピッカー + アルファスライダー → #RRGGBB / #RRGGBBAA。
+  function colorWithAlpha(colorId, alphaId) {
+    const rgb = document.getElementById(colorId).value;
+    const a = Number(document.getElementById(alphaId).value);
+    if (a >= 255) return rgb;
+    return rgb + a.toString(16).padStart(2, '0');
+  }
+
+  // アルファ値のライブ表示。
+  [['enc-fg-a', 'enc-fg-a-out'], ['enc-bg-a', 'enc-bg-a-out']].forEach(([slider, out]) => {
+    const s = document.getElementById(slider);
+    const o = document.getElementById(out);
+    s.addEventListener('input', () => { o.textContent = s.value; });
+  });
+
+  // --- vision + デコーダー ---
+  const decOut = document.getElementById('dec-out');
+  const showDecode = (bytes) => {
+    const res = qrtools.visionDecode(bytes);
+    decOut.textContent = JSON.stringify(res, null, 2);
+    return res;
+  };
+
+  document.getElementById('dec-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showDecode(new Uint8Array(await file.arrayBuffer()));
+  });
+
+  // ライブカメラ: フレームを canvas → PNG にして連続スキャン、成功で停止。
+  const video = document.getElementById('cam-video');
+  const camStart = document.getElementById('cam-start');
+  const camStop = document.getElementById('cam-stop');
+  const camStatus = document.getElementById('cam-status');
+  const canvas = document.createElement('canvas');
+  let stream = null, scanTimer = null;
+
+  const stopCamera = () => {
+    if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+    if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+    video.style.display = 'none';
+    camStart.disabled = false;
+    camStop.disabled = true;
+  };
+
+  const scanOnce = async () => {
+    if (!video.videoWidth) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    // プリスキャン: QR らしき構造が無いフレームは重い visionDecode を呼ばずに即スキップ。
+    if (!qrtools.quickScan(bytes)) { camStatus.textContent = 'スキャン中…(QR探索中)'; return; }
+    const res = showDecode(bytes);
+    if (res.success) { camStatus.textContent = '検出しました'; stopCamera(); }
+  };
+
+  camStart.addEventListener('click', async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }, audio: false,
+      });
+      video.srcObject = stream;
+      await video.play();
+      video.style.display = 'block';
+      camStart.disabled = true;
+      camStop.disabled = false;
+      camStatus.textContent = 'スキャン中…';
+      scanTimer = setInterval(scanOnce, 500);
+    } catch (err) {
+      camStatus.textContent = 'カメラを起動できません: ' + err.message;
+    }
+  });
+
+  camStop.addEventListener('click', () => { stopCamera(); camStatus.textContent = '停止しました'; });
+})();
+</script>
+</body>
+</html>
