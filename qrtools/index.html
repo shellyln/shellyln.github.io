@@ -170,6 +170,18 @@
   }
 
   video.cam { width: 100%; max-width: 360px; border: 1px solid var(--border); border-radius: 10px; margin-top: .5rem; }
+  /* スキャン(visionDecode)実行時のフラッシュ表示 */
+  video.cam.scanning { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); animation: scan-flash .35s ease-out; }
+  @keyframes scan-flash { from { box-shadow: 0 0 0 6px var(--accent); } to { box-shadow: 0 0 0 3px var(--accent); } }
+  /* スキャン実行インジケータ(ステータス横の点滅ドット) */
+  .scan-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--border); margin-right: .4rem; vertical-align: middle; transition: background .1s; }
+  .scan-dot.on { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  /* フレーム送信(postMessage)時のリング状パルス。decode 実走の .on とは別表現。 */
+  .scan-dot.ping { animation: scan-ping .4s ease-out; }
+  @keyframes scan-ping {
+    from { box-shadow: 0 0 0 0 var(--accent); }
+    to   { box-shadow: 0 0 0 7px transparent; }
+  }
   pre.out {
     background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
     padding: .85rem; overflow: auto; font-size: .82rem; margin-top: 1rem;
@@ -206,6 +218,17 @@
       <div class="field">
         <label for="enc-text">テキスト</label>
         <div class="control"><textarea id="enc-text">HELLO WASM 12345</textarea></div>
+      </div>
+
+      <div class="field">
+        <label for="enc-in">入力モード</label>
+        <div class="control">
+          <select id="enc-in">
+            <option value="auto">auto（テキスト・自動モード選択）</option>
+            <option value="8bit">8bit（バイトモード固定）</option>
+          </select>
+          <span class="hint">8bit は数字/英数字も常にバイトモードで符号化</span>
+        </div>
       </div>
 
       <div class="field">
@@ -339,11 +362,26 @@
         <div class="control">
           <button id="cam-start" class="btn btn-ghost" type="button">スキャン開始</button>
           <button id="cam-stop" class="btn btn-ghost" type="button" disabled>停止</button>
-          <span id="cam-status" class="hint"></span>
+          <span class="hint"><span id="cam-dot" class="scan-dot"></span><span id="cam-status"></span></span>
+        </div>
+        <!-- プリスキャン: 既定オフ。ONにすると QR らしき構造が無いフレームを軽量判定でスキップして高速化する。 -->
+        <div class="control toggle-row" style="margin-top:.5rem">
+          <span class="toggle-label">高速スキャン</span>
+          <label class="switch"><input type="checkbox" id="cam-prescan"><span class="slider"></span></label>
+          <span class="toggle-label">（experimental）</span>
         </div>
       </div>
       <!-- getUserMedia は localhost か https の安全なコンテキストでのみ動作します。 -->
       <video id="cam-video" class="cam" playsinline muted style="display:none"></video>
+
+      <div class="field">
+        <label>出力</label>
+        <div class="control toggle-row">
+          <span class="toggle-label">自動（UTF-8 text / base64 data）</span>
+          <label class="switch"><input type="checkbox" id="dec-binary"><span class="slider"></span></label>
+          <span class="toggle-label">バイナリ強制（base64 data）</span>
+        </div>
+      </div>
 
       <pre id="dec-out" class="out">ここに結果が表示されます</pre>
     </div>
@@ -417,6 +455,7 @@
     const format = document.getElementById('enc-format').checked ? 'svg' : 'png';
     const input = {
       text: document.getElementById('enc-text').value,
+      in: document.getElementById('enc-in').value,
       ec_level: Number(document.getElementById('enc-ec').value),
       version: Number(document.getElementById('enc-ver').value),
       scale: cell,
@@ -564,7 +603,8 @@
   // --- vision + デコーダー ---
   const decOut = document.getElementById('dec-out');
   const showDecode = (bytes) => {
-    const res = qrtools.visionDecode(bytes);
+    const forceBinary = document.getElementById('dec-binary').checked;
+    const res = qrtools.visionDecode(bytes, forceBinary);
     decOut.textContent = JSON.stringify(res, null, 2);
     return res;
   };
@@ -580,34 +620,99 @@
   const camStart = document.getElementById('cam-start');
   const camStop = document.getElementById('cam-stop');
   const camStatus = document.getElementById('cam-status');
+  const camPrescan = document.getElementById('cam-prescan');
+  const camDot = document.getElementById('cam-dot');
   const canvas = document.createElement('canvas');
   let stream = null, scanTimer = null;
+
+  // --- スキャン用 Worker ---
+  // qrtools.wasm を別インスタンスでロードし、visionDecode をメインスレッド外で実行する。
+  // これにより解析中も UI(プレビュー・操作)がブロックされない。Worker は 1 個。
+  const scanWorker = new Worker('./scan-worker.js');
+  let workerReady = false; // wasm 初期化完了フラグ
+  let inFlight = false;    // Worker が処理中か(単一 Worker なので同時 1 件に制限)
+  let frameSeq = 0;        // 送信フレームの連番(順序・stale 判定用)
+
+  scanWorker.onmessage = ({ data }) => {
+    if (data.type === 'ready') { workerReady = true; return; }
+    if (data.type === 'error') { camStatus.textContent = 'スキャンWorker初期化失敗: ' + data.error; return; }
+    if (data.type !== 'result') return;
+
+    inFlight = false;
+    if (!stream) return; // カメラ停止後に遅れて届いた結果は無視
+
+    if (data.skipped) { camStatus.textContent = 'スキャン中…(QR探索中)'; return; }
+
+    // visionDecode が実走したフレーム。UI 上に明示。
+    flashScan();
+    decOut.textContent = JSON.stringify(data.res, null, 2);
+    if (data.res.success) { camStatus.textContent = '検出しました'; stopCamera(); }
+    else { camStatus.textContent = 'スキャン中…(解析実行)'; }
+  };
+  scanWorker.onerror = () => { inFlight = false; }; // 詰まり防止(スロット解放)
+
+  // フレームを Worker へ送信したことを示す小さなリングパルス(decode 実走の flashScan とは別)。
+  const pingDot = () => {
+    camDot.classList.remove('ping');
+    void camDot.offsetWidth; // リフロー強制でアニメーションを再始動
+    camDot.classList.add('ping');
+  };
+
+  // スキャン(visionDecode)が実走したことを UI で明示する。
+  // 動画枠をフラッシュさせ、ステータス横のドットを一瞬点灯する。
+  const flashScan = () => {
+    video.classList.remove('scanning');
+    void video.offsetWidth; // リフロー強制でアニメーションを再始動
+    video.classList.add('scanning');
+    camDot.classList.add('on');
+    setTimeout(() => { video.classList.remove('scanning'); camDot.classList.remove('on'); }, 350);
+  };
 
   const stopCamera = () => {
     if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
     if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+    inFlight = false;
+    video.classList.remove('scanning');
+    camDot.classList.remove('on');
     video.style.display = 'none';
     camStart.disabled = false;
     camStop.disabled = true;
   };
 
   const scanOnce = async () => {
-    if (!video.videoWidth) return;
+    // Worker 未準備 / 処理中はスキップ(単一 Worker なので同時 1 件)。
+    if (!video.videoWidth || !workerReady || inFlight) return;
+    inFlight = true; // await 中の二重発火を防ぐため先にスロット確保
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
     const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
-    const bytes = new Uint8Array(await blob.arrayBuffer());
-    // プリスキャン: QR らしき構造が無いフレームは重い visionDecode を呼ばずに即スキップ。
-    if (!qrtools.quickScan(bytes)) { camStatus.textContent = 'スキャン中…(QR探索中)'; return; }
-    const res = showDecode(bytes);
-    if (res.success) { camStatus.textContent = '検出しました'; stopCamera(); }
+    const buf = await blob.arrayBuffer(); // ArrayBuffer(transfer で Worker へ移譲)
+
+    // frame は transfer(ゼロコピー)、mode/seq はコピー。モードはフレーム毎に同梱し、
+    // トグルの変更を次フレームから即反映させる。プリスキャン判定は Worker 側で実行。
+    scanWorker.postMessage(
+      {
+        frame: buf,
+        mode: {
+          prescan:     camPrescan.checked,
+          forceBinary: document.getElementById('dec-binary').checked,
+        },
+        seq: ++frameSeq,
+      },
+      [buf], // transferList には frame の ArrayBuffer だけ
+    );
+    pingDot(); // 送信した合図(リングパルス)
   };
 
   camStart.addEventListener('click', async () => {
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }, audio: false,
+        video: {
+          facingMode: 'environment',
+          width:  { ideal: 800 },
+          height: { ideal: 600 },
+        }, audio: false,
       });
       video.srcObject = stream;
       await video.play();
