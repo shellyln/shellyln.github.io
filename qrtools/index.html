@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
-<title>qrtools WASM demo</title>
+<title>qrtools</title>
 <!-- このHTMLは build-wasm が出力する bin/wasm/ から、同階層の
      wasm_exec.js / qrtools.wasm / sample-logo.png とともに HTTP サーバ経由で開いてください。
      例: cd bin/wasm && python -m http.server -->
@@ -47,6 +47,7 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   header.app .sub { color: var(--muted); font-size: .9rem; margin-top: .25rem; }
+  header.app .version { color: var(--muted); font-size: .75rem; margin-top: .25rem; opacity: .8; }
   .status { font-size: .8rem; color: var(--muted); }
   .status.ok { color: #16a34a; }
 
@@ -201,7 +202,8 @@
 <div class="wrap">
   <header class="app">
     <h1>qrtools</h1>
-    <div class="sub">WebAssembly デモ — QR エンコード / デコード</div>
+    <div class="sub">QR エンコード / デコード</div>
+    <div class="version" id="app-version">Version: unknown / Revision: unknown</div>
     <div class="status" id="status">読み込み中…</div>
   </header>
 
@@ -217,7 +219,7 @@
 
       <div class="field">
         <label for="enc-text">テキスト</label>
-        <div class="control"><textarea id="enc-text">HELLO WASM 12345</textarea></div>
+        <div class="control"><textarea id="enc-text">QR Code 12345</textarea></div>
       </div>
 
       <div class="field">
@@ -336,6 +338,16 @@
             <span class="hint">% ロゴ周囲の余白。0で無効</span>
           </div>
         </div>
+        <div class="field">
+          <label for="enc-logo-frame">枠のスタイル</label>
+          <div class="control">
+            <select id="enc-logo-frame">
+              <option value="square">正方形</option>
+              <option value="rounded">角丸正方形</option>
+            </select>
+            <span class="hint">クリアリングの枠形状</span>
+          </div>
+        </div>
       </div>
 
       <div style="margin-top:1rem">
@@ -364,11 +376,14 @@
           <button id="cam-stop" class="btn btn-ghost" type="button" disabled>停止</button>
           <span class="hint"><span id="cam-dot" class="scan-dot"></span><span id="cam-status"></span></span>
         </div>
+      </div>
+      <div class="field">
         <!-- プリスキャン: 既定オフ。ONにすると QR らしき構造が無いフレームを軽量判定でスキップして高速化する。 -->
+        <label>高速スキャン（experimental）</label>
         <div class="control toggle-row" style="margin-top:.5rem">
-          <span class="toggle-label">高速スキャン</span>
+          <span class="toggle-label">OFF</span>
           <label class="switch"><input type="checkbox" id="cam-prescan"><span class="slider"></span></label>
-          <span class="toggle-label">（experimental）</span>
+          <span class="toggle-label">ON</span>
         </div>
       </div>
       <!-- getUserMedia は localhost か https の安全なコンテキストでのみ動作します。 -->
@@ -405,6 +420,14 @@
   const status = document.getElementById('status');
   status.textContent = '準備完了';
   status.classList.add('ok');
+
+  // ビルド時に wasm へ埋め込んだバージョン情報をヘッダに表示する。
+  const appVersion = document.getElementById('app-version');
+  if (appVersion && globalThis.qrtools) {
+    const ver = qrtools.version || 'unknown';
+    const rev = qrtools.revision || 'unknown';
+    appVersion.textContent = `Version: ${ver} / Revision: ${rev}`;
+  }
 
   // --- 中心ロゴ(既定オフ。トグルONで関連UIを表示) ---
   const SAMPLE_LOGO_URL = './sample-logo.png';
@@ -468,6 +491,7 @@
       input.logo = logoDataUrl;
       input.logo_size = Number(document.getElementById('enc-logo-size').value) / 100;
       input.logo_padding = Number(document.getElementById('enc-logo-pad').value) / 100;
+      input.logo_frame = document.getElementById('enc-logo-frame').value;
     }
     const res = qrtools.encode(input);
     const out = document.getElementById('enc-out');
@@ -625,6 +649,19 @@
   const canvas = document.createElement('canvas');
   let stream = null, scanTimer = null;
 
+  // スキャン間隔(ms)。プリスキャン(quickscan)有効時は解析が軽いため短くする。
+  const scanInterval = () => (camPrescan.checked ? 200 : 500);
+
+  // 現在の間隔でスキャンタイマーを張り直す。カメラ稼働中のみ有効。
+  const restartScanTimer = () => {
+    if (!stream) return;
+    if (scanTimer) clearInterval(scanTimer);
+    scanTimer = setInterval(scanOnce, scanInterval());
+  };
+
+  // トグル切り替え時、カメラ起動中でも間隔を即反映させる。
+  camPrescan.addEventListener('change', restartScanTimer);
+
   // --- スキャン用 Worker ---
   // qrtools.wasm を別インスタンスでロードし、visionDecode をメインスレッド外で実行する。
   // これにより解析中も UI(プレビュー・操作)がブロックされない。Worker は 1 個。
@@ -720,7 +757,7 @@
       camStart.disabled = true;
       camStop.disabled = false;
       camStatus.textContent = 'スキャン中…';
-      scanTimer = setInterval(scanOnce, 500);
+      scanTimer = setInterval(scanOnce, scanInterval());
     } catch (err) {
       camStatus.textContent = 'カメラを起動できません: ' + err.message;
     }
