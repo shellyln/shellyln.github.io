@@ -639,7 +639,8 @@
     showDecode(new Uint8Array(await file.arrayBuffer()));
   });
 
-  // ライブカメラ: フレームを canvas → PNG にして連続スキャン、成功で停止。
+  // ライブカメラ: フレームを canvas → 生 RGBA(getImageData)にして連続スキャン、成功で停止。
+  // PNG エンコード/デコードの往復を廃し、生画素を transfer で Worker に渡す(設計書 §11 W1)。
   const video = document.getElementById('cam-video');
   const camStart = document.getElementById('cam-start');
   const camStop = document.getElementById('cam-stop');
@@ -719,18 +720,23 @@
   const scanOnce = async () => {
     // Worker 未準備 / 処理中はスキップ(単一 Worker なので同時 1 件)。
     if (!video.videoWidth || !workerReady || inFlight) return;
-    inFlight = true; // await 中の二重発火を防ぐため先にスロット確保
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
-    const buf = await blob.arrayBuffer(); // ArrayBuffer(transfer で Worker へ移譲)
+    inFlight = true; // 二重発火を防ぐため先にスロット確保
+    const w = video.videoWidth, h = video.videoHeight;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx2d = canvas.getContext('2d', { willReadFrequently: true });
+    ctx2d.drawImage(video, 0, 0);
+    // 生 RGBA(非乗算 sRGB、1画素4バイト)。PNG エンコード/デコードを経由しない。
+    const imageData = ctx2d.getImageData(0, 0, w, h);
+    const buf = imageData.data.buffer; // ArrayBuffer(transfer で Worker へ移譲=ゼロコピー)
 
-    // frame は transfer(ゼロコピー)、mode/seq はコピー。モードはフレーム毎に同梱し、
-    // トグルの変更を次フレームから即反映させる。プリスキャン判定は Worker 側で実行。
+    // frame は transfer、width/height/mode/seq はコピー。モードはフレーム毎に同梱し、
+    // トグルの変更を次フレームから即反映させる。プリスキャン判定は Worker 側(scanFrame)で実行。
     scanWorker.postMessage(
       {
         frame: buf,
+        width: w,
+        height: h,
         mode: {
           prescan:     camPrescan.checked,
           forceBinary: document.getElementById('dec-binary').checked,
