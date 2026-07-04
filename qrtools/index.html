@@ -89,7 +89,7 @@
     border: 1px solid var(--border); border-radius: 8px; padding: .45rem .6rem;
   }
   input[type="number"] { width: 5rem; }
-  textarea { width: 100%; resize: vertical; min-height: 4.5rem; }
+  textarea { width: 100%; resize: vertical; min-height: 11.5rem; }
   select { cursor: pointer; }
   input:focus-visible, select:focus-visible, textarea:focus-visible, .tab:focus-visible {
     outline: 2px solid var(--accent); outline-offset: 1px;
@@ -218,11 +218,90 @@
       <h2>QR を生成</h2>
 
       <div class="field">
-        <label for="enc-text">テキスト</label>
-        <div class="control"><textarea id="enc-text">QR Code 12345</textarea></div>
+        <label>入力形式</label>
+        <div class="control toggle-row">
+          <span class="toggle-label">テキスト</span>
+          <label class="switch"><input type="checkbox" id="enc-json-mode"><span class="slider"></span></label>
+          <span class="toggle-label">JSON（complex/ECI/GS1/FNC1）</span>
+        </div>
       </div>
 
       <div class="field">
+        <label for="enc-text" id="enc-text-label">テキスト</label>
+        <div class="control"><textarea id="enc-text">QR Code 12345</textarea></div>
+      </div>
+
+      <details id="enc-json-help" style="display:none; margin: -.4rem 0 .85rem;">
+        <summary class="hint" style="cursor:pointer">complex JSON のスキーマと例</summary>
+        <div class="hint" style="margin-top:.5rem">
+          <p>
+            テキスト欄には JSON オブジェクトを1つ入力します。トップレベルの主なフィールド:
+          </p>
+          <ul>
+            <li><code>complex</code>: 項目の配列(text/data と同時指定不可)</li>
+            <li><code>eci</code>: 発行するECIの文字集合名
+              (none, utf-8, us-ascii, iso-8859-1, shift_jis, utf-16be, utf-16le)。
+              既定 <code>none</code>(=ECIを発行しない)</li>
+            <li><code>in_enc</code>: 入力バイト列の文字集合名(ECIは発行しない)
+              (utf-8, us-ascii, iso-8859-1, shift_jis, utf-16be, utf-16le)。
+              既定 <code>utf-8</code></li>
+            <li><code>gs1</code>: true で FNC1(First Position)。<code>fnc1</code>: 2桁16進の応用指示子でFNC1(Second)</li>
+          </ul>
+          <p>
+            complex には、 文字列/<code>text</code>/<code>data</code>/<code>ai</code> を並べることができます:
+          </p>
+          <ul>
+            <li><code>"文字列"</code> — テキスト項目(有効な文字集合で解釈。最も短い書き方)</li>
+            <li><code>{"text":"…", "encoding":"utf-8|us-ascii"}</code> — ECI 付きテキスト</li>
+            <li><code>{"data":"&lt;base64&gt;"}</code> — バイナリ(<code>encoding</code> を付けるとその ECI を発行)</li>
+            <li><code>{"ai":"01", "value":"…", "fixed_length":true}</code> — GS1 アプリケーション識別子</li>
+          </ul>
+
+          <p>① 文字列だけの混在(数字/英数字/8ビットを自動で最短分節):</p>
+          <pre class="out" style="margin:.25rem 0">{
+  "complex": ["Hello ", "12345", " World"]
+}</pre>
+
+          <p>② GS1(AI 01 固定長 + AI 10 可変長。<code>type</code> 省略):</p>
+          <pre class="out" style="margin:.25rem 0">{
+  "gs1": true,
+  "complex": [
+    {"ai": "01", "value": "04912345123459", "fixed_length": true},
+    {"ai": "10", "value": "ABC123"}
+  ]
+}</pre>
+
+          <p>③ shift_jis を base64 で(<code>encoding</code> により ECI 20 を発行):</p>
+          <pre class="out" style="margin:.25rem 0">{
+  "complex": [
+    {"data": "gqCDl4OG", "encoding": "shift_jis"}
+  ]
+}</pre>
+
+          <p>④ テキストと shift_jis データの混在(先頭は既定文字集合の文字列、続けて ECI 20):</p>
+          <pre class="out" style="margin:.25rem 0">{
+  "complex": [
+    "URL=",
+    {"data": "gqCDl4OG", "encoding": "shift_jis"}
+  ]
+}</pre>
+
+          <p>⑤ utf-8 明示のテキスト項目(ECI 26 を発行):</p>
+          <pre class="out" style="margin:.25rem 0">{
+  "complex": [
+    {"text": "café ☕", "encoding": "utf-8"}
+  ]
+}</pre>
+
+          <p>⑥ FNC1(Second Position、応用指示子 0x65)+ 文字列項目:</p>
+          <pre class="out" style="margin:.25rem 0">{
+  "fnc1": "65",
+  "complex": ["1234", "ABCDEF"]
+}</pre>
+        </div>
+      </details>
+
+      <div class="field" id="enc-in-field">
         <label for="enc-in">入力モード</label>
         <div class="control">
           <select id="enc-in">
@@ -472,21 +551,58 @@
     document.getElementById('enc-logo').value = '';
   });
 
+  // --- テキスト / JSON(complex) トグル ---
+  // JSON モードでは textarea 全体を EncoderInputJSONLine 形式のオブジェクトとして扱い、
+  // text 入力として扱わない(§10.2)。入力モード(auto/8bit)は text 専用のためJSON時は隠す。
+  const jsonModeToggle = document.getElementById('enc-json-mode');
+  const jsonHelp = document.getElementById('enc-json-help');
+  const encInField = document.getElementById('enc-in-field');
+  const encTextLabel = document.getElementById('enc-text-label');
+  const encText = document.getElementById('enc-text');
+  const TEXT_PLACEHOLDER_SAMPLE = 'QR Code 12345';
+  const JSON_PLACEHOLDER_SAMPLE = '{\n  "gs1": true,\n  "complex": [\n    {"ai": "01", "value": "04912345123459", "fixed_length": true}\n  ]\n}';
+  jsonModeToggle.addEventListener('change', () => {
+    const isJson = jsonModeToggle.checked;
+    jsonHelp.style.display = isJson ? '' : 'none';
+    encInField.style.display = isJson ? 'none' : '';
+    encTextLabel.textContent = isJson ? 'JSON' : 'テキスト';
+    if (encText.value === TEXT_PLACEHOLDER_SAMPLE && isJson) {
+      encText.value = JSON_PLACEHOLDER_SAMPLE;
+    } else if (encText.value === JSON_PLACEHOLDER_SAMPLE && !isJson) {
+      encText.value = TEXT_PLACEHOLDER_SAMPLE;
+    }
+  });
+
   // --- エンコード ---
   document.getElementById('enc-btn').addEventListener('click', () => {
     const cell = Number(document.getElementById('enc-cell').value);
     const format = document.getElementById('enc-format').checked ? 'svg' : 'png';
-    const input = {
-      text: document.getElementById('enc-text').value,
-      in: document.getElementById('enc-in').value,
-      ec_level: Number(document.getElementById('enc-ec').value),
-      version: Number(document.getElementById('enc-ver').value),
-      scale: cell,
-      fg: colorWithAlpha('enc-fg', 'enc-fg-a'),
-      bg: colorWithAlpha('enc-bg', 'enc-bg-a'),
-      style: document.getElementById('enc-style').checked ? 'dots' : 'square',
-      format,
-    };
+    const out = document.getElementById('enc-out');
+    out.innerHTML = '';
+
+    let input;
+    if (jsonModeToggle.checked) {
+      try {
+        input = JSON.parse(encText.value);
+      } catch (e) {
+        out.innerHTML = '<span class="err">エラー: JSONの構文が不正です: ' + e.message + '</span>';
+        return;
+      }
+      input.ec_level = Number(document.getElementById('enc-ec').value);
+      input.version = Number(document.getElementById('enc-ver').value);
+    } else {
+      input = {
+        text: encText.value,
+        in: document.getElementById('enc-in').value,
+        ec_level: Number(document.getElementById('enc-ec').value),
+        version: Number(document.getElementById('enc-ver').value),
+      };
+    }
+    input.scale = cell;
+    input.fg = colorWithAlpha('enc-fg', 'enc-fg-a');
+    input.bg = colorWithAlpha('enc-bg', 'enc-bg-a');
+    input.style = document.getElementById('enc-style').checked ? 'dots' : 'square';
+    input.format = format;
     if (logoEnabled.checked && logoDataUrl) {
       input.logo = logoDataUrl;
       input.logo_size = Number(document.getElementById('enc-logo-size').value) / 100;
@@ -494,9 +610,13 @@
       input.logo_frame = document.getElementById('enc-logo-frame').value;
     }
     const res = qrtools.encode(input);
-    const out = document.getElementById('enc-out');
-    out.innerHTML = '';
     if (!res.success) { out.innerHTML = '<span class="err">エラー: ' + res.error + '</span>'; return; }
+    if (res.warnings && res.warnings.length) {
+      const w = document.createElement('div');
+      w.className = 'quality quality-warn';
+      w.textContent = '⚠ ' + res.warnings.join(' / ');
+      out.appendChild(w);
+    }
 
     const blob = format === 'svg'
       ? new Blob([res.output], { type: 'image/svg+xml' })
@@ -547,7 +667,8 @@
     if (!dec || !dec.success) {
       return { cls: 'quality-bad', msg: '⚠ 生成画像を読み取れませんでした。ロゴを小さく/クリアリングを縮小、または EC レベルを上げてください' };
     }
-    if ((dec.text || '') !== expectedText) {
+    // JSON(complex)モードは text 以外(data/ai)もあり単純比較できないため、text 指定時のみ照合する。
+    if (expectedText !== undefined && (dec.text || '') !== expectedText) {
       return { cls: 'quality-bad', msg: '⚠ 読み取り結果が元テキストと一致しません。ロゴが大きすぎる可能性があります' };
     }
     // worst_block_budget: 最も訂正を要したRSブロックの使用率(0..1)。低いほど余裕がある。
