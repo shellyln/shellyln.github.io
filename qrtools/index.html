@@ -884,7 +884,6 @@
         file: filename, seq: item.seq, width: item.width, height: item.height,
         stage, detection_metrics: item.detectionMetrics,
       }));
-      await sleep(3000);
     }
     const jsonlBlob = new Blob([jsonlLines.join('\n') + '\n'], { type: 'application/x-ndjson' });
     const jsonlUrl = URL.createObjectURL(jsonlBlob);
