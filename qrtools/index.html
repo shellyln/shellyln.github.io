@@ -469,6 +469,30 @@
       <video id="cam-video" class="cam" playsinline muted style="display:none"></video>
 
       <div class="field">
+        <!-- 失敗フレーム採取(docs/live-failframe-capture.md §3.1)。既定オフ、OFFなら以下は全て無効。 -->
+        <label>採取モード</label>
+        <div class="control toggle-row" style="margin-top:.5rem">
+          <span class="toggle-label">OFF</span>
+          <label class="switch"><input type="checkbox" id="cap-mode"><span class="slider"></span></label>
+          <span class="toggle-label">ON</span>
+        </div>
+      </div>
+      <div id="cap-controls" class="field" style="display:none">
+        <label>失敗フレーム</label>
+        <div class="control">
+          <button id="cap-start" class="btn btn-ghost" type="button">失敗フレームを採取</button>
+          <button id="cap-download" class="btn btn-ghost" type="button" disabled>ダウンロード</button>
+          <button id="cap-clear" class="btn btn-ghost" type="button" disabled>クリア</button>
+          <span class="hint" id="cap-status">未採取</span>
+        </div>
+        <div class="control toggle-row" style="margin-top:.5rem">
+          <span class="toggle-label">プリスキャン棄却も採取</span>
+          <label class="switch"><input type="checkbox" id="cap-skipped"><span class="slider"></span></label>
+        </div>
+        <p class="hint">保存はこの端末のみ(PNG + JSONLをダウンロード)。ネットワーク送信・自動アップロードは行いません。</p>
+      </div>
+
+      <div class="field">
         <label>出力</label>
         <div class="control toggle-row">
           <span class="toggle-label">自動（UTF-8 text / base64 data）</span>
@@ -784,6 +808,92 @@
   // トグル切り替え時、カメラ起動中でも間隔を即反映させる。
   camPrescan.addEventListener('change', restartScanTimer);
 
+  // --- 失敗フレーム採取(docs/live-failframe-capture.md §3.1) ---
+  // 採取モード OFF(既定)なら capture は常に false で送られ、Worker 側もフレームを
+  // 一切返送しない(scanFrame は無変更なので検出・復号の挙動はビット同一)。
+  const CAPTURE_MAX = 5;
+  const capMode = document.getElementById('cap-mode');
+  const capControls = document.getElementById('cap-controls');
+  const capStart = document.getElementById('cap-start');
+  const capDownload = document.getElementById('cap-download');
+  const capClear = document.getElementById('cap-clear');
+  const capStatus = document.getElementById('cap-status');
+  const capSkipped = document.getElementById('cap-skipped');
+  let captureRemaining = 0;   // 残り採取件数(0 なら Worker へ capture:false を送る)
+  let capturedFrames = [];    // { seq, width, height, stage, detectionMetrics, frame(ArrayBuffer) }
+
+  const updateCapUI = () => {
+    if (capturedFrames.length === 0 && captureRemaining === 0) {
+      capStatus.textContent = '未採取';
+    } else if (captureRemaining > 0) {
+      capStatus.textContent = `採取中…(${capturedFrames.length}/${CAPTURE_MAX})`;
+    } else {
+      capStatus.textContent = `採取完了: ${capturedFrames.length}件`;
+    }
+    capDownload.disabled = capturedFrames.length === 0;
+    capClear.disabled = capturedFrames.length === 0 && captureRemaining === 0;
+  };
+
+  capMode.addEventListener('change', () => {
+    capControls.style.display = capMode.checked ? '' : 'none';
+    if (!capMode.checked) { captureRemaining = 0; updateCapUI(); }
+  });
+
+  capStart.addEventListener('click', () => {
+    // N を超える押下は前回分をクリアしてから開始する(§3.1-4)。
+    capturedFrames = [];
+    captureRemaining = CAPTURE_MAX;
+    updateCapUI();
+  });
+
+  capClear.addEventListener('click', () => {
+    capturedFrames = [];
+    captureRemaining = 0;
+    updateCapUI();
+  });
+
+  // addCapturedFrame は Worker から返送された失敗フレームを保持する(生 RGBA のまま)。
+  // メモリ管理: 最大 CAPTURE_MAX 件・保持のみ。PNG 化はダウンロード時に行う(§3.1-3)。
+  const addCapturedFrame = (seq, width, height, frame, stage, detectionMetrics) => {
+    capturedFrames.push({ seq, width, height, frame, stage, detectionMetrics });
+    captureRemaining = Math.max(0, captureRemaining - 1);
+    updateCapUI();
+  };
+
+  // ダウンロード: PNG×N(canvas.putImageData → toBlob)+ メタデータ JSONL 1本。
+  // ZIP化はしない(ゼロインストール。ブラウザ標準APIのみ、§3.1-3)。
+  capDownload.addEventListener('click', async () => {
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const jsonlLines = [];
+    for (const item of capturedFrames) {
+      const stage = item.stage || 'skipped';
+      const filename = `failframe_${ts}_${item.seq}_${stage}.png`;
+      const c = document.createElement('canvas');
+      c.width = item.width; c.height = item.height;
+      const ctx2d = c.getContext('2d');
+      const imgData = new ImageData(new Uint8ClampedArray(item.frame), item.width, item.height);
+      ctx2d.putImageData(imgData, 0, 0);
+      const blob = await new Promise((resolve) => c.toBlob(resolve, 'image/png'));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      jsonlLines.push(JSON.stringify({
+        file: filename, seq: item.seq, width: item.width, height: item.height,
+        stage, detection_metrics: item.detectionMetrics,
+      }));
+    }
+    const jsonlBlob = new Blob([jsonlLines.join('\n') + '\n'], { type: 'application/x-ndjson' });
+    const jsonlUrl = URL.createObjectURL(jsonlBlob);
+    const jsonlA = document.createElement('a');
+    jsonlA.href = jsonlUrl;
+    jsonlA.download = `failframes_${ts}.jsonl`;
+    jsonlA.click();
+    setTimeout(() => URL.revokeObjectURL(jsonlUrl), 1000);
+  });
+
   // --- スキャン用 Worker ---
   // qrtools.wasm を別インスタンスでロードし、visionDecode をメインスレッド外で実行する。
   // これにより解析中も UI(プレビュー・操作)がブロックされない。Worker は 1 個。
@@ -800,13 +910,20 @@
     inFlight = false;
     if (!stream) return; // カメラ停止後に遅れて届いた結果は無視
 
-    if (data.skipped) { camStatus.textContent = 'スキャン中…(QR探索中)'; return; }
+    if (data.skipped) {
+      camStatus.textContent = 'スキャン中…(QR探索中)';
+      if (data.frame) addCapturedFrame(data.seq, data.width, data.height, data.frame, 'skipped', undefined);
+      return;
+    }
 
     // visionDecode が実走したフレーム。UI 上に明示。
     flashScan();
     decOut.textContent = JSON.stringify(data.res, null, 2);
     if (data.res.success) { camStatus.textContent = '検出しました'; stopCamera(); }
-    else { camStatus.textContent = 'スキャン中…(解析実行)'; }
+    else {
+      camStatus.textContent = 'スキャン中…(解析実行)';
+      if (data.frame) addCapturedFrame(data.seq, data.width, data.height, data.frame, data.res.stage, data.res.detection_metrics);
+    }
   };
   scanWorker.onerror = () => { inFlight = false; }; // 詰まり防止(スロット解放)
 
@@ -851,18 +968,21 @@
     const imageData = ctx2d.getImageData(0, 0, w, h);
     const buf = imageData.data.buffer; // ArrayBuffer(transfer で Worker へ移譲=ゼロコピー)
 
-    // frame は transfer、width/height/mode/seq はコピー。モードはフレーム毎に同梱し、
+    // frame は transfer、width/height/mode/seq/capture はコピー。モードはフレーム毎に同梱し、
     // トグルの変更を次フレームから即反映させる。プリスキャン判定は Worker 側(scanFrame)で実行。
+    // capture: 採取モードONかつ残数>0のときだけ true(採取モードOFFなら常に false)。
     scanWorker.postMessage(
       {
         frame: buf,
         width: w,
         height: h,
         mode: {
-          prescan:     camPrescan.checked,
-          forceBinary: document.getElementById('dec-binary').checked,
+          prescan:        camPrescan.checked,
+          forceBinary:    document.getElementById('dec-binary').checked,
+          captureSkipped: capSkipped.checked,
         },
         seq: ++frameSeq,
+        capture: capMode.checked && captureRemaining > 0,
       },
       [buf], // transferList には frame の ArrayBuffer だけ
     );
