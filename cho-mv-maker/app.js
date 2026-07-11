@@ -17,6 +17,11 @@ addEventListener("go-ready", () => {
     parseInt($("ovKeyHi").value, 10) || 1,
   );
   applyResolution();
+  const info = globalThis.goBuildInfo;
+  const el = $("buildInfo");
+  if (info && el) {
+    el.textContent = `version ${info.version} (rev. ${info.revision})`;
+  }
 });
 WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
   .then((r) => go.run(r.instance))
@@ -573,6 +578,7 @@ $("analyzeBtn").addEventListener("click", async () => {
   if (sourceConflict()) return;
   const file = (perfV && $("perfFile").files[0]) || $("audioFile").files[0];
   if (!file || !wasmReady) return;
+  stopTtPlayback(); // a running source would keep playing the old buffer
   setStatus("デコード中…");
   $("analyzeBtn").disabled = true;
   try {
@@ -592,6 +598,7 @@ $("analyzeBtn").addEventListener("click", async () => {
     analyzed = true;
     $("makeBtn").disabled = false;
     setCueSheet(goCueSheet());
+    updateTimetable();
     setStatus(`解析完了: BPM≈${res.bpm.toFixed(1)}, 拍=${res.beats}, 小節=${res.bars}, ` +
               `セクション=${res.sections.length}\n` +
               `キューシートを編集するとオーバーレイ頭出し・背景・色調の切替を調整できます。`);
@@ -603,6 +610,418 @@ $("analyzeBtn").addEventListener("click", async () => {
   }
 });
 
+// ---- timetable ----
+// Bar/beat ruler above the cue sheet: a minimap of the whole song plus
+// a horizontally scrollable detail strip showing bars, beats and
+// section boundaries. Data comes from goTimetable(), so it reflects
+// the currently applied cue sheet.
+const ttMoodColors = ["#7a86d6", "#5fae8f", "#e0b050", "#d66a7a"]; // 寂しい/落ち着き/楽しい/勢い
+const ttMoodNames = ["寂しい", "落ち着き", "楽しい", "勢い"];
+let ttData = null;      // last goTimetable() result
+let ttPxPerSec = 20;    // detail strip scale
+
+function clearTimetable() {
+  stopTtPlayback();
+  ttData = null;
+  $("ttWrap").style.display = "none";
+}
+
+function updateTimetable() {
+  ttData = wasmReady ? goTimetable() : null;
+  if (!ttData || !(ttData.duration > 0)) { clearTimetable(); return; }
+  $("ttWrap").style.display = "";
+  renderTtMain();
+  renderTtMini();
+}
+
+// Size a canvas backing store for the device pixel ratio; returns a ctx
+// whose drawing units are CSS pixels. Skips the resize when the size is
+// unchanged (assigning width reallocs even for the same value, and the
+// minimap re-renders every frame while the playhead runs).
+function ttCtx(canvas, cssW, cssH) {
+  const dpr = devicePixelRatio || 1;
+  const w = Math.round(cssW * dpr), h = Math.round(cssH * dpr);
+  if (canvas.width !== w) canvas.width = w;
+  if (canvas.height !== h) canvas.height = h;
+  const c = canvas.getContext("2d");
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return c;
+}
+
+function ttSectionLabel(s) {
+  return String.fromCharCode(65 + (s.label % 26)) + " " + ttMoodNames[s.mood % 4];
+}
+
+function fmtTtTime(t) {
+  const m = Math.floor(t / 60), s = Math.floor(t - m * 60);
+  return m + ":" + String(s).padStart(2, "0");
+}
+
+const TT_BAND_H = 16;   // section band at the top of the detail strip
+const TT_NOV_Y = 16;    // novelty (boundary confidence) strip
+const TT_NOV_H = 18;
+const TT_RULER_Y = 34;  // beat ticks start here
+const TT_DEV_Y = 84;    // microtiming deviation lane (raw onsets)
+const TT_DEV_H = 18;
+const TT_LANE_Y = 104;  // top of the three rhythm lanes
+const TT_LANE_H = 15;   // one rhythm lane (high / mid / low)
+// Rhythm band colors, index = band (0 low / 1 mid / 2 high).
+const ttBandColors = ["#e07a5f", "#e0c060", "#6fc3df"];
+
+function renderTtMain() {
+  const d = ttData;
+  const scroll = $("ttScroll");
+  const H = 152;
+  // Fixed 14 px per beat keeps bar cells readable at any tempo.
+  ttPxPerSec = d.bpm > 0 ? 14 * d.bpm / 60 : 20;
+  let w = Math.ceil(d.duration * ttPxPerSec) + 8;
+  const maxW = Math.floor(32000 / (devicePixelRatio || 1)); // canvas size limit
+  if (w > maxW) { ttPxPerSec *= maxW / w; w = maxW; }
+  const cw = Math.max(w, scroll.clientWidth || 0);
+  const cvM = $("ttMain");
+  cvM.style.width = cw + "px";
+  const c = ttCtx(cvM, cw, H);
+  const x = (t) => t * ttPxPerSec;
+
+  c.fillStyle = "#111118";
+  c.fillRect(0, 0, cw, H);
+  c.font = "10px system-ui, sans-serif";
+  c.textBaseline = "alphabetic";
+
+  // Novelty strip: per-bar boundary confidence as a histogram, with
+  // markers for the detector's boundary candidates.
+  if (d.novelty && d.novelty.length) {
+    let novMax = 0;
+    for (const v of d.novelty) novMax = Math.max(novMax, v);
+    if (novMax > 0) {
+      // novelty[i] scores a cut at the START of bar i, so the column
+      // is centered on the bar line; filling the bar cell instead
+      // reads as a half-bar shift against the boundary markers.
+      c.fillStyle = "rgba(120,130,175,0.45)";
+      for (let i = 0; i < d.novelty.length && i < d.bars.length; i++) {
+        const h = d.novelty[i] / novMax * (TT_NOV_H - 2);
+        if (h <= 0) continue;
+        const bx = x(d.bars[i]);
+        const bw = (i + 1 < d.bars.length ? x(d.bars[i + 1]) : bx + 56) - bx;
+        c.fillRect(bx - bw / 2 + 1, TT_NOV_Y + TT_NOV_H - h, bw - 2, h);
+      }
+    }
+  }
+  if (d.bounds) {
+    c.font = "9px system-ui, sans-serif";
+    for (const b of d.bounds) {
+      const mx = x(b.t);
+      if (b.vocal) {
+        c.fillStyle = "#e88fb0";
+        c.fillRect(mx - 0.5, TT_NOV_Y, 1.5, TT_NOV_H);
+        c.fillText("V", mx + 2, TT_NOV_Y + 8);
+      } else if (b.accepted) {
+        c.fillStyle = "rgba(255,255,255,0.85)";
+        c.fillRect(mx - 0.5, TT_NOV_Y, 1.5, TT_NOV_H);
+        c.fillText(b.z.toFixed(1), mx + 2, TT_NOV_Y + 8);
+      } else {
+        c.strokeStyle = "rgba(150,155,175,0.7)";
+        c.setLineDash([2, 2]);
+        c.beginPath();
+        c.moveTo(mx + 0.5, TT_NOV_Y);
+        c.lineTo(mx + 0.5, TT_NOV_Y + TT_NOV_H);
+        c.stroke();
+        c.setLineDash([]);
+        c.fillStyle = "rgba(150,155,175,0.8)";
+        c.fillText(b.z.toFixed(1), mx + 2, TT_NOV_Y + TT_NOV_H - 2);
+      }
+    }
+    c.font = "10px system-ui, sans-serif";
+  }
+
+  // Beat ticks (under the novelty strip) and bar lines with numbers.
+  c.fillStyle = "#555";
+  for (const t of d.beats) c.fillRect(x(t), TT_RULER_Y, 1, 6);
+  for (let i = 0; i < d.bars.length; i++) {
+    const bx = x(d.bars[i]);
+    c.fillStyle = "#606070";
+    c.fillRect(bx, TT_BAND_H, 1, H - TT_BAND_H);
+    c.fillStyle = "#99a";
+    c.fillText(String(i + 1), bx + 3, 66);
+    if (i % 4 === 0) {
+      c.fillStyle = "#667";
+      c.fillText(fmtTtTime(d.bars[i]), bx + 3, 79);
+    }
+  }
+
+  // Chord lane: per-bar estimates, labeled only where the chord changes.
+  if (d.chords) {
+    c.fillStyle = "#c9d6a0";
+    let prev = "";
+    for (const ch of d.chords) {
+      if (ch.name !== prev) c.fillText(ch.name, x(ch.t) + 3, 52);
+      prev = ch.name;
+    }
+  }
+
+  // Microtiming lane: raw onsets at their quantized x (aligned with
+  // the rhythm lanes below), displaced vertically by their deviation
+  // from the 16th-note slot — center = on grid, up = early (突っ込み),
+  // down = late (タメ), half a slot at the lane edge. Ghost notes
+  // (deduped from the rhythm chart) draw smaller and fainter.
+  if (d.onsets && d.onsets.length) {
+    const cy = TT_DEV_Y + TT_DEV_H / 2;
+    c.strokeStyle = "#556";
+    c.setLineDash([3, 3]);
+    c.beginPath();
+    c.moveTo(0, cy + 0.5);
+    c.lineTo(cw, cy + 0.5);
+    c.stroke();
+    c.setLineDash([]);
+    const qDur = (d.bpm > 0 ? 60 / d.bpm : 0.5) / 4;
+    const amp = TT_DEV_H / 2 - 2;
+    c.fillStyle = "#e8e8f0";
+    for (const o of d.onsets) {
+      const px = x(o.t - o.dev); // the slot the onset belongs to
+      const dy = Math.max(-1, Math.min(1, o.dev / (qDur / 2))) * amp;
+      if (o.kept) {
+        c.globalAlpha = 0.35 + 0.65 * o.vel;
+        c.fillRect(px - 1.5, cy + dy - 1.5, 3, 3);
+      } else {
+        c.globalAlpha = 0.15 + 0.25 * o.vel;
+        c.fillRect(px - 1, cy + dy - 1, 2, 2);
+      }
+    }
+    c.globalAlpha = 1;
+  }
+
+  // Rhythm lanes: high / mid / low hits, opacity by velocity.
+  if (d.notes) {
+    for (const n of d.notes) {
+      const lane = 2 - (n.band % 3); // low at the bottom
+      const yc = TT_LANE_Y + lane * TT_LANE_H + TT_LANE_H / 2;
+      c.globalAlpha = 0.3 + 0.7 * n.vel;
+      c.fillStyle = ttBandColors[n.band % 3];
+      c.fillRect(x(n.t) - 1.5, yc - 1.5, 3, 3);
+    }
+    c.globalAlpha = 1;
+  }
+
+  // Section bands (top) and boundary lines (full height) at the visual
+  // switch time — the time the cue sheet edits.
+  for (let i = 0; i < d.sections.length; i++) {
+    const s = d.sections[i];
+    const t0 = Math.max(0, s.switchT);
+    const t1 = i + 1 < d.sections.length ? d.sections[i + 1].switchT : d.duration;
+    const col = ttMoodColors[s.mood % 4];
+    c.globalAlpha = 0.30;
+    c.fillStyle = col;
+    c.fillRect(x(t0), 0, x(t1) - x(t0), TT_BAND_H);
+    c.globalAlpha = 1;
+    c.fillRect(x(t0) - 1, 0, 2, H);
+    c.fillStyle = "#fff";
+    c.fillText(ttSectionLabel(s), x(t0) + 4, 12);
+  }
+}
+
+function renderTtMini() {
+  const d = ttData;
+  const el = $("ttMini");
+  const W = el.clientWidth || 600, H = el.clientHeight || 34;
+  const c = ttCtx(el, W, H);
+  const x = (t) => t / d.duration * W;
+
+  c.fillStyle = "#111118";
+  c.fillRect(0, 0, W, H);
+  c.font = "10px system-ui, sans-serif";
+
+  for (let i = 0; i < d.sections.length; i++) {
+    const s = d.sections[i];
+    const x0 = x(Math.max(0, s.switchT));
+    const x1 = x(i + 1 < d.sections.length ? d.sections[i + 1].switchT : d.duration);
+    const col = ttMoodColors[s.mood % 4];
+    c.globalAlpha = 0.35;
+    c.fillStyle = col;
+    c.fillRect(x0, 0, x1 - x0, H);
+    c.globalAlpha = 1;
+    c.fillRect(x0, 0, 1, H);
+    if (x1 - x0 > 16) {
+      c.fillStyle = "#eee";
+      c.fillText(String.fromCharCode(65 + (s.label % 26)), x0 + 3, H - 4);
+    }
+  }
+
+  // Viewport of the detail strip.
+  const scroll = $("ttScroll");
+  if (scroll.scrollWidth > 0) {
+    const v0 = scroll.scrollLeft / scroll.scrollWidth * W;
+    const vw = Math.max(6, scroll.clientWidth / scroll.scrollWidth * W);
+    c.fillStyle = "rgba(255,255,255,0.10)";
+    c.fillRect(v0, 0, vw, H);
+    c.strokeStyle = "rgba(255,255,255,0.75)";
+    c.strokeRect(v0 + 0.5, 0.5, vw - 1, H - 1);
+  }
+
+  if (ttPlaying || ttPausedAt >= 0) {
+    c.fillStyle = "#fff";
+    c.fillRect(x(ttPlayTime()) - 0.5, 0, 1.5, H);
+  }
+}
+
+// Minimap click/drag centers the detail strip on that time.
+let ttMiniDrag = false;
+function ttMiniSeek(ev) {
+  const r = $("ttMini").getBoundingClientRect();
+  const frac = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+  const scroll = $("ttScroll");
+  scroll.scrollLeft = frac * scroll.scrollWidth - scroll.clientWidth / 2;
+}
+$("ttMini").addEventListener("pointerdown", (ev) => {
+  if (!ttData) return;
+  ttMiniDrag = true;
+  $("ttMini").setPointerCapture(ev.pointerId);
+  ttMiniSeek(ev);
+});
+$("ttMini").addEventListener("pointermove", (ev) => { if (ttMiniDrag) ttMiniSeek(ev); });
+$("ttMini").addEventListener("pointerup", () => { ttMiniDrag = false; });
+$("ttMini").addEventListener("pointercancel", () => { ttMiniDrag = false; });
+
+// Scroll/resize redraws are coalesced to one per frame.
+let ttMiniRaf = 0;
+function ttMiniSchedule() {
+  if (ttMiniRaf) return;
+  ttMiniRaf = requestAnimationFrame(() => { ttMiniRaf = 0; if (ttData) renderTtMini(); });
+}
+$("ttScroll").addEventListener("scroll", ttMiniSchedule);
+addEventListener("resize", () => { if (ttData) { renderTtMain(); renderTtMini(); } });
+
+// ---- timetable preview playback ----
+// Clicking the timetable strip plays the analyzed audio from that
+// time (audioBuf holds the decoded track for both the music file and
+// the performer video). Clicking again restarts from the new
+// position; ⏸ pauses/resumes, ≪n/n≫ seek by seconds, Esc stops. The
+// playhead is a DOM overlay on the strip (no canvas redraw) plus a
+// line on the minimap.
+let ttAc = null;       // lazy AudioContext for preview playback
+let ttSrc = null;      // active AudioBufferSourceNode
+let ttPlayT0 = 0;      // song time at playback start
+let ttAcT0 = 0;        // AudioContext time at playback start
+let ttPlaying = false;
+let ttPausedAt = -1;   // >= 0: paused, holding this song time
+
+function ttPlayTime() {
+  if (ttPlaying && ttAc) return ttPlayT0 + ttAc.currentTime - ttAcT0;
+  return ttPausedAt >= 0 ? ttPausedAt : 0;
+}
+
+function ttStopSource() {
+  if (!ttSrc) return;
+  ttSrc.onended = null;
+  try { ttSrc.stop(); } catch (e) { /* already stopped */ }
+  ttSrc = null;
+}
+
+function ttPlayFrom(t) {
+  ttStopSource();
+  ttPlaying = false;
+  ttPausedAt = -1;
+  $("ttPauseBtn").textContent = "⏸";
+  if (!audioBuf || running) return;
+  if (!ttAc) ttAc = new AudioContext();
+  ttAc.resume();
+  const src = ttAc.createBufferSource();
+  src.buffer = audioBuf;
+  src.connect(ttAc.destination);
+  t = Math.max(0, Math.min(t, audioBuf.duration));
+  src.onended = () => { if (ttSrc === src) stopTtPlayback(); };
+  src.start(0, t);
+  ttSrc = src;
+  ttPlayT0 = t;
+  ttAcT0 = ttAc.currentTime;
+  ttPlaying = true;
+  requestAnimationFrame(ttPlayTick);
+}
+
+function stopTtPlayback() {
+  ttStopSource();
+  if (!ttPlaying && ttPausedAt < 0) return;
+  ttPlaying = false;
+  ttPausedAt = -1;
+  $("ttPauseBtn").textContent = "⏸";
+  $("ttPlayhead").style.display = "none";
+  $("ttPlayTime").style.display = "none";
+  if (ttData) renderTtMini(); // erase the minimap playhead
+}
+
+// ⏸ toggles pause/resume; the playhead stays visible while paused.
+function ttPauseToggle() {
+  if (ttPlaying) {
+    ttPausedAt = ttPlayTime();
+    ttStopSource();
+    ttPlaying = false;
+    $("ttPauseBtn").textContent = "▶";
+    ttDrawHead(ttPausedAt);
+  } else if (ttPausedAt >= 0) {
+    ttPlayFrom(ttPausedAt);
+  }
+}
+
+// ≪n / n≫ move the playing or paused position by dn seconds.
+function ttSeek(dn) {
+  if (ttPlaying) {
+    ttPlayFrom(ttPlayTime() + dn);
+  } else if (ttPausedAt >= 0 && audioBuf) {
+    ttPausedAt = Math.max(0, Math.min(ttPausedAt + dn, audioBuf.duration));
+    ttDrawHead(ttPausedAt);
+  }
+}
+
+// fmtTtPlayTime renders a playback position as 分:秒.十分秒 ("1:04.5").
+function fmtTtPlayTime(t) {
+  let m = Math.floor(t / 60);
+  let s = t - m * 60;
+  if (s >= 59.95) { m++; s = 0; } // would render as "60.0"
+  return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1);
+}
+
+// ttDrawHead places the strip playhead and time bubble at song time t
+// and refreshes the minimap line.
+function ttDrawHead(t) {
+  const px = t * ttPxPerSec;
+  const ph = $("ttPlayhead");
+  ph.style.display = "block"; // "" would fall back to the stylesheet's none
+  ph.style.left = px + "px";
+  // Current time rides the playhead; flip to its left near the end so
+  // the bubble stays inside the strip.
+  const scroll = $("ttScroll");
+  const tb = $("ttPlayTime");
+  tb.style.display = "block";
+  tb.textContent = fmtTtPlayTime(t);
+  tb.style.left = px + 60 > scroll.scrollWidth ? (px - 54) + "px" : (px + 5) + "px";
+  renderTtMini();
+  return px;
+}
+
+function ttPlayTick() {
+  if (!ttPlaying) return;
+  const px = ttDrawHead(ttPlayTime());
+  // Follow the playhead once it runs past the right edge of the view;
+  // scrolling elsewhere by hand is otherwise left alone.
+  const scroll = $("ttScroll");
+  if (px > scroll.scrollLeft + scroll.clientWidth - 8) {
+    scroll.scrollLeft = px - 48;
+  }
+  requestAnimationFrame(ttPlayTick);
+}
+
+$("ttMain").addEventListener("click", (ev) => {
+  if (!ttData || !audioBuf || running) return;
+  const r = $("ttMain").getBoundingClientRect();
+  ttPlayFrom((ev.clientX - r.left) / ttPxPerSec);
+});
+addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape") stopTtPlayback();
+});
+$("ttPauseBtn").addEventListener("click", ttPauseToggle);
+for (const b of document.querySelectorAll("#ttCtrl button[data-seek]")) {
+  b.addEventListener("click", () => ttSeek(parseFloat(b.dataset.seek)));
+}
+
 // ---- cue sheet ----
 // The analyzed sections come back as editable text; applying it feeds
 // the (possibly hand-tuned) cues back into the Go timeline. Generation
@@ -613,6 +1032,7 @@ function setCueSheet(text) {
   $("cueSheet").value = text;
   appliedCue = text;
   $("cueApplyBtn").disabled = !text;
+  if (!text) clearTimetable(); // stale grid belongs to the previous audio
 }
 
 // applyCueSheet returns true when the current textarea content is
@@ -627,6 +1047,7 @@ function applyCueSheet() {
     return false;
   }
   appliedCue = text;
+  updateTimetable(); // sections may have moved
   return true;
 }
 
@@ -681,6 +1102,7 @@ async function closeSink(sink, written) {
 // ---- MV generation entry point ----
 $("makeBtn").addEventListener("click", async () => {
   if (!audioBuf || !analyzed || running) return;
+  stopTtPlayback();
   if (!applyCueSheet()) return; // pending cue edits: apply or abort on error
 
   const sink = await openSink(); // needs the user gesture

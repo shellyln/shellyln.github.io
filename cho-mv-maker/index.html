@@ -22,6 +22,22 @@
              border: 1px solid #444; border-radius: 6px; padding: 6px 8px;
              font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; }
   #status { font-size: 0.9rem; color: #9c9; min-height: 1.4em; white-space: pre-wrap; }
+  #ttWrap { margin: 6px 0; }
+  #ttMini { display: block; width: 100%; height: 36px; background: #111118;
+            border: 1px solid #444; border-radius: 6px; box-sizing: border-box;
+            margin-bottom: 4px; cursor: pointer; }
+  #ttScroll { overflow-x: auto; border: 1px solid #444; border-radius: 6px;
+              background: #111118; position: relative; }
+  #ttMain { display: block; width: auto; height: 152px; background: #111118;
+            border-radius: 0; cursor: pointer; }
+  #ttPlayhead { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff;
+                box-shadow: 0 0 4px rgba(255,255,255,0.5); display: none;
+                pointer-events: none; }
+  #ttPlayTime { position: absolute; top: 2px; display: none; pointer-events: none;
+                background: rgba(0,0,0,0.75); color: #fff; font-size: 10px;
+                padding: 1px 4px; border-radius: 3px; white-space: nowrap; }
+  #ttCtrl { display: flex; gap: 4px; margin-top: 4px; }
+  #ttCtrl button { flex: 1; padding: 2px 0; margin: 0; font-size: 0.85rem; }
   footer { max-width: 720px; margin: 0 auto; padding: 16px; }
 </style>
 </head>
@@ -143,6 +159,36 @@
     </label>
   </fieldset>
 
+  <div id="ttWrap" style="display:none">
+    <label style="margin-bottom:2px">タイムテーブル (セクション・区切り確信度・コード・小節・拍・タイミング偏差・リズム / 「キュー適用」で更新):</label>
+    <canvas id="ttMini"></canvas>
+    <div id="ttScroll"><canvas id="ttMain"></canvas><div id="ttPlayhead"></div><div id="ttPlayTime"></div></div>
+    <div id="ttCtrl">
+      <button type="button" data-seek="-10" title="10秒戻す">≪10</button>
+      <button type="button" data-seek="-5" title="5秒戻す">≪5</button>
+      <button type="button" data-seek="-3" title="3秒戻す">≪3</button>
+      <button type="button" data-seek="-1" title="1秒戻す">≪1</button>
+      <button type="button" id="ttPauseBtn" title="一時停止 / 再開">⏸</button>
+      <button type="button" data-seek="1" title="1秒進める">1≫</button>
+      <button type="button" data-seek="3" title="3秒進める">3≫</button>
+      <button type="button" data-seek="5" title="5秒進める">5≫</button>
+      <button type="button" data-seek="10" title="10秒進める">10≫</button>
+    </div>
+    <small>※ タイムテーブルをクリックするとその位置から音声を再生します
+      (再生中に別の位置をクリックで移動 / ⏸で一時停止・再開 / <kbd>Esc</kbd> キーで停止)。
+      ≪n / n≫ は再生位置を n 秒戻す・進めるボタンです。
+      ミニマップのクリック・ドラッグは表示範囲の移動です。<br>
+      ※ セクション帯の下のヒストグラムはセクション区切りの確信度です。
+      柱は小節線を中心に描かれ、「その小節線で区切る確信度」を表します。
+      白線=採用された区切り (数字はスコア、1.0以上で採用)、点線=不採用の候補、
+      ピンクの「V」=ボーカル入り検出による区切りを表します。
+      色付きのセクション境界線は歌い出し補正により小節線から少し後ろにずれることがあります。
+      キューシートを編集してもこの検出結果は変わりません。<br>
+      ※ リズム譜面の上の白い点は生オンセットのタイミング偏差です。
+      破線の中心線=ジャスト、上=早い (突っ込み)、下=遅い (タメ、レーン端で16分音符の半分)。
+      小さく薄い点はリズム譜面への量子化で間引かれた音 (ゴーストノート) です。</small>
+  </div>
+
   <fieldset>
     <legend>生成</legend>
     <label>解像度:
@@ -172,7 +218,8 @@
   
 </main>
 <footer>
-  &copy; 2026 Shellyl_N
+  &copy; 2026 Shellyl_N<br>
+  <small id="buildInfo"></small>
 </footer>
 <script src="wasm_exec.js"></script>
 <script src="app.js"></script>
