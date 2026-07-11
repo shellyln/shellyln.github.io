@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>超ＭＶメーカー！</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #1a1a22; color: #eee; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  div.description { border:1px solid #444; border-radius:8px; padding:8px 12px; margin-bottom:12px; }
+  h1 { font-size: 1.2rem; }
+  fieldset { border: 1px solid #444; border-radius: 8px; margin-bottom: 12px; }
+  legend { padding: 0 6px; color: #aac; }
+  label { display: block; margin: 6px 0; }
+  input[type="number"] { width: 12em; }
+  button { padding: 6px 14px; margin-right: 8px; border-radius: 6px; border: 1px solid #668;
+           background: #2c2c3a; color: #eee; cursor: pointer; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  button[data-clear] { padding: 2px 10px; margin-left: 6px; }
+  canvas { width: 100%; background: #000; border-radius: 8px; }
+  #status { font-size: 0.9rem; color: #9c9; min-height: 1.4em; white-space: pre-wrap; }
+  footer { max-width: 720px; margin: 0 auto; padding: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>超ＭＶメーカー！</h1>
+
+  <div class="description">
+    「歌ってみた」等の動画ファイル(青/緑バック)または音楽ファイルからMV(ミュージックビデオ)を自動生成します。<br>
+    全てブラウザ内で処理します。サーバーへの送信は一切ありません。
+  </div>
+
+  <fieldset>
+    <legend>素材 (②〜⑥はレイヤー順: 下→上)</legend>
+    <label>① 音楽ファイル (mp3等): <input type="file" id="audioFile" accept="audio/*"><button type="button" data-clear="audioFile">クリア</button></label>
+    <label>② 背景画像 (PNG/JPEG/WebP等, 0〜複数): <input type="file" id="bgFiles" accept="image/*" multiple><button type="button" data-clear="bgFiles">クリア</button></label>
+    <label>③ 前景キャラ画像 (透過PNG/WebP等, 0〜複数): <input type="file" id="fgFiles" accept="image/*" multiple><button type="button" data-clear="fgFiles">クリア</button></label>
+    <label>④ 前景オーバーレイ動画 (青/緑バック, 0〜複数): <input type="file" id="ovFiles" accept="video/mp4,video/webm" multiple><button type="button" data-clear="ovFiles">クリア</button></label>
+    <label>⑤ 演者動画 (青/緑バック・音声入り, 0〜1本): <input type="file" id="perfFile" accept="video/mp4,video/webm"><button type="button" data-clear="perfFile">クリア</button></label>
+    <label>⑥ MVロゴ画像 (透過PNG/WebP等, 1枚): <input type="file" id="logoFile" accept="image/*"><button type="button" data-clear="logoFile">クリア</button></label>
+    <small>※①音楽ファイルと⑤演者動画のどちらか一方を必ず選択してください(両方の同時指定はエラーになります)</small>
+  </fieldset>
+
+  <fieldset>
+    <legend>③ 前景キャラクター</legend>
+    <label>
+      同時表示数: 最小 <input type="number" id="fgMin" value="1" min="0" max="8" style="width:4em">
+      〜 最大 <input type="number" id="fgMax" value="7" min="0" max="8" style="width:4em">
+    </label>
+    <label>拡大率 (HD基準、1.0=元画像の原寸): <input type="number" id="fgScale" value="1.0" min="0.1" max="4" step="0.1" style="width:5em"></label>
+    <label>拡大率のゆらぎ: ± <input type="number" id="fgJit" value="30" min="0" max="100" step="5" style="width:4em"> %</label>
+    <label>
+      複数画像の扱い:
+      <select id="fgMix">
+        <option value="mix" selected>複数種類を一緒に出す</option>
+        <option value="same">同じ画像だけ同時に出す</option>
+      </select>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>④ オーバーレイ動画</legend>
+    <label>同期戦略:
+      <select id="ovSync">
+        <option value="1" selected>アグレッシブ (セクションごとに頭出し / 先頭最大32秒を連続使用)</option>
+        <option value="0">簡易 (曲全体で1本の連続クロック / 先頭8秒をループ)</option>
+      </select>
+    </label>
+    <label>配置モード:
+      <select id="ovMode">
+        <option value="0" selected>ランダム配置</option>
+        <option value="1">バックダンサー (V字隊形)</option>
+      </select>
+    </label>
+    <label id="ovRandomRow">
+      同時表示数: 最小 <input type="number" id="ovMin" value="1" min="0" max="8" style="width:4em">
+      〜 最大 <input type="number" id="ovMax" value="4" min="0" max="8" style="width:4em">
+    </label>
+    <label id="ovBdRow" style="display:none">
+      表示数 <input type="number" id="ovCount" value="7" min="1" max="9" style="width:4em">
+      / クワイエットゾーン <input type="number" id="ovQuiet" value="30" min="0" max="80" step="5" style="width:4em"> %
+      / 縮小勾配 <input type="number" id="ovGrad" value="15" min="0" max="50" step="5" style="width:4em"> %/段
+    </label>
+    <label>拡大率 (HD基準、1.0=元動画の原寸): <input type="number" id="ovScale" value="1.0" min="0.1" max="4" step="0.1" style="width:5em"></label>
+    <label id="ovJitRow">拡大率のゆらぎ: ± <input type="number" id="ovJit" value="30" min="0" max="100" step="5" style="width:4em"> %</label>
+    <label id="ovOrderRow">重なり順:
+      <select id="ovOrder">
+        <option value="1" selected>大きい方を前</option>
+        <option value="2">小さい方を前</option>
+        <option value="0">ランダム</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="ovInFx" checked> 背景エフェクトに巻き込む</label>
+    <label>背景色サンプリング範囲 (四隅パッチの辺, px): <input type="number" id="ovPatch" value="8" min="2" max="64" style="width:4em"></label>
+    <label>同一色と見做す範囲 (色超過量): 不透明保持 ≦ <input type="number" id="ovKeyLo" value="24" min="0" max="254" style="width:4.5em">
+      / 完全透明 ≧ <input type="number" id="ovKeyHi" value="96" min="1" max="255" style="width:4.5em"></label>
+    <small>※ キー設定の変更時は選択済みの動画を自動で再読み込みします</small>
+    <br>
+    <small>※ 対応コーデック: MP4 (H.264) / WebM (VP8/VP9)。音声トラックは使用しません。
+      H.265 (HEVC) や ProRes などブラウザで再生できない形式は使用できません。
+      圧縮で色情報が粗くなるため、高ビットレートの素材ほど背景がきれいに抜けます。</small>
+  </fieldset>
+
+  <fieldset>
+    <legend>⑤ 演者動画</legend>
+    <label>拡大率 (HD基準、1.0=元動画の原寸): <input type="number" id="perfScale" value="1.0" min="0.1" max="4" step="0.1" style="width:5em"></label>
+    <label>位置合わせ (HD基準px): 水平 <input type="number" id="perfOffX" value="0" min="-2560" max="2560" step="10" style="width:5.5em">
+      (+右) / 垂直 <input type="number" id="perfOffY" value="0" min="-1440" max="1440" step="10" style="width:5.5em"> (+下)</label>
+    <label><input type="checkbox" id="perfInFx" checked> 背景エフェクトに巻き込む</label>
+    <label>背景色サンプリング範囲 (四隅パッチの辺, px): <input type="number" id="perfPatch" value="8" min="2" max="64" style="width:4em"></label>
+    <label>同一色と見做す範囲 (色超過量): 不透明保持 ≦ <input type="number" id="perfKeyLo" value="24" min="0" max="254" style="width:4.5em">
+      / 完全透明 ≧ <input type="number" id="perfKeyHi" value="96" min="1" max="255" style="width:4.5em"></label>
+    <small>※指定時は「音楽ファイル」の代わりにこの動画の音声トラックを使用します(生成速度は実時間程度に低下)</small>
+    <br>
+    <small>※ 対応コーデック: 映像 MP4 (H.264) / WebM (VP8/VP9)、音声 AAC / MP3 / Opus / Vorbis —
+      推奨は MP4 (H.264 + AAC)。H.265 (HEVC) や ProRes などブラウザで再生できない形式は使用できません。
+      高ビットレートの素材ほど背景がきれいに抜けます。</small>
+  </fieldset>
+
+  <fieldset>
+    <legend>⑥ MVロゴ</legend>
+    <label>表示位置:
+      <select id="logoPos">
+        <option value="0">表示しない</option>
+        <option value="1">左上</option>
+        <option value="2">右上</option>
+        <option value="3">左下</option>
+        <option value="4" selected>右下</option>
+      </select>
+    </label>
+    <label>拡大率 (HD基準、1.0=元画像の原寸): <input type="number" id="logoScale" value="1.0" min="0.1" max="4" step="0.1" style="width:5em"></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>乱数シード</legend>
+    <label>
+      シード値: <input type="number" id="seed" value="1" step="1">
+      <button id="seedNow" type="button">現在時刻から設定</button>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>生成</legend>
+    <label>解像度:
+      <select id="resSel">
+        <option value="640x360">640×360</option>
+        <option value="1280x720" selected>1280×720 (HD)</option>
+        <option value="1920x1080">1920×1080 (Full HD)</option>
+      </select>
+    </label>
+    <button id="analyzeBtn" disabled>1. 解析</button>
+    <button id="makeBtn" disabled>2. MV生成・録画 (オンザフライ保存)</button>
+    <button id="stopBtn" disabled>停止</button>
+    <br>
+    <small>※ お使いのブラウザが高速書き出し (WebCodecs) に対応していない場合(Chrome/Edge 以外の一部ブラウザ)、
+      画面録画方式で生成されるため、再生位置の移動(シーク)ができないファイルになることがあります。
+      シーク可能なファイルが必要な場合は Chrome または Edge をご利用ください。</small>
+  </fieldset>
+
+  <div id="status">WASM 読み込み中…</div>
+  <canvas id="cv" width="640" height="360"></canvas>
+
+  
+</main>
+<footer>
+  &copy; 2026 Shellyl_N
+</footer>
+<script src="wasm_exec.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
