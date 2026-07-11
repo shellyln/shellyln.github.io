@@ -458,7 +458,6 @@ async function loadPerformer(file) {
   audioBuf = null;
   analyzed = false;
   $("makeBtn").disabled = true;
-  setCueSheet(""); // stale cues belong to the previous audio
   if (!file) {
     $("analyzeBtn").disabled = !$("audioFile").files.length;
     setStatus("演者動画を解除しました。");
@@ -563,7 +562,6 @@ $("audioFile").addEventListener("change", () => {
   audioBuf = null;
   analyzed = false;
   $("makeBtn").disabled = true;
-  setCueSheet(""); // stale cues belong to the previous audio
   if (sourceConflict()) return;
   $("analyzeBtn").disabled = !$("audioFile").files.length && !perfV;
   setStatus("「1. 解析」を押してください。");
@@ -591,49 +589,16 @@ $("analyzeBtn").addEventListener("click", async () => {
     const res = goAnalyze(new Uint8Array(mono.buffer), audioBuf.sampleRate);
     analyzed = true;
     $("makeBtn").disabled = false;
-    setCueSheet(goCueSheet());
-    setStatus(`解析完了: BPM≈${res.bpm.toFixed(1)}, 拍=${res.beats}, 小節=${res.bars}, ` +
-              `セクション=${res.sections.length}\n` +
-              `キューシートを編集するとオーバーレイ頭出し・背景・色調の切替を調整できます。`);
+    const moodNames = ["寂しい", "落ち着き", "楽しい", "勢い"];
+    const secs = res.sections.map((s) =>
+      `${String.fromCharCode(65 + (s.label % 26))}@${s.switchT.toFixed(1)}s(${moodNames[s.mood] || s.mood})`).join(" / ");
+    setStatus(`解析完了: BPM≈${res.bpm.toFixed(1)}, 拍=${res.beats}, 小節=${res.bars}\n` +
+              `セクション: ${secs}`);
     previewFrame();
   } catch (e) {
     setStatus("解析失敗: " + e);
   } finally {
     $("analyzeBtn").disabled = false;
-  }
-});
-
-// ---- cue sheet ----
-// The analyzed sections come back as editable text; applying it feeds
-// the (possibly hand-tuned) cues back into the Go timeline. Generation
-// auto-applies pending edits so a forgotten 適用 cannot desync.
-let appliedCue = "";
-
-function setCueSheet(text) {
-  $("cueSheet").value = text;
-  appliedCue = text;
-  $("cueApplyBtn").disabled = !text;
-}
-
-// applyCueSheet returns true when the current textarea content is
-// (now) in effect.
-function applyCueSheet() {
-  if (!analyzed) return false;
-  const text = $("cueSheet").value;
-  if (text === appliedCue) return true;
-  const err = goApplyCueSheet(text);
-  if (err) {
-    setStatus("キューシート適用失敗: " + err);
-    return false;
-  }
-  appliedCue = text;
-  return true;
-}
-
-$("cueApplyBtn").addEventListener("click", () => {
-  if (applyCueSheet()) {
-    setStatus("キューシートを適用しました。");
-    previewFrame();
   }
 });
 
@@ -681,7 +646,6 @@ async function closeSink(sink, written) {
 // ---- MV generation entry point ----
 $("makeBtn").addEventListener("click", async () => {
   if (!audioBuf || !analyzed || running) return;
-  if (!applyCueSheet()) return; // pending cue edits: apply or abort on error
 
   const sink = await openSink(); // needs the user gesture
   if (!sink) return;
