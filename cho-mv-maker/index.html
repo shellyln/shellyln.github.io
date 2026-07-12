@@ -8,6 +8,9 @@
   body { font-family: system-ui, sans-serif; margin: 0; background: #1a1a22; color: #eee; }
   main { max-width: 720px; margin: 0 auto; padding: 16px; }
   div.description { border:1px solid #444; border-radius:8px; padding:8px 12px; margin-bottom:12px; }
+  a { color: #9cf; }
+  .masthead { display: flex; align-items: center; gap: 14px; }
+  .masthead img { display: block; }
   h1 { font-size: 1.2rem; }
   fieldset { border: 1px solid #444; border-radius: 8px; margin-bottom: 12px; }
   legend { padding: 0 6px; color: #aac; }
@@ -16,7 +19,39 @@
   button { padding: 6px 14px; margin-right: 8px; border-radius: 6px; border: 1px solid #668;
            background: #2c2c3a; color: #eee; cursor: pointer; }
   button:disabled { opacity: 0.4; cursor: default; }
-  button[data-clear] { padding: 2px 10px; margin-left: 6px; }
+  button[data-clearall] { padding: 6px 12px; margin: 0; font-size: 0.9rem; }
+  .asset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+  .asset-cap { flex: 1 1 100%; }
+  label.file-btn { display: inline-block; margin: 0; padding: 6px 12px; border-radius: 6px;
+                   border: 1px solid #668; background: #2c2c3a; color: #eee; cursor: pointer;
+                   font-size: 0.9rem; line-height: normal; }
+  label.file-btn:hover { background: #363648; }
+  label.file-btn.busy { opacity: 0.4; cursor: default; }
+  label.file-btn input[type="file"] { display: none; }
+  .asset-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+  .asset-grid:empty { display: none; }
+  .asset-empty { font-size: 0.8rem; color: #778; margin: 2px 0 10px; }
+  .asset-card { position: relative; width: 104px; box-sizing: border-box;
+                border: 1px solid #556; border-radius: 6px; background: #20202a;
+                padding: 4px; }
+  .asset-card .thumb { width: 100%; height: 66px; object-fit: contain; display: block;
+                       background: #111118; border-radius: 4px; box-sizing: border-box; }
+  .asset-card .thumb.thumb-text { display: flex; align-items: center; justify-content: center;
+                       text-align: center; padding: 4px; font-size: 0.68rem; color: #bbc;
+                       overflow: hidden; word-break: break-all; }
+  .asset-card .badge { position: absolute; top: 6px; left: 6px; min-width: 1.2em;
+                       text-align: center; font-size: 0.7rem; line-height: 1.4;
+                       background: rgba(0,0,0,0.7); color: #fff; border-radius: 3px;
+                       padding: 0 3px; }
+  .asset-card .name { font-size: 0.68rem; color: #bbc; margin-top: 3px;
+                      max-height: 2.5em; overflow: hidden; word-break: break-all; }
+  .asset-card .ops { display: flex; gap: 3px; margin-top: 3px; }
+  .asset-card .ops button { flex: 1; padding: 1px 0; margin: 0; font-size: 0.85rem; }
+  .asset-card.pending { border-color: #886; }
+  .asset-card.pending .thumb { opacity: 0.35; }
+  .asset-card .busy { position: absolute; top: 4px; left: 4px; right: 4px; height: 66px;
+                      display: flex; align-items: center; justify-content: center;
+                      font-size: 0.75rem; color: #fd8; pointer-events: none; }
   canvas { width: 100%; background: #000; border-radius: 8px; }
   textarea { width: 100%; box-sizing: border-box; background: #111118; color: #eee;
              border: 1px solid #444; border-radius: 6px; padding: 6px 8px;
@@ -43,21 +78,53 @@
 </head>
 <body>
 <main>
-  <h1>超ＭＶメーカー！</h1>
+  <div class="masthead">
+    <img src="logo.svg" alt="" width="107" height="56">
+    <h1>超ＭＶメーカー！</h1>
+  </div>
 
   <div class="description">
     「歌ってみた」等の動画ファイル(青/緑バック)または音楽ファイルからMV(ミュージックビデオ)を自動生成します。<br>
-    全てブラウザ内で処理します。サーバーへの送信は一切ありません。
+    全てブラウザ内で処理します。サーバーへの送信は一切ありません。<br>
+    使い方は<a href="https://github.com/shellyln/cho-mv-maker-help" target="_blank" rel="noopener">ユーザーガイド</a>を、
+    不具合の報告・要望は<a href="https://github.com/shellyln/cho-mv-maker-help/issues" target="_blank" rel="noopener">Issue</a>をご利用ください。
   </div>
 
   <fieldset>
     <legend>素材 (②〜⑥はレイヤー順: 下→上)</legend>
-    <label>① 音楽ファイル (mp3等): <input type="file" id="audioFile" accept="audio/*"><button type="button" data-clear="audioFile">クリア</button></label>
-    <label>② 背景画像 (PNG/JPEG/WebP等, 0〜複数): <input type="file" id="bgFiles" accept="image/*" multiple><button type="button" data-clear="bgFiles">クリア</button></label>
-    <label>③ 前景キャラ画像 (透過PNG/WebP等, 0〜複数): <input type="file" id="fgFiles" accept="image/*" multiple><button type="button" data-clear="fgFiles">クリア</button></label>
-    <label>④ 前景オーバーレイ動画 (青/緑バック, 0〜複数): <input type="file" id="ovFiles" accept="video/mp4,video/webm" multiple><button type="button" data-clear="ovFiles">クリア</button></label>
-    <label>⑤ 演者動画 (青/緑バック・音声入り, 0〜1本): <input type="file" id="perfFile" accept="video/mp4,video/webm"><button type="button" data-clear="perfFile">クリア</button></label>
-    <label>⑥ MVロゴ画像 (透過PNG/WebP等, 1枚): <input type="file" id="logoFile" accept="image/*"><button type="button" data-clear="logoFile">クリア</button></label>
+    <div class="asset-row">
+      <span class="asset-cap">① 音楽ファイル (mp3等):</span>
+      <label class="file-btn">選択<input type="file" id="audioFile" accept="audio/*"></label>
+    </div>
+    <div class="asset-grid" id="audioGrid"></div>
+    <div class="asset-row">
+      <span class="asset-cap">② 背景画像 (PNG/JPEG/WebP等, 0〜複数):</span>
+      <label class="file-btn">＋ 追加<input type="file" id="bgFiles" accept="image/*" multiple></label>
+      <button type="button" data-clearall="bg">全クリア</button>
+    </div>
+    <div class="asset-grid" id="bgGrid"></div>
+    <div class="asset-row">
+      <span class="asset-cap">③ 前景キャラ画像 (透過PNG/WebP等, 0〜複数):</span>
+      <label class="file-btn">＋ 追加<input type="file" id="fgFiles" accept="image/*" multiple></label>
+      <button type="button" data-clearall="fg">全クリア</button>
+    </div>
+    <div class="asset-grid" id="fgGrid"></div>
+    <div class="asset-row">
+      <span class="asset-cap">④ 前景オーバーレイ動画 (青/緑バック, 0〜複数):</span>
+      <label class="file-btn">＋ 追加<input type="file" id="ovFiles" accept="video/mp4,video/webm" multiple></label>
+      <button type="button" data-clearall="ov">全クリア</button>
+    </div>
+    <div class="asset-grid" id="ovGrid"></div>
+    <div class="asset-row">
+      <span class="asset-cap">⑤ 演者動画 (青/緑バック・音声入り, 0〜1本):</span>
+      <label class="file-btn">選択<input type="file" id="perfFile" accept="video/mp4,video/webm"></label>
+    </div>
+    <div class="asset-grid" id="perfGrid"></div>
+    <div class="asset-row">
+      <span class="asset-cap">⑥ MVロゴ画像 (透過PNG/WebP等, 1枚):</span>
+      <label class="file-btn">選択<input type="file" id="logoFile" accept="image/*"></label>
+    </div>
+    <div class="asset-grid" id="logoGrid"></div>
     <small>※①音楽ファイルと⑤演者動画のどちらか一方を必ず選択してください(両方の同時指定はエラーになります)</small>
   </fieldset>
 

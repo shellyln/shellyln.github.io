@@ -103,23 +103,189 @@ $("resSel").addEventListener("change", applyResolution);
 // gets extracted, so re-load the selected videos when it changes.
 $("ovSync").addEventListener("change", () => {
   applyOvOpts();
-  reloadOverlays();
+  rekeyOverlays();
 });
 
-// ---- clear buttons: empty the file input and rerun its handler ----
-for (const b of document.querySelectorAll("button[data-clear]")) {
-  b.addEventListener("click", () => {
-    const el = $(b.dataset.clear);
-    el.value = "";
-    el.dispatchEvent(new Event("change"));
-  });
+// ---- single-file assets (① audio / ⑤ performer / ⑥ logo) ----
+// These keep the native input as the source of truth (analysis and keying
+// read input.files directly), so rather than the add/remove/move model
+// they mirror the current selection as a one-item grid card. ⑥ has a real
+// image thumbnail; ① and ⑤ have none, so the card shows the filename in
+// the thumbnail area (same idea as ④'s "抽出中…" card).
+// Per-kind thumbnail (data URL). ⑥ logo is the decoded image; ① audio is
+// its embedded cover art if present. ⑤ performer keeps none (filename).
+const singleThumbs = { audio: "", perf: "", logo: "" };
+const singleCfg = {
+  audio: { input: "audioFile", grid: "audioGrid" },
+  perf: { input: "perfFile", grid: "perfGrid" },
+  logo: { input: "logoFile", grid: "logoGrid" },
+};
+
+function renderSingle(kind) {
+  const cfg = singleCfg[kind];
+  const grid = $(cfg.grid);
+  grid.textContent = "";
+  const file = $(cfg.input).files[0];
+  if (!file) {
+    const p = document.createElement("div");
+    p.className = "asset-empty";
+    p.textContent = "(未選択)";
+    grid.appendChild(p);
+    return;
+  }
+  const card = document.createElement("div");
+  card.className = "asset-card";
+
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = "1";
+  card.appendChild(badge);
+
+  const thumb = singleThumbs[kind];
+  if (thumb) {
+    const img = document.createElement("img");
+    img.className = "thumb";
+    img.src = thumb;
+    img.alt = file.name;
+    card.appendChild(img);
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = file.name;
+    name.title = file.name;
+    card.appendChild(name);
+  } else {
+    const t = document.createElement("div"); // no thumbnail: name fills it
+    t.className = "thumb thumb-text";
+    t.textContent = file.name;
+    t.title = file.name;
+    card.appendChild(t);
+  }
+
+  const ops = document.createElement("div");
+  ops.className = "ops";
+  ops.appendChild(gridBtn("↑", "前へ", true, () => {})); // single item: no reorder
+  ops.appendChild(gridBtn("↓", "後へ", true, () => {}));
+  ops.appendChild(gridBtn("✕", "削除", false, () => clearSingle(kind)));
+  card.appendChild(ops);
+
+  grid.appendChild(card);
 }
 
-// ---- images ----
+// clearSingle empties the input and reruns its change handler, which also
+// re-renders the card (and, for the logo, resets the thumbnail).
+function clearSingle(kind) {
+  const el = $(singleCfg[kind].input);
+  el.value = "";
+  el.dispatchEvent(new Event("change"));
+}
+
+// ① audio: paint the filename card at once, then upgrade to the embedded
+// cover art (ID3v2 APIC) if the file carries one. The file-identity guard
+// drops a slow result once the user has picked something else.
+$("audioFile").addEventListener("change", async () => {
+  singleThumbs.audio = "";
+  renderSingle("audio");
+  const f = $("audioFile").files[0];
+  if (!f) return;
+  const art = await audioArtThumb(f);
+  if (art && $("audioFile").files[0] === f) {
+    singleThumbs.audio = art;
+    renderSingle("audio");
+  }
+});
+// ⑤ performer only needs the filename, available synchronously on change;
+// ⑥ logo is repainted from inside loadImages once its thumbnail is ready
+// (loadImages is async, so a separate listener would race it).
+$("perfFile").addEventListener("change", () => renderSingle("perf"));
+for (const kind of Object.keys(singleCfg)) renderSingle(kind);
+
+// audioArtThumb returns a thumbnail data URL of the embedded cover art in
+// an ID3v2 tag (APIC / v2.2 PIC), or "" when there is none / on any parse
+// failure. Best-effort: unsynchronised tags may fail and fall back cleanly.
+async function audioArtThumb(file) {
+  try {
+    const head = new Uint8Array(await file.slice(0, 10).arrayBuffer());
+    if (!(head[0] === 0x49 && head[1] === 0x44 && head[2] === 0x33)) return ""; // "ID3"
+    const ver = head[3];
+    const synch = (a, i) => (a[i] << 21) | (a[i + 1] << 14) | (a[i + 2] << 7) | a[i + 3];
+    const tagSize = synch(head, 6);
+    const buf = new Uint8Array(await file.slice(0, 10 + tagSize).arrayBuffer());
+    let o = 10;
+    if ((ver === 3 || ver === 4) && (head[5] & 0x40)) { // skip extended header
+      o += ver === 4 ? synch(buf, o) : ((buf[o] << 24) | (buf[o + 1] << 16) | (buf[o + 2] << 8) | buf[o + 3]) + 4;
+    }
+    const hdrLen = ver === 2 ? 6 : 10;
+    while (o + hdrLen <= buf.length) {
+      let id, size;
+      if (ver === 2) {
+        id = String.fromCharCode(buf[o], buf[o + 1], buf[o + 2]);
+        size = (buf[o + 3] << 16) | (buf[o + 4] << 8) | buf[o + 5];
+      } else {
+        id = String.fromCharCode(buf[o], buf[o + 1], buf[o + 2], buf[o + 3]);
+        size = ver === 4 ? synch(buf, o + 4)
+          : ((buf[o + 4] << 24) | (buf[o + 5] << 16) | (buf[o + 6] << 8) | buf[o + 7]) >>> 0;
+      }
+      if (size <= 0 || id.charCodeAt(0) === 0) break; // padding / end of frames
+      const start = o + hdrLen, end = start + size;
+      if (end > buf.length) break;
+      if (id === "APIC" || id === "PIC") {
+        const art = parsePicFrame(buf.subarray(start, end), id);
+        if (art) return await blobToThumb(art.mime, art.data);
+      }
+      o = end;
+    }
+  } catch { /* fall through to filename */ }
+  return "";
+}
+
+// parsePicFrame pulls the MIME type and image bytes out of an APIC/PIC
+// frame body, skipping the encoding byte, MIME/format, picture type and
+// the encoding-dependent description terminator.
+function parsePicFrame(f, id) {
+  let p = 0;
+  const enc = f[p++];
+  let mime;
+  if (id === "PIC") { // v2.2: 3-char format code (e.g. "JPG"/"PNG")
+    const fmt = String.fromCharCode(f[p], f[p + 1], f[p + 2]).toUpperCase();
+    p += 3;
+    mime = fmt === "PNG" ? "image/png" : "image/jpeg";
+  } else { // v2.3/2.4: null-terminated latin1 MIME string
+    const s = p;
+    while (p < f.length && f[p] !== 0) p++;
+    mime = String.fromCharCode(...f.subarray(s, p)) || "image/jpeg";
+    p++;
+  }
+  p++; // picture type byte
+  if (enc === 1 || enc === 2) { // UTF-16 description: 0x00 0x00 terminator
+    while (p + 1 < f.length && !(f[p] === 0 && f[p + 1] === 0)) p += 2;
+    p += 2;
+  } else { // latin1 / UTF-8 description: single 0x00 terminator
+    while (p < f.length && f[p] !== 0) p++;
+    p++;
+  }
+  const data = f.subarray(p);
+  return data.length ? { mime, data } : null;
+}
+
+// blobToThumb decodes raw image bytes and returns a downscaled data URL.
+async function blobToThumb(mime, data) {
+  try {
+    const bmp = await createImageBitmap(new Blob([data], { type: mime }));
+    const t = makeThumb(bmp, bmp.width, bmp.height);
+    bmp.close();
+    return t;
+  } catch {
+    return "";
+  }
+}
+
+// ---- logo image (single) ----
 // The browser decodes first (createImageBitmap supports WebP, AVIF and
 // anything else it can display); Go's PNG/JPEG decoder is the fallback.
 async function loadImages(kind, files) {
   goClearImages(kind);
+  if (kind === "logo") singleThumbs.logo = "";
+  let failMsg = "";
   for (const f of files) {
     let err;
     try {
@@ -129,25 +295,226 @@ async function loadImages(kind, files) {
       cnv.height = bmp.height;
       const c2 = cnv.getContext("2d");
       c2.drawImage(bmp, 0, 0);
+      const thumb = kind === "logo" ? makeThumb(bmp, bmp.width, bmp.height) : "";
       bmp.close();
       const d = c2.getImageData(0, 0, cnv.width, cnv.height);
       err = goAddImageRaw(kind, cnv.width, cnv.height, new Uint8Array(d.data.buffer));
+      if (!err && kind === "logo") singleThumbs.logo = thumb;
     } catch {
       err = goAddImage(kind, new Uint8Array(await f.arrayBuffer()));
     }
-    if (err) { setStatus(`${f.name}: 読み込み失敗 (${err})`); return; }
+    if (err) { failMsg = `${f.name}: 読み込み失敗 (${err})`; break; }
   }
   const names = { bg: "背景", fg: "前景", logo: "ロゴ" };
-  if (files.length) {
+  if (failMsg) {
+    // Go rejected the file; empty the input too so the card doesn't
+    // claim a selection Go doesn't hold.
+    if (kind === "logo") $("logoFile").value = "";
+    setStatus(failMsg);
+  } else if (files.length) {
     setStatus(`${names[kind]}画像 ${files.length} 枚を登録しました。 [${goDebugState()}]`);
   } else {
     setStatus(`${names[kind]}画像をクリアしました。`);
   }
+  if (kind === "logo") renderSingle("logo");
   previewFrame();
 }
-$("bgFiles").addEventListener("change", (e) => loadImages("bg", e.target.files));
-$("fgFiles").addEventListener("change", (e) => loadImages("fg", e.target.files));
 $("logoFile").addEventListener("change", (e) => loadImages("logo", e.target.files));
+
+// ---- asset grids (② bg / ③ fg images, ④ overlay videos) ----
+// The <input type="file"> is now an "add" trigger only; the picked files
+// are appended to our own per-kind list, which is the source of truth for
+// the grid and mirrors the order Go holds. FileList is immutable, so we
+// cannot reorder or drop items there — we keep File objects ourselves and
+// drive Go via its add / remove / move bridges instead.
+const assets = { bg: [], fg: [], ov: [] };
+let assetSeq = 0;
+let ovAdding = null; // name of the overlay currently being extracted (add)
+const assetName = { bg: "背景画像", fg: "前景キャラ画像", ov: "オーバーレイ動画" };
+
+// makeThumb renders a small data-URL preview from a source drawable
+// (ImageBitmap or canvas). PNG keeps alpha so transparent characters read
+// against the dark card background.
+function makeThumb(src, sw, sh, maxW = 200, maxH = 132) {
+  const s = Math.min(1, maxW / sw, maxH / sh) || 1;
+  const w = Math.max(1, Math.round(sw * s));
+  const h = Math.max(1, Math.round(sh * s));
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  c.getContext("2d").drawImage(src, 0, 0, w, h);
+  return c.toDataURL("image/png");
+}
+
+function renderGrid(kind) {
+  const grid = $(kind + "Grid");
+  grid.textContent = "";
+  const list = assets[kind];
+  // A newly picked overlay shows a transient "(抽出中…)" card at its
+  // eventual position while its frames are being extracted.
+  const cards = list.slice();
+  if (kind === "ov" && ovAdding) cards.push({ name: ovAdding, pending: true });
+  if (!cards.length) {
+    const p = document.createElement("div");
+    p.className = "asset-empty";
+    p.textContent = "(未選択)";
+    grid.appendChild(p);
+    return;
+  }
+  // While overlays are (re)extracting, mutating the list would desync the
+  // Go state that is being rebuilt, so lock the reorder/delete controls.
+  const busy = kind === "ov" && ovLoading;
+  cards.forEach((entry, i) => {
+    const pending = entry.pending;
+    const card = document.createElement("div");
+    card.className = pending ? "asset-card pending" : "asset-card";
+
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = i + 1;
+    card.appendChild(badge);
+
+    if (entry.thumb) { // rekey keeps the old preview
+      const img = document.createElement("img");
+      img.className = "thumb";
+      img.src = entry.thumb;
+      img.alt = entry.name;
+      card.appendChild(img);
+    } else {
+      // No preview (Go-side decode fallback, or a fresh extraction):
+      // fill the box with the filename unless the busy overlay will.
+      const t = document.createElement("div");
+      t.className = pending ? "thumb" : "thumb thumb-text";
+      if (!pending) {
+        t.textContent = entry.name;
+        t.title = entry.name;
+      }
+      card.appendChild(t);
+    }
+
+    if (pending) {
+      const b = document.createElement("div");
+      b.className = "busy";
+      b.textContent = "抽出中…";
+      card.appendChild(b);
+    }
+
+    if (entry.thumb || pending) { // thumb-text cards already show the name
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = entry.name;
+      name.title = entry.name;
+      card.appendChild(name);
+    }
+
+    const ops = document.createElement("div");
+    ops.className = "ops";
+    const lock = busy || pending;
+    ops.appendChild(gridBtn("↑", "前へ", lock || i === 0, () => moveAsset(kind, i, i - 1)));
+    ops.appendChild(gridBtn("↓", "後へ", lock || i === list.length - 1, () => moveAsset(kind, i, i + 1)));
+    ops.appendChild(gridBtn("✕", "削除", lock, () => removeAsset(kind, i)));
+    card.appendChild(ops);
+
+    grid.appendChild(card);
+  });
+}
+
+function gridBtn(label, title, disabled, onclick) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = label;
+  b.title = title;
+  b.disabled = disabled;
+  b.addEventListener("click", onclick);
+  return b;
+}
+
+// afterAssetChange refreshes the status line and preview once a grid's
+// contents (and the matching Go state) have changed. A non-empty errMsg
+// takes the status line instead of the usual summary, so a load failure
+// stays visible.
+function afterAssetChange(kind, errMsg) {
+  if (errMsg) {
+    setStatus(errMsg);
+  } else {
+    const n = assets[kind].length;
+    const info = kind === "ov" ? goOverlayInfo() : goDebugState();
+    setStatus(n
+      ? `${assetName[kind]}: ${n} 件登録済み。 [${info}]`
+      : `${assetName[kind]}をクリアしました。`);
+  }
+  previewFrame();
+}
+
+function moveAsset(kind, from, to) {
+  const list = assets[kind];
+  if (to < 0 || to >= list.length) return;
+  if (kind === "ov") goMoveOverlay(from, to);
+  else goMoveImage(kind, from, to);
+  const [e] = list.splice(from, 1);
+  list.splice(to, 0, e);
+  renderGrid(kind);
+  afterAssetChange(kind);
+}
+
+function removeAsset(kind, idx) {
+  if (kind === "ov") goRemoveOverlay(idx);
+  else goRemoveImage(kind, idx);
+  assets[kind].splice(idx, 1);
+  renderGrid(kind);
+  afterAssetChange(kind);
+}
+
+function clearAssets(kind) {
+  if (kind === "ov" && ovLoading) return; // extraction in flight: ignore
+  if (!assets[kind].length) return;
+  if (kind === "ov") goClearOverlays();
+  else goClearImages(kind);
+  assets[kind] = [];
+  renderGrid(kind);
+  afterAssetChange(kind);
+}
+
+// ---- images (② bg / ③ fg): append to Go and to the grid ----
+async function addImages(kind, files) {
+  if (!wasmReady) return;
+  let failMsg = "";
+  for (const f of files) {
+    let err, thumb = "";
+    try {
+      const bmp = await createImageBitmap(f);
+      const cnv = document.createElement("canvas");
+      cnv.width = bmp.width;
+      cnv.height = bmp.height;
+      const c2 = cnv.getContext("2d");
+      c2.drawImage(bmp, 0, 0);
+      const d = c2.getImageData(0, 0, cnv.width, cnv.height);
+      err = goAddImageRaw(kind, cnv.width, cnv.height, new Uint8Array(d.data.buffer));
+      if (!err) thumb = makeThumb(bmp, bmp.width, bmp.height);
+      bmp.close();
+    } catch {
+      err = goAddImage(kind, new Uint8Array(await f.arrayBuffer()));
+    }
+    if (err) { failMsg = `${f.name}: 読み込み失敗 (${err})`; break; }
+    assets[kind].push({ id: ++assetSeq, file: f, name: f.name, thumb });
+  }
+  renderGrid(kind);
+  afterAssetChange(kind, failMsg);
+}
+
+for (const kind of ["bg", "fg"]) {
+  $(kind + "Files").addEventListener("change", async (e) => {
+    const files = [...e.target.files];
+    e.target.value = ""; // let the same file be re-picked; input is not the model
+    if (files.length) await addImages(kind, files);
+  });
+  renderGrid(kind); // paint the "(未選択)" placeholder up front
+}
+
+// ---- clear-all buttons for the grid asset kinds ----
+for (const b of document.querySelectorAll("button[data-clearall]")) {
+  b.addEventListener("click", () => clearAssets(b.dataset.clearall));
+}
 
 // ---- MV logo options ----
 function applyLogoOpts() {
@@ -193,7 +560,7 @@ async function extractOverlay(file) {
     c2.imageSmoothingEnabled = true;
     c2.imageSmoothingQuality = "high";
     goAddOverlayBegin(w, h, OV_FPS, v.videoWidth, v.videoHeight);
-    let n = 0;
+    let n = 0, thumb = "";
     for (let tt = 0; tt < dur; tt += 1 / OV_FPS) {
       await new Promise((res, rej) => {
         const timer = setTimeout(
@@ -203,6 +570,7 @@ async function extractOverlay(file) {
         v.currentTime = Math.min(tt + 0.0001, dur);
       });
       c2.drawImage(v, 0, 0, w, h);
+      if (n === 0) thumb = makeThumb(cnv, w, h); // first frame → grid preview
       const d = c2.getImageData(0, 0, w, h);
       const err = goAddOverlayFrame(new Uint8Array(d.data.buffer));
       if (err) throw new Error(err);
@@ -211,6 +579,7 @@ async function extractOverlay(file) {
       }
     }
     goAddOverlayEnd();
+    return thumb;
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -218,32 +587,91 @@ async function extractOverlay(file) {
 
 let ovLoading = false;
 
-async function reloadOverlays() {
+// setOvBusy locks the overlay add input and its 全クリア button while
+// extraction runs (per-card ↑↓✕ are locked in renderGrid via ovLoading).
+function setOvBusy(busy) {
+  const inp = $("ovFiles");
+  inp.disabled = busy; // a disabled input won't open the picker via its label
+  inp.closest("label.file-btn")?.classList.toggle("busy", busy);
+  const clr = document.querySelector('button[data-clearall="ov"]');
+  if (clr) clr.disabled = busy;
+}
+
+// addOverlays extracts + keys each newly picked video and appends it to
+// the grid (and to Go, in the same order).
+async function addOverlays(files) {
   if (!wasmReady || ovLoading) return;
-  const files = $("ovFiles").files;
   ovLoading = true;
+  setOvBusy(true);
+  let failMsg = "";
   try {
-    goClearOverlays();
     for (const f of files) {
+      ovAdding = f.name;
+      renderGrid("ov"); // show the "(抽出中…)" card for this file
+      let thumb;
       try {
-        await extractOverlay(f);
+        thumb = await extractOverlay(f);
       } catch (err) {
-        setStatus(`${f.name}: 読み込み失敗 (${err.message || err})`);
-        return;
+        failMsg = `${f.name}: 読み込み失敗 (${err.message || err})`;
+        break;
       }
+      assets.ov.push({ id: ++assetSeq, file: f, name: f.name, thumb });
+      ovAdding = null;
+      renderGrid("ov"); // reveal the finished clip right away
     }
-    if (files.length) {
-      setStatus(`オーバーレイ動画 ${files.length} 本を登録しました。 [${goOverlayInfo()}]`);
-    } else {
-      setStatus("オーバーレイ動画をクリアしました。");
-    }
-    previewFrame();
   } finally {
+    ovAdding = null;
     ovLoading = false;
+    setOvBusy(false);
+    renderGrid("ov");
+    afterAssetChange("ov", failMsg);
   }
 }
 
-$("ovFiles").addEventListener("change", reloadOverlays);
+// rekeyOverlays re-extracts every stored clip from scratch. Keying and
+// the extraction length are fixed at ingest, so a change to the key or
+// sync settings needs the source re-read — hence this is the one slow
+// path (reordering and deletion never re-extract; they use Go's moves).
+async function rekeyOverlays() {
+  if (!wasmReady || ovLoading || !assets.ov.length) return;
+  ovLoading = true;
+  setOvBusy(true);
+  let failMsg = "";
+  try {
+    goClearOverlays();
+    let done = 0;
+    for (const entry of assets.ov) {
+      entry.pending = true;
+      renderGrid("ov"); // mark this clip "(抽出中…)"
+      try {
+        entry.thumb = await extractOverlay(entry.file);
+      } catch (err) {
+        failMsg = `${entry.name}: 再読み込み失敗 (${err.message || err}) — このクリップ以降を一覧から削除しました。`;
+        // Go was rebuilt from scratch and now holds only the clips
+        // re-extracted so far; trim the grid to match or every later
+        // move/delete would address the wrong clip.
+        assets.ov = assets.ov.slice(0, done);
+        break;
+      }
+      entry.pending = false;
+      done++;
+      renderGrid("ov");
+    }
+  } finally {
+    for (const e of assets.ov) delete e.pending;
+    ovLoading = false;
+    setOvBusy(false);
+    renderGrid("ov");
+    afterAssetChange("ov", failMsg);
+  }
+}
+
+$("ovFiles").addEventListener("change", async (e) => {
+  const files = [...e.target.files];
+  e.target.value = ""; // let the same file be re-picked; input is not the model
+  if (files.length) await addOverlays(files);
+});
+renderGrid("ov"); // paint the "(未選択)" placeholder up front
 
 // Key options apply at ingest, so changing them re-keys by re-loading
 // the currently selected videos.
@@ -254,7 +682,7 @@ function applyKeyOpts() {
     parseInt($("ovKeyLo").value, 10) || 0,
     parseInt($("ovKeyHi").value, 10) || 1,
   );
-  reloadOverlays();
+  rekeyOverlays();
 }
 for (const id of ["ovPatch", "ovKeyLo", "ovKeyHi"]) {
   $(id).addEventListener("change", applyKeyOpts);
