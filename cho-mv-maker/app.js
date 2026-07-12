@@ -7,6 +7,7 @@ addEventListener("go-ready", () => {
   wasmReady = true;
   setStatus("WASM 準備完了。素材と音楽ファイルを指定してください。");
   applySeed();
+  applyBgOpts();
   applyFgOpts();
   applyOvOpts();
   applyLogoOpts();
@@ -82,6 +83,14 @@ $("seedNow").addEventListener("click", () => {
   $("seed").value = Date.now() % 2147483647;
   applySeed();
 });
+
+// ---- background options ----
+function applyBgOpts() {
+  if (!wasmReady) return;
+  goSetBgOpts($("bgFx").checked);
+  previewFrame();
+}
+$("bgFx").addEventListener("change", applyBgOpts);
 
 // ---- foreground cast options ----
 function applyFgOpts() {
