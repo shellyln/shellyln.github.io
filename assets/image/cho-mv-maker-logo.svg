@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 54.9 512 267.1">
+  <!--
+    超ＭＶメーカー！ logo
+  -->
+  <rect x="0" y="54.9" width="512" height="267.1" fill="#fff"/>
+  <defs>
+    <mask id="playcut" maskUnits="userSpaceOnUse" x="196" y="100" width="120" height="160">
+      <rect x="196" y="100" width="120" height="160" fill="#fff"/>
+      <path d="M240 154 L240 206 L286 180 Z" fill="#000" stroke="#000" stroke-width="16" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g fill="#000">
+    <!-- bamboo leaves -->
+    <path d="M298 108 Q378 58 440 66 Q372 118 304 128 Z"/>
+    <path d="M214 104 Q154 64 102 72 Q158 110 212 120 Z"/>
+    <!-- culm above the node, play mark knocked out -->
+    <rect x="208" y="110" width="96" height="140" rx="6" mask="url(#playcut)"/>
+    <!-- node band and the culm below it, straight-cut like the first draft -->
+    <rect x="198" y="254" width="116" height="16" rx="8"/>
+    <rect x="208" y="274" width="96" height="38" rx="6"/>
+    <!-- trailing clouds, straight-cut at the left edge; bottom aligned
+         with the culm's bottom edge; bands bridged with filleted necks -->
+    <path d="M0 190 H100 a17 17 0 0 1 0 34 H0 Z"/>
+    <path d="M0 234 H172 a17 17 0 0 1 0 34 H0 Z"/>
+    <path d="M0 278 H128 a17 17 0 0 1 0 34 H0 Z"/>
+    <path d="M16 223 C26 223 26 235 16 235 L82 235 C72 235 72 223 82 223 Z"/>
+    <path d="M54 267 C64 267 64 279 54 279 L120 279 C110 279 110 267 120 267 Z"/>
+    <!-- trailing clouds, straight-cut at the right edge, bands bridged
+         with filleted necks (the lower neck stays straight at the edge) -->
+    <path d="M512 148 H400 a17 17 0 0 0 0 34 H512 Z"/>
+    <path d="M512 192 H352 a17 17 0 0 0 0 34 H512 Z"/>
+    <path d="M512 236 H408 a17 17 0 0 0 0 34 H512 Z"/>
+    <path d="M434 181 C444 181 444 193 434 193 L498 193 C488 193 488 181 498 181 Z"/>
+    <path d="M460 225 C470 225 470 237 460 237 L512 237 L512 225 Z"/>
+  </g>
+</svg>
